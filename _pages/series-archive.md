@@ -1,6 +1,6 @@
 ---
 title: "Posts by Series"
-layout: Series
+layout: series
 permalink: /series/
 author_profile: true
 ---
