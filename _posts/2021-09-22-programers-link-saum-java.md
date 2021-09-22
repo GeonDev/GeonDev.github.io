@@ -9,6 +9,7 @@ tags:
 ---
 
 > [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42861)
+>
 > [크루스칼 알고리즘](https://m.blog.naver.com/PostView.nhn?blogId=ndb796&logNo=221230994142&proxyReferer=https:%2F%2Fwww.google.com%2F) 
 
 
