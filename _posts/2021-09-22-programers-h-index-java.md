@@ -1,15 +1,14 @@
 ---
 title:  "프로그래머스 H-index (JAVA)"
 categories:
-  - Edge Case
+  - Algorithm
 tags:
   - Java
   - Programers
   - Algorithm
 ---
 
-> 프로그래머스 링크
->  https://programmers.co.kr/learn/courses/30/lessons/42747
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42747)
 
 문제 자체는 간단하다. 작성한 논문보다 인용된 개수가 많은 경계를 구하면 된다.
 처음에는 '논문 인용수 <= 논문 개수' 가 되는 점을 구하면 된다고 생각했는데

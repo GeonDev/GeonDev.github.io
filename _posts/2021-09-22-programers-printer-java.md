@@ -1,15 +1,14 @@
 ---
 title:  "프로그래머스 프린터(JAVA)"
 categories:
-  - Edge Case
+  - Algorithm
 tags:
   - Java
   - Programers
   - Algorithm
 ---
 
-> 프로그래머스 링크
-> https://programmers.co.kr/learn/courses/30/lessons/42587
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42587)
 
 큐를 이용해서 푸는 것이 가장 좋은 방법이겠지만
 우선순위 큐를 비교하는 과정에서 조건이 복잡하다고 생각했다.

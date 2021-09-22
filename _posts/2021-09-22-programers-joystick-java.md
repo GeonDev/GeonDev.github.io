@@ -1,15 +1,14 @@
 ---
 title:  "프로그래머스 조이스틱(JAVA)"
 categories:
-  - Edge Case
+  - Algorithm
 tags:
   - Java
   - Programers
   - Algorithm
 ---
 
-> 프로그래머스 링크
-> https://programmers.co.kr/learn/courses/30/lessons/42860
+>[프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42860)
 
 대부분의 코딩테스트 문제가 친절하지 않지만 개인적으로 이번 문제는 특히 친절하지 않다고 생각한다.
 이 문제는 탐욕법을 이용하여 해결하는데 문제에는 설명이 없지만
