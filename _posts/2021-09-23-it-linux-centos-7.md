@@ -12,7 +12,7 @@ tags:
 
 
 
-![centos](/assets/images/Centos-logo-light.svg)
+![centos](/assets/images/linux/Centos-logo-light.svg)
 
 yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축하던 방식이다.
 최근에는 도커같은 유명한 시스템이 있지만 아주 가끔 인터넷이 연결되지 않는 환경도 있으니까
