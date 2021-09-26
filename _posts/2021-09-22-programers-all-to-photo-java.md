@@ -1,11 +1,14 @@
 ---
 title:  "프로그래머스 단체 사진(JAVA)"
+toc: true
+toc_sticky: true
 categories:
   - Algorithm
 tags:
   - Java
   - Programers
   - Algorithm
+
 ---
 
 > [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/1835) 

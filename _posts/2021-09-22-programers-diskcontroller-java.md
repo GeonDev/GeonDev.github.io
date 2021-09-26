@@ -1,5 +1,7 @@
 ---
 title:  "프로그래머스 디스크컨트롤러(JAVA)"
+toc: true
+toc_sticky: true
 categories:
   - Algorithm
 tags:

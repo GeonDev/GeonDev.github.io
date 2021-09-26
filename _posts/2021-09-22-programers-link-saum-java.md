@@ -1,5 +1,7 @@
 ---
 title:  "프로그래머스 섬 연결하기(JAVA)"
+toc: true
+toc_sticky: true
 categories:
   - Algorithm
 tags:

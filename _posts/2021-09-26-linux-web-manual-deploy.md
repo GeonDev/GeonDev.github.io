@@ -1,5 +1,7 @@
 ---
 title:  "Springboot WAR 수동 배포하기"
+toc: true
+toc_sticky: true
 categories:
   - Linux
 tags:

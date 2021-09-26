@@ -1,5 +1,7 @@
 ---
 title:  "프로그래머스 - 수식 최대화"
+toc: true
+toc_sticky: true
 categories:
   - Algorithm
 tags:

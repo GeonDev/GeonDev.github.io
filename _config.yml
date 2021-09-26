@@ -112,7 +112,7 @@ author:
       url: "mailto:geons.dev@gmail.com"
     - label: "Website"
       icon: "fas fa-fw fa-link"
-      url: "https://GeonDev.github.io"
+      #url: "https://GeonDev.github.io"
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
       # url: "https://twitter.com/"
@@ -282,7 +282,6 @@ defaults:
       type: posts
     values:
       layout: single
-      classes: wide
       author_profile: true
       read_time: true
       comments: # true

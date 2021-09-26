@@ -1,5 +1,7 @@
 ---
 title:  "CentOS 7 Oracle 11g xe 설치 및 환경설정"
+toc: true
+toc_sticky: true
 categories:
   - Linux
 tags:

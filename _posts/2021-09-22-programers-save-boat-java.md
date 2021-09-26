@@ -1,5 +1,7 @@
 ---
 title:  "프로그래머스 구명보트(JAVA)"
+toc: true
+toc_sticky: true
 categories:
   - Algorithm
 tags:

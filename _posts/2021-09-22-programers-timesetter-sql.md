@@ -1,5 +1,7 @@
 ---
 title:  "프로그래머스 입양 시각 구하기(2)"
+toc: true
+toc_sticky: true
 categories:
   - Algorithm
 tags:

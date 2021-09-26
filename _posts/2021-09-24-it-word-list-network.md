@@ -1,5 +1,7 @@
 ---
 title:  "시험이나 면접을 위한 IT 용어 정리"
+toc: true
+toc_sticky: true
 categories:
   - IT
 tags:
