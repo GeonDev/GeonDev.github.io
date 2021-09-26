@@ -1,7 +1,7 @@
 ---
 title:  "CentOS 7 JAVA TOMCAT 환경 구축"
 categories:
-  - IT
+  - Linux
 tags:
   - Java
   - Linux
