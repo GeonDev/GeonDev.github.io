@@ -17,7 +17,6 @@ pom.xml에서 war 파일 설정
 
 ```
 <packaging>war</packaging>
-
 ```
 pom.xml을 수정하였다면 Maven을 통해 빌드하거나 수동으로 프로젝트를 추출한다. 나같은 경우에는 메이븐을 사용하여 추출하지는 않았다.
 

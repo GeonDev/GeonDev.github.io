@@ -15,7 +15,8 @@ tags:
 | -------- | -------- | -------- |
 | DATA  |최대 11Gbyte |시스템 데이터 미포함 |
 | RAM |최대 1Gbyte     |     |
-- 기타 : 단일 인스턴스로 제한, 하나의 프로세서(CPU)에서 실행
+
+-  기타 : 단일 인스턴스로 제한, 하나의 프로세서(CPU)에서 실행
 
 
 # 2. 오라클 설치
@@ -68,7 +69,7 @@ tags:
 [root@localhost]# /sbin/sysctl -p
 
 
- 
+
 
 **4) 설치 경로에 파일 복사 및 파일 압축 해제 [oracle 권한]**
 
@@ -82,9 +83,9 @@ tags:
 
 - 설치 시작
 [root@localhost Disk1]# rpm –ivh oracle-xe-11.2.0-1.0.x86_64.rpm
+
  
- 
- 
+
 
 # 3. Oracle-xe 설정
 
