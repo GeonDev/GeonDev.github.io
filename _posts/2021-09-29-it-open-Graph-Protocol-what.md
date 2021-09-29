@@ -1,5 +1,5 @@
 ---
-title:  "오픈 그래프 프로코톨(Open Graph  Protocol ) 이 뭐지?"
+title:  "오픈 그래프 프로토콜(OpenGraphProtocol)이 뭐지?"
 toc: true
 toc_sticky: true
 categories:
