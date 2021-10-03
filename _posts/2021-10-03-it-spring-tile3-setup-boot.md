@@ -1,5 +1,5 @@
 ---
-title:  "Spring Tiles 3 + Spring boot 적용해보기"
+title:  "Spring Tiles3 + Spring boot 적용해보기"
 toc: true
 toc_sticky: true
 categories:
