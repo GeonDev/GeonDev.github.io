@@ -44,7 +44,7 @@ https://nowonbun.tistory.com/517
 ```
 
 
-![](\assets\images\it)
+![](\assets\images\it\Open_Graph_Protocol_7c694acc.png)
 예제로 제공된 코드를 보면 어떻게 작동되는지 좀더 명확하게 알수 있다.
 
 **og:title** 부분은 말 그대로 공유되는 제목이 들어가는 부분 
