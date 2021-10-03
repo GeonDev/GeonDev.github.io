@@ -34,6 +34,11 @@ https://nowonbun.tistory.com/517
 오픈 그래프 프로토콜의 설명을 들어가보면 정말 별 내용이 없다.
 그냥 헤더나 푸터 부분에 메타데이터를  넣으면 된다. &lt;meta&gt;는 웹페이지에서는 보이지 않기 때문에 어느 위치에 들어가도 사실 부담은 없다. 그렇지만 페이지 정리를 위해서 헤더 쪽에 넣은 것을 추천한다. 
 
+
+![](\assets\images\it\l_7c694acc.png)
+예제로 제공된 코드를 보면 어떻게 작동되는지 좀더 명확하게 알수 있다.
+(더락 이라는 영화를 소개하는 페이지 이다)
+
 ```
 <title>The Rock (1996)</title>
 <meta property="og:title" content="The Rock (1996) - IMDb" />
@@ -44,8 +49,6 @@ https://nowonbun.tistory.com/517
 ```
 
 
-![](\assets\images\it\Open_Graph_Protocol_7c694acc.png)
-예제로 제공된 코드를 보면 어떻게 작동되는지 좀더 명확하게 알수 있다.
 
 **og:title** 부분은 말 그대로 공유되는 제목이 들어가는 부분 
 **og:type**은 어떤 콘텐츠를 제공하는지 알려주는 부분 (없어도 크게 문제는 없어 보인다.)
