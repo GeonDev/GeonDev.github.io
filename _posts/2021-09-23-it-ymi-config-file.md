@@ -180,7 +180,7 @@ class ProptechApplicationTests {
 @Autowired를 사용하기 때문에 일반적으로 스프링이 관리하고 있는 클래스에는
 큰 무리없이 작동하게 될 것이다. 
 
-![centos](/assets/images/it/image-ymi-config-1.png)
+![centos](/assets/images/it/image-ymi-config-1.png){: .align-center}
 
 테스트를 수행하면 이런 식으로 결과가 나오게 된다. 
 

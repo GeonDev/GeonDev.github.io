@@ -25,7 +25,7 @@ ip뒤에 이름은 호스트 이름을 구분하기 위해서 일뿐 특별하�
 vi /etc/hosts
 ```
 
-![](/assets/images/linux/48f4067de5fe-image1.png)
+![](/assets/images/linux/48f4067de5fe-image1.png){: .align-center}
 
 
 # 2. SSH 키 설정
@@ -38,7 +38,7 @@ vi /etc/hosts
 ssh-keygen
 ```
 
-![](/assets/images/linux/48f4067de5fe-image2.png)
+![](/assets/images/linux/48f4067de5fe-image2.png){: .align-center}
 
 ssh-keygen는 ssh키를 설정하는 명령어로 공개키와 개인키를 만든다. 옵션으로 암호화 방법을 제공하는데 아무것도 입력하지 않으면 rsa로 암호화를 수행한다.
 
@@ -51,7 +51,7 @@ ssh-keygen는 ssh키를 설정하는 명령어로 공개키와 개인키를 만�
 ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@hadoop01
 ```
 
-![](/assets/images/linux/48f4067de5fe-image3.png)
+![](/assets/images/linux/48f4067de5fe-image3.png){: .align-center}
 
 SSH 인증을 위해서는 내가 접속하려는 서버에 공개키를 전달하여야 합니다.
 전달된 공개 키는 authorized_keys 파일에 전달받은 ssh 키를 입력해야 합니다. 
@@ -63,7 +63,7 @@ ssh-copy-id -i 명령어를 입력한 후 현재 접속을 유지할지 물어�
 접속하려는 계정의 비밀번호(내 비밀번호가 아니라 상대 계정의 비밀번호)를 입력하면 ssh 키가 전달 됩니다. 
 
 테스트를 위하여 ssh hadoop01 을 입력하면 비밀번호 없이 접속 가능합니다.
-![](/assets/images/linux/48f4067de5fe-image4.png)
+![](/assets/images/linux/48f4067de5fe-image4.png){: .align-center}
 
 # 4. 방화벽 중지
 
@@ -79,7 +79,7 @@ systemctl stop firewalld
 systemctl disable firewalld
 ```
 
-![](/assets/images/linux/48f4067de5fe-image5.png)
+![](/assets/images/linux/48f4067de5fe-image5.png){: .align-center}
 
 방화벽을 끄려면 root 계정 권한을 요구 하기 때문에 root 비밀번호를 입력합니다.
 방화벽을 끄지 않으면 ssh 인증 또는 hadoop 구동시에 연결이 되지 않는 경우가 발생하기 때문에 방화벽을 꺼서 hadoop 사용시 통신이 가능하도록 설정합니다. 

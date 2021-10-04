@@ -10,7 +10,7 @@ tags:
   - Spring
   - Tiles3
 ---
-![](\assets\images\it\20160524100541html5.jpg)
+![](\assets\images\it\20160524100541html5.jpg){: .align-center}
 
 스프링 타일즈는 header, sidebar, footer 등 페이지에서 반복적으로 작성해야 하는 요소를 따로 관리 할수 있게 해주는 라이브러리이자 템플릿 이다.
 
