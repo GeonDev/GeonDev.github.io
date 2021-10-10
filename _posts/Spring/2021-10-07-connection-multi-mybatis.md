@@ -3,7 +3,7 @@ title:  "Springboot 데이터베이스 Connection 다중 연결 (mybatis)"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java

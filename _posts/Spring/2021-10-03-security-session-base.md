@@ -3,7 +3,7 @@ title:  "스프링 시큐리티 간단 적용 - 세션 기반"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java

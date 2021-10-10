@@ -3,7 +3,7 @@ title:  "MappingJackson2JsonView를 이용하여 JSON 파싱(jsonView)"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java

@@ -3,7 +3,7 @@ title:  "Springboot + log4j2 적용하기"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java

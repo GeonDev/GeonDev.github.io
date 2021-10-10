@@ -12,10 +12,9 @@ tags:
 
 
 
->데브원영님 유튜브 링크
->https://www.youtube.com/watch?v=waw0XXNX-uQ
->참고 블로그
->https://velog.io/@king3456/Apache-Kafka-%EA%B8%B0%EB%B3%B8%EA%B0%9C%EB%85%90
+>[데브원영님 유튜브 링크](https://www.youtube.com/watch?v=waw0XXNX-uQ)
+>[참고 블로그](https://velog.io/@king3456/Apache-Kafka-%EA%B8%B0%EB%B3%B8%EA%B0%9C%EB%85%90)
+
 
 
 

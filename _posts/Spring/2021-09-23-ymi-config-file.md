@@ -1,9 +1,9 @@
 ---
-title:  "yml 파일 config로 활용하기"
+title:  "Springboot yml 파일 config로 활용하기"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:
   - Java
   - Spring

@@ -3,7 +3,7 @@ title:  "Spring Tiles3 + Spring boot 적용해보기"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java

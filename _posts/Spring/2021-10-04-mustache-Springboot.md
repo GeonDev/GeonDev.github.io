@@ -3,7 +3,7 @@ title:  "mustache + Springboot 사용해보기"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java

@@ -3,7 +3,7 @@ title:  "Controller/ Service 추상화 하기"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java

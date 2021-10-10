@@ -3,7 +3,7 @@ title:  "Spring boot 멀티 모듈 (Multi Module) 생성하기 + Maven"
 toc: true
 toc_sticky: true
 categories:
-  - IT
+  - Spring
 tags:  
   - Web
   - Java
