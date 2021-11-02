@@ -8,8 +8,8 @@ tags:
   - Web
   - Java
   - SpringBoot
-  - Lucy
-  - Xss
+  - JPA
+  - Database
 ---
 
 ![](/assets/images/spring/r43hjolfl_1.png)

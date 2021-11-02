@@ -8,8 +8,8 @@ tags:
   - Web
   - Java
   - SpringBoot
-  - Lucy
-  - Xss
+  - JPA
+  - Database
 ---
 
 Mybatis 로 제작되었던 프로젝트에 JPA를 적용하는 과정을 정리하려고 합니다.
