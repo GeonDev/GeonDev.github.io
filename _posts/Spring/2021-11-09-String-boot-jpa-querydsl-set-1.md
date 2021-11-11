@@ -63,7 +63,7 @@ tags:
 
 그리고 메이븐 컴파일을 하면 위에 입력한 경로 target/generated-sources/java에 클래스들이 생성된 것을 확인할 수 있다. 만약 Q클래스가 생성되지 않는다면 경로를 잘못 하였거나 라이브러리에 문제가 있는 것이기 떄문에 확인이 필요하다.
 
-![](/assets/images/spring/6be17f96915a-image1.png)
+![](/assets/images/spring/6be17f96915a-image1.png){: .align-center}
 
 
 # 2. config 세팅

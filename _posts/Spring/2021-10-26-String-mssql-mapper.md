@@ -38,8 +38,31 @@ SELECT * FROM table WHERE id LIKE '%' + '${value}' + '%'
 
 Mybatis 에는 파라미터의 타입을 명시해줄수 있는 기능이 있다. #{value, jdbcType=VARCHAR}
 
-![](/assets/images/spring/4qui89abgdf-1.png) 
+![](/assets/images/spring/4qui89abgdf-1.png){: .align-center} 
 
 위에 지원하는 타입을 보면 분명히 NVARCHAR가 있다. 그러면 데이터를 삽입할때 #{value, jdbcType=NVARCHAR}로 입력하면 타입캐스팅이 자동으로 수행되서 따로 문제가 없지 않을까? 결론은 안된다. jdbcType이 수행되는 조건이 **JDBC타입은 insert, update 또는 delete 하는 null 입력이 가능한 칼럼에서만 필요하다.** 라고 되어 있어서 인지 쿼리에 변화가 발생하지 않았다. 다른 해결 방법이 있는지는 계속 찾아 봐야 할것 같다. 
 
 > https://mybatis.org/mybatis-3/ko/sqlmap-xml.html
+
+## 4.1 강제로 타입 캐스팅 하기
+
+Statement로 쿼리를 넣기에는 보안상 문제가 생길 것 같아 조금 조사를 해보면서 새로운 방법을 알게되서 포스팅에 추가 한다. 첫번째는 컬럼의 형을 변경해주는 CONVERT(), CAST()를 사용하라는 것! 
+비교하는 쿼리의 데이터 형을 변경해서 비교하면 mybatis에서 인식할때 타입 캐스팅한 데이터로 인식한다는 내용이다. 
+간단하게 쿼리를 작성하면 이런 식으로 하라는 것이다.
+```
+SELECT * FROM table WHERE CAST(name AS VARCHAR) = #{value}
+SELECT * FROM table WHERE CONVERT(VARCHAR(10), name) = #{value}
+```
+
+두번째 방법은 옵티마이저를 끄라는 것
+```
+select /*+ RULE */
+      e.empno,
+          e.ename,
+          d.dname
+from  dept d, emp e
+where  e.deptno = d.deptno;
+```
+
+힌트에 대해서는 자세하게 알지 못하지만 /*+ RULE */은 옵티마이저 모드를 변경하는 것으로 개발자가 작성한 쿼리를 우선시 한다.(쿼리 를 옵티마이저에서 변경하지 않는다.) 는 것을 의미 한다고 한다.
+실제로 적용을 해보니 Statement로 쿼리를 돌릴때 보다 속도는 좋지 않다. 하지만 적어도 타임아웃이 발생하는 수준 까지는 아니여서 위 방법으로 쿼리를 정리하였다.
