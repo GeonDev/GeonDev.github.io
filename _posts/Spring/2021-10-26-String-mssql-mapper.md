@@ -49,9 +49,10 @@ Mybatis 에는 파라미터의 타입을 명시해줄수 있는 기능이 있다
 Statement로 쿼리를 넣기에는 보안상 문제가 생길 것 같아 조금 조사를 해보면서 새로운 방법을 알게되서 포스팅에 추가 한다. 첫번째는 컬럼의 형을 변경해주는 CONVERT(), CAST()를 사용하라는 것! 
 비교하는 쿼리의 데이터 형을 변경해서 비교하면 mybatis에서 인식할때 타입 캐스팅한 데이터로 인식한다는 내용이다. 
 간단하게 쿼리를 작성하면 이런 식으로 하라는 것이다.
+
 ```
-SELECT * FROM table WHERE CAST(name AS VARCHAR) = #{value}
-SELECT * FROM table WHERE CONVERT(VARCHAR(10), name) = #{value}
+SELECT * FROM table WHERE name  =  CAST( #{value} AS VARCHAR)
+SELECT * FROM table WHERE  name = CONVERT(VARCHAR(10), #{value})
 ```
 
 두번째 방법은 옵티마이저를 끄라는 것
@@ -66,3 +67,21 @@ where  e.deptno = d.deptno;
 
 힌트에 대해서는 자세하게 알지 못하지만 /*+ RULE */은 옵티마이저 모드를 변경하는 것으로 개발자가 작성한 쿼리를 우선시 한다.(쿼리 를 옵티마이저에서 변경하지 않는다.) 는 것을 의미 한다고 한다.
 실제로 적용을 해보니 Statement로 쿼리를 돌릴때 보다 속도는 좋지 않다. 하지만 적어도 타임아웃이 발생하는 수준 까지는 아니여서 위 방법으로 쿼리를 정리하였다.
+
+
+## 4.2 변수를 설정해서 넣어주기
+이렇게 했는데도 또 쿼리가 오래 걸렸다는 메세지가 날라와서 다른 방법을 생각하다 아예 변수를 만들어서 넣어주는 방법으로 개선해 보기로 하였다. 원래 이 방법은 like문에서 %을 삽입할때 작은 따옴표가 가독성이 좋지 않아서 사용하던 방법이다. (정석은 아니라는 말이다.)
+
+```
+DECLARE @Name VARCHAR(50);
+SET @Name = 'GGMOUSE';
+
+select /*+ RULE */
+      e.empno,
+      e.ename,          
+from  emp e
+where  e.ename = @Name;
+```
+이런 식으로 미리 타입이 결정되어 있는 변수에 mybatis 로 값을 넘겨주는 방법이다. 단 변수 선언 방식은 DBMS마다 조금 씩 차이가 있고 솔직히 깔끔한 방법은 아니라고 생각한다. 정말 방법이 없을때 쓰는 방식이다.
+
+
