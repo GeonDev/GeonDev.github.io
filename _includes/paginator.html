@@ -5,12 +5,12 @@
     {% comment %} Link for previous page {% endcomment %}
     {% if paginator.previous_page %}
       {% if paginator.previous_page == 1 %}
-        <li><a href="{{ first_page_path }}">{{ "&lt;" }}</a></li>
+        <li><a href="{{ first_page_path }}">{{ site.data.ui-text[site.locale].pagination_previous | default: "&lt;" }}</a></li>
       {% else %}
-        <li><a href="{{ site.paginate_path | replace: ':num', paginator.previous_page | replace: '//', '/' | relative_url }}">{{ "&lt;" }}</a></li>
+        <li><a href="{{ site.paginate_path | replace: ':num', paginator.previous_page | replace: '//', '/' | relative_url }}">{{ site.data.ui-text[site.locale].pagination_previous | default: "&lt;" }}</a></li>
       {% endif %}
     {% else %}
-    <li><a href="#" class="disabled"><span aria-hidden="true">{{  "&lt;" }}</span></a></li>
+    <li><a href="#" class="disabled"><span aria-hidden="true">{{ site.data.ui-text[site.locale].pagination_previous | default: "&lt;" }}</span></a></li>
     {% endif %}
 
     {% comment %} First page {% endcomment %}
@@ -21,7 +21,7 @@
     {% endif %}
 
     {% assign page_start = 2 %}
-    {% if paginator.page > 4 %}
+    {% if paginator.page > 5 %}
       {% assign page_start = paginator.page | minus: 2 %}
       {% comment %} Ellipsis for truncated links {% endcomment %}
       <li><a href="#" class="disabled">&hellip;</a></li>
@@ -29,7 +29,7 @@
 
     {% assign page_end = paginator.total_pages | minus: 1 %}
     {% assign pages_to_end = paginator.total_pages | minus: paginator.page %}
-    {% if pages_to_end > 4 %}
+    {% if pages_to_end > 5 %}
       {% assign page_end = paginator.page | plus: 2 %}
     {% endif %}
 
@@ -48,7 +48,7 @@
     {% endfor %}
 
     {% comment %} Ellipsis for truncated links {% endcomment %}
-    {% if pages_to_end > 3 %}
+    {% if pages_to_end > 4 %}
       <li><a href="#" class="disabled">&hellip;</a></li>
     {% endif %}
 
@@ -60,9 +60,9 @@
 
     {% comment %} Link next page {% endcomment %}
     {% if paginator.next_page %}
-      <li><a href="{{ site.paginate_path | replace: ':num', paginator.next_page | replace: '//', '/' | relative_url }}">{{  "&gt;" }}</a></li>
+      <li><a href="{{ site.paginate_path | replace: ':num', paginator.next_page | replace: '//', '/' | relative_url }}">{{ site.data.ui-text[site.locale].pagination_next | default: "&gt;" }}</a></li>
     {% else %}
-      <li><a href="#" class="disabled"><span aria-hidden="true">{{ "&gt;" }}</span></a></li>
+      <li><a href="#" class="disabled"><span aria-hidden="true">{{ site.data.ui-text[site.locale].pagination_next | default: "&gt;" }}</span></a></li>
     {% endif %}
   </ul>
 </nav>
