@@ -1,15 +1,7 @@
 ---
 title:  "프로그래머스 입양 시각 구하기(2)"
-toc: true
-toc_sticky: true
-categories:
-  - Algorithm
-tags:
-  - SQL
-  - Programers
-  - Algorithm
-  - Mysql
-  - Oracle
+description: This page demonstrates typography in markdown.
+header: Algorithm
 ---
 
 > [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/59413?language=mysql)

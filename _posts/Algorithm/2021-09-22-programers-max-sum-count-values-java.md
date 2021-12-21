@@ -1,13 +1,7 @@
 ---
 title:  "프로그래머스 - 수식 최대화"
-toc: true
-toc_sticky: true
-categories:
-  - Algorithm
-tags:
-  - Java
-  - Programers
-  - Algorithm
+description: This page demonstrates typography in markdown.
+header: Algorithm
 ---
 
 > [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/67257) 
