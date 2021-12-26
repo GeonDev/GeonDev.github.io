@@ -8,7 +8,6 @@ avatar: /images/logo.png
 favicon: /images/favicon.png
 
 
-# 菜单中的按钮
 navigation:
   - name: HOME
     url: /
@@ -30,7 +29,7 @@ footer-links:
   email: geons.dev@gmail.com
   facebook: #https://www.facebook.com/<>
   flickr: #https://www.flickr.com/<>
-  github: https://github.com/GeonDev #https://github.com/<>
+  github: GeonDev #https://github.com/<>
   instagram: https://instagram.com/geon_photos
   linkedin: #https://www.linkedin.com/in/<>
   pinterest: #https://www.pinterest.com/<>
@@ -55,10 +54,6 @@ url: https://geondev.github.io'
 baseurl:
 
 
-#
-# !! 以下所有设置都不需要更改 !!
-#
-
 permalink: /:title/
 paginate_path: /page:num/
 
@@ -77,7 +72,7 @@ kramdown:
 
 # Set the Sass partials directory, as we're using @imports
 sass:
-  style: :expanded # You might prefer to minify using :compressed
+  style: :expanded
 
 # Use the following plug-ins
 plugins:
