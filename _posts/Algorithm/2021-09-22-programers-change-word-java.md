@@ -1,10 +1,14 @@
 ---
-title:  "프로그래머스 단어변환(JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 단어변환(JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
 ---
 
-> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/43163) 
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/43163)
 
 
 
@@ -16,67 +20,67 @@ DFS를 이용하여 문제를 풀었는데 덕분에 넘겨 주어야 하는 값
 ```
 class Solution {
     int answer = 51;
-    
+
     public int solution(String begin, String target, String[] words) {
     	boolean t = false;
-    			
-    	
+
+
     	for(int i = 0; i< words.length; i++) {
     		if(target.equals(words[i])){
     			t = true;
     		}
     	}
-    	
-    	
+
+
     	if(t) {
             boolean[] change = new boolean[words.length];
-            
+
             checkWord(begin, target, words, change, 0);
-            
-            
+
+
             return answer;
     	}else {
     		return 0;
     	}
     }
-    
+
         public void checkWord(String begin, String target, String[] words, boolean[] change, int count) {
-    	    	
+
     	if(target.equals(begin) ) {
     		answer = Math.min(answer, count);
     		return;
     	}
-    	
+
     	count++;
-    	
+
     	for(int i =0; i<change.length; i++ ) {
-    		
+
     		if(change[i] != true) {
-    			
+
     			if(comString(begin, words[i]) ) {        			
         			temp[i] = true;  
         			checkWord(words[i], target, words, temp, count);
                     temp[i] = false;
-    			} 
+    			}
     		}
     	}
 	}
-    
-    
+
+
     public boolean comString(String t1, String t2 ) {
-    	
+
     	int count = 0;
-    	
+
     	for(int i =0; i < t1.length(); i++) {
     		if(t1.charAt(i) == t2.charAt(i)) {
     			count++;
     		}
     	}
-    	
+
     	if(count == t1.length()-1) {
     		return true;
     	}
-    	
+
     	return false;
     }
 }
