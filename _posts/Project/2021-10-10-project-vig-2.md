@@ -19,7 +19,7 @@ toc: true
 
 로그인 하지 않은 유저가 특정 URL접근하는 것을 차단하고 URL로 잘못된 접근을 하는 것을 막아줍니다. 사실 간단하게 구성할 수 있는 부분이였지만 어떤 URL Path를 사용할지 완벽하게 정하지 않았다는 점과 테스트 하기 귀찮다는 이유로 설정하지 않았고 덕분에 Controller에서 workflow를 통제하는 결과가 생겼습니다.
 
-![](/assets/images/project/291b9101698bd1.jpg)
+![](/images/project/291b9101698bd1.jpg)
 
 이런 불필요한 if문을 제거하기 위해서 인터럽트를 설정하였습니다.
 
@@ -448,7 +448,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
 기존의 로직에서 Ajax를 이용하여 웹 페이지 갱신없이 알람을 전송하고 있었기 때문에 알람 표시관련 로직은 큰 변경점 없이 기존의 Handler를 사용하여 웹소켓을 적용시켰습니다.
 
-![](/assets/images/project/291b9101698bd2.png)
+![](/images/project/291b9101698bd2.png)
 
 
 웹소켓을 연결하고 메세지를 전송하는 부분은 모두 툴바에 구현되어 있습니다. 툴바는 어느 페이지에서나 노출되기 때문인데 이렇게 설정을 하다보니 화면을 이동할때 마다 웹소켓을 다시 연결해 주어야 하는 문제가 있습니다.

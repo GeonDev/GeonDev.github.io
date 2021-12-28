@@ -8,6 +8,7 @@ tags: [Springboot, Web, Log4j]
 comments: true
 toc: true
 ---
+
 로그를 기록하고 저장하기 위해 log4j를 사용하는데 한번 적용하면 다시 만지는 일이 거의 없어서 다시하려고 하면 까먹는다.... 자세하게는 아니지만 간단하게 사용방법을 기록하고 최신버전인 log4j2를 스프링부트에 적용해보려고 한다.
 
 # 1. 의존성 주입
@@ -43,7 +44,7 @@ spring-boot-starter-web에 내장된 spring-boot-starter-logging을 사용하지
 log4j2를 사용하기 위해서는 원래 log4j2 라이브러리 뿐 아니라 앞에서 설명한 slf4j-api, log4j-core-2, log4j-slf4j-impl-2같은 별도의 라이브러리를 더 추가하여야 하지만 spring-boot-starter-log4j2를 적용하면 이런 라이브러리들도 모두 자동으로 주입해준다.
 
 # 2. log4j2.xml 설정
-![](/assets/images/it/imlog6e54j32g.png){: .align-center}
+![](/images/it/imlog6e54j32g.png){: .align-center}
 
 당연히 log4j2.xml의 위치는 최상위 resource경로에 있어야 한다. 처음에는 이 xml이 어디에 위치하여야 하는지도 몰라서 해맸던 경험이 있다.
 

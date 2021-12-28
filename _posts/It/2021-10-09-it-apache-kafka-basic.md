@@ -26,7 +26,7 @@ toc: true
 pub/sub 구조는 메세지 패턴으로 메세지를 생성하는 생산자(Publisher)와 메세지를 사용하는 수신자(Subscriber)가 분리된 구조이다. Publisher는 메세지를 생산할때 어떤 Subscriber가 사용할지 알지 못하고 Event Channel이라는 중간 관리자(?)에게 정보를 전달한다. Subscriber 역시 어떤 Publisher가 생산한 메세지인지 확인하지 않고 Event Channel에서 필요한 메세지를 가지고 오는 구조로 되어 있다.
 Publisher와 Subscriber가 직접적으로 연결되어 있지 않기 때문에 **메시지를 생성할때 비동기 방식**으로 동작할 수 있다. 또한 Publisher가 메시지를 생산할때 Subscriber를 고려하지 않아도 됨으로 느슨한 결합을 유지할 수 있다.
 
-![](/assets/images/it/991FDC495C0FC7A903-1.png){: .align-center}
+![](/images/it/991FDC495C0FC7A903-1.png){: .align-center}
 카프카에서는 메세지를 생산하는 producer와 메시지를 소비하는 consumer 가 있고 이 둘을 연결하는 Broker가 있는 형태로 되어 있다. 용어만 조금 다르고 구조는 비슷하다고 생각한다.
 
 
@@ -38,7 +38,7 @@ Publisher와 Subscriber가 직접적으로 연결되어 있지 않기 때문에 
 
 
 ## 2.1. 토픽
-![](/assets/images/it/991FDC495C0FC7A903-2.png){: .align-center}
+![](/images/it/991FDC495C0FC7A903-2.png){: .align-center}
 카프카에 전달되는 메시지 스트림의 추상화된 개념을 토픽(Topic)이라고 한다. 프로듀서는 메시지를 특정 토픽에 발행한다. 컨슈머는 특정 토픽에서 발행되는 메시지를 구독할 수 있다.
 
 토픽의 파티션은 최소 1개 이상이 필요하고 각 파티션마다 오프셋(offset)이 붇게 된다. 메세지 처리 순서는 각 파티션이 가지고 있는 오프셋에 따라 결정된다.

@@ -21,7 +21,7 @@ toc: true
 사용자가 검색하기 위하여 입력한 키워드가 많아질수록 점점 해당 키워드와 겹치는 유사한 이미지를 보여주면서 사용자가 생각했던 이미지와 가장 유사한 이미지를 제시하는 것을 목적으로 합니다.
 
 ## 시연 동영상
-[![VIG](/assets/images/project/e35cf1fe9f99t1.jpg)](https://www.youtube.com/watch?v=Ck9diBmMfdU)
+[![VIG](/images/project/e35cf1fe9f99t1.jpg)](https://www.youtube.com/watch?v=Ck9diBmMfdU)
 
 
 
@@ -102,7 +102,7 @@ war를 사용하고 스프링부트 내장 톰켓이 아닌 외부 톰켓을 사
 
 ### 톰캣 캐쉬 설정
 VIG는 별도의 파일서버 없이 WAS에 사용하는 리소스를 로드합니다. 아무래도 사진이미지가 많다보니 톰캣 기본 메모리인 10MB로는 부족하여 경고 메세지가 출력됩니다.
-![](/assets/images/project/e35cf1fe9f99t3.png)
+![](/images/project/e35cf1fe9f99t3.png)
 
 작동하는데 문제는 없지만 불필요한 로그를 보고 싶지 않았습니다. 기존 스프링에서는 톰켓 설정(conf)에서 캐쉬를 늘려주는 설정 값을 넣어 로그를 제거했는데 스프링부트로 전환을 하니 작동하지 않습니다....
 ```

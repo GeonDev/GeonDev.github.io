@@ -9,7 +9,7 @@ comments: true
 toc: true    
 ---
 
-![](/assets/images/spring/r43hjolfl_1.png)
+![](/images/spring/r43hjolfl_1.png)
 아무생각 없이 개발하다가 객체를 불러올수 없다는 오류가 출력되는 것을 보게 되었습니다.
 **org.hibernate.LazyInitializationException:could not initialize proxy** 가 발생하는 이유는 데이터를 조회 하기 전에 이미 엔티티가 끝나버렸기 때문으로 Lazyload를 사용하면 처음 데이터를 조회할때 데이터를 로드 하지 않기 때문에 그냥 쿼리를 날리면 이런 문제가 발생할수 있다고 합니다. 해결방법은 크게 2가지 인데
 
@@ -67,7 +67,7 @@ Lazy에서 EAGER로 변경하면 쿼리를 불러올떄 모든 데이터를 같�
 
 User를 하나 생성하고 3개의 LoginHistory를 생성하고 각각에 같은 User를 넣어주었습니다. 이렇게 한 상태에서 userRepository로 user를 불러와서 LoginHistory를 조회하면?
 
-![](/assets/images/spring/r43hjolfl_2.png)
+![](/images/spring/r43hjolfl_2.png)
 
 User에 LoginHistory가 없기 때문에 NullPointerException이 발생합니다. 그렇다면 반대로 User에 LoginHistory를 넣고 LoginHistory에는 User를 넣지 않는다면?
 당연히 User에 데이터가 들어갔기 떄문에 LoginHistory가 정상적으로 출력됩니다. LoginHistory에서 username이 `김`인 데이터를 출력하려고 한다면 값이 나오지 않습니다.

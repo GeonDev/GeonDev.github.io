@@ -17,7 +17,7 @@ toc: true
 
 Controller는 공통적으로 하나 이상의 Service를 사용하게 됨으로 Controller가 사용하는 Service 역시 특정한 함수를 포함하고 있다는 것을 보장 해야 한다.
 
-![](/assets/images/it/e632e6cfimage1.png){: .align-center}
+![](/images/it/e632e6cfimage1.png){: .align-center}
 
 
 이러한 기능을 사용하기 위해서는 추상 클래스나 인터페이스를 사용하면 된다.

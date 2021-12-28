@@ -21,7 +21,7 @@ https://github.com/GeonDev/Proptech
 
  굳이 war로 사용할 필요도 없지만 그렇다고 jar를 쓰지 말아야할 이유도 없고(JSP를 제외하면) 조금 더 간단 하고 깔끔한 방법으로 화면을 구성할수 없을까 하다가 mustache 탬플릿을 알게 되어 이리저리 사용해 보았다.
 
-![](/assets/images/it/f620bfdbimage1.png){: .align-center}
+![](/images/it/f620bfdbimage1.png){: .align-center}
 
  SB ADMIN 2 탬플릿을 사용하여 페이지를 제작하였고 내부에 mustache를 이용하여 약간의 요소를 변경하였다. mustache를 사용해도 javascript나 jquery는 그대로 사용할수 있고 특별히 못 만들겠다는 부분은 없지만 불편한 점도 편한 점도 있었다.
 
@@ -54,7 +54,7 @@ JSP로 화면이 구성되다 보면 내부에 c:set c:forEach 등 화면단에�
 
 
 
-![](/assets/images/it/f620bfdbimage2.png){: .align-center}
+![](/images/it/f620bfdbimage2.png){: .align-center}
 
 
 

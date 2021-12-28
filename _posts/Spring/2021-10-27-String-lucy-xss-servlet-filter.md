@@ -16,7 +16,7 @@ toc: true
 
 # 1. 개요
 
- ![](/assets/images/spring/lifecycle_dfegj4_1.jpg){: .align-center}
+ ![](/images/spring/lifecycle_dfegj4_1.jpg){: .align-center}
 
 > https://justforchangesake.wordpress.com/2014/05/07/spring-mvc-request-life-cycle/
 
@@ -103,14 +103,14 @@ lucy-xss-servlet을 사용하기 위해서는 resource 아래에 lucy-xss-servle
 <script> alert('test') </script>
 ```
 보통 xss를 이용할때 script 테그를 많이 사용한다고 합니다. 입력창에 lucy-xss를 적용하지 않은 상태로 위에 내용을 넣어서 테스트를 하면
-![](/assets/images/spring/dfegj4_2.jpeg){: .align-center}
+![](images/spring/dfegj4_2.jpeg){: .align-center}
 
 정상적으로 화면에 출력되지 않는 상황이 발생합니다.
-![](/assets/images/spring/dfegj4_3.jpeg){: .align-center}
+![](/images/spring/dfegj4_3.jpeg){: .align-center}
 
 
 문제를 확인한 상황에서 작성한 설정데로 lucy-xss를 적용하고 다시 이미지를 업로드하면
-![](/assets/images/spring/dfegj4_4.jpeg){: .align-center}
+![](/images/spring/dfegj4_4.jpeg){: .align-center}
 
 제목에 입력한 스크립트가 일반 문자열로 변경되어 정상 출력되는 것을 확인할 수 있습니다.
 

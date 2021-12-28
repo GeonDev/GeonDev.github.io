@@ -4,9 +4,8 @@ title: Springboot + Spring Date JPA+ QueryDsl 적용하기(Maven) 2
 date: 2021-11-09
 Author: Geon Son
 categories: Spring
-tags: [Springboot,  JPA, QueryDsl]
+tags: [Springboot, JPA, QueryDsl]
 comments: true
-toc: true  
 ---
 
 지난번에 QueryDsl을 사용하면 어떻게 Pageable을 사용하는지 만약에 사용 못한다면 대참사가 일어날거라고 생각했는데 당연히 사용하는 방법이 있었다. 여러 사용방법이 있는 것 같지만 지난번에 이미 QuerydslRepositorySupport를 구현하였기 때문에 그대로 활용하는 방법으로 구현하였다.

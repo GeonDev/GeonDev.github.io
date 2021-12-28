@@ -26,7 +26,7 @@ toc: true
 실무에서는 각 프로젝트별(PC, 모바일) 톰켓 서버를 분리하되 DAO, Service와 같은 공통 기능은 하나로 개발하기 위해서
 멀티모듈을 사용한 것으로 보입니다.
 
-![](/assets/images/it/1ee73c57image1.png){: .align-center}
+![](images/it/1ee73c57image1.png){: .align-center}
 
 테스트 에서는 root-parent라는 프로젝트에 아래에 root-service, root-web이라는 스프링 프로젝트가 모듈로 있는 형태로 제작하였습니다.
 이름처럼 service를 수행하는 프로젝트와 web(화면) 부분을 분리하였습니다.
@@ -39,13 +39,13 @@ toc: true
 
 생성된 프로젝트에서 모듈은 간단하게 생성할 수 있습니다.
 
-![](/assets/images/it/1ee73c57image2.png){: .align-center}
+![](/images/it/1ee73c57image2.png){: .align-center}
 인텔리제이 기준으로 FILE - New - Moudle 에 들어가서 모듈을 생성합니다.
 이렇게 프로젝트를 생성하면 새로 생성된 모듈은 완전히 비어있는 상태로 생성되기 때문에 src, resource 부분의 값은 넣어 주어야 합니다.
 특히 모듈 또한 스프링부트 이기 때문에 WebApplication 클래스 처럼 스프링부트를 시작하기 위한 main 클래스가 반드시 있어야 합니다.
 
 부모영역에 있는 src/resourc는 사용하지 않기 때문에 삭제해주면 됩니다. 결과적으로는 아래와 같은 구조로 프로젝트가 생성됩니다.
-![](/assets/images/it/1ee73c57image3.png){: .align-center}
+![](/images/it/1ee73c57image3.png){: .align-center}
 
 
 
@@ -152,4 +152,4 @@ public class testController {
 
 마지막으로 WebApplication을 실행하고 브라우저에서 매핑한 URL로 접근하면 메세지가 출력됩니다.
 
-![](/assets/images/it/1ee73c57image4.png){: .align-center}
+![](/images/it/1ee73c57image4.png){: .align-center}
