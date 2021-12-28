@@ -1,10 +1,15 @@
 ---
-title:  "프로그래머스 등굣길(JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 등굣길(JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
-> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42898) 
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42898)
 
 
 
@@ -13,36 +18,36 @@ header: Algorithm
 
 ```
 public class Sol13 {
-	
+
 	int[] xp = {0,1};
 	int[] yp = {1,0};
 	int answer = 0;
-	
+
     public int solution(int m, int n, int[][] puddles) {
-                     
+
     	dfs(m,n,puddles,1,1);
-        
+
         return (answer);
     }
-    
+
     private void dfs(int m, int n, int[][] puddles, int x, int y ) {
-    
-    	   	
+
+
     	//도착점에 왔는지 체크
     	if(x == m && y == n ) {
     		answer++;
     		return;
     	}
-    	
+
     	//장애물에 도달했는지 체크
     	for(int[] t : puddles ) {
     		if(x == t[0] && y == t[1]) {
     			return;
     		}
     	}
-    	
+
     	for(int i =0; i<2; i++) {
- 	
+
     		if(x + xp[i] <= m && y+yp[i] <= n) {
     			dfs(m, n, puddles, x + xp[i], y+yp[i]);
     		}
@@ -65,44 +70,43 @@ public class Sol13_1 {
 
     public int solution(int m, int n, int[][] puddles) {
         int answer = 0;
-        
+
         int[][] dp = new int[m][n];
-        
+
         //물 웅덩이를 표시
         for(int[] t: puddles) {        	
         	dp[t[0]-1][t[1]-1] = -1;
         }
-        
-        
+
+
         dp[0][0] = 1;
-        
+
         for(int i =0; i< m; i++) {
         	for(int j =0; j< n; j++) {
-        		
+
         		if(dp[i][j] != -1) {
-        			
+
         			//오른쪽에서 올수 있는 길이 있는지 확인
             		if(i-1 > -1 ) {            			
             			if(dp[i-1][j] != -1) {
             				dp[i][j] += dp[i-1][j]%1000000007;
             			}        			
-            		} 
-            		
+            		}
+
 
             		//위에서 올수 있는 길이 있는지 확인
             		if(j-1 > -1) {
             			if(dp[i][j-1] != -1 ) {
             				dp[i][j] += dp[i][j-1]%1000000007;
             			}        			
-            		}	
+            		}
         		}
         	}
-        }	
-        
+        }
+
         answer = dp[m-1][n-1]%1000000007;
-        
+
         return answer;
     }
 }
 ```
-

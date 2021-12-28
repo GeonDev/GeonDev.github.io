@@ -1,10 +1,15 @@
 ---
-title:  "프로그래머스 시저 암호(JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 시저 암호(JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
-> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/12926) 
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/12926)
 
 
 
@@ -22,20 +27,20 @@ Character.isUpperCase(문자) 를 이용하면 해당 글자가 대문자인지 
 public class Solution {
     public String solution(String s, int n) {
         String answer = "";
-        
+
         for(int i =0; i<s.length(); i++) {
         	char temp =s.charAt(i);
         	if(temp != ' ') {
         		if(temp >90) {
         			temp = (char)('a' + (temp+n-'A')%26);
-        			
+
         		}else {
         			temp = (char)('a' + (temp+n-'a')%26);
         		}        		
         	}
         	answer += temp;
         }
-        
+
         return answer;
     }
 }

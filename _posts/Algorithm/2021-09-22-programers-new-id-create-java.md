@@ -1,10 +1,15 @@
 ---
-title:  "프로그래머스 신규아이디(JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 신규아이디(JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
-> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/72410) 
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/72410)
 
 
 
@@ -14,17 +19,17 @@ header: Algorithm
 ```
 class Solution {
     public String solution(String new_id) {
-        String answer = new_id.toLowerCase(); 
-		
+        String answer = new_id.toLowerCase();
+
         //0-9, a-z, -, _, . 을 제외한 모든 문자를 ""으로 변경
-        answer = answer.replaceAll("[^-_.a-z0-9]", ""); 
-        
+        answer = answer.replaceAll("[^-_.a-z0-9]", "");
+
         //.이 연속해서 2개 이상 이어지면 "."으로 변경
-        answer = answer.replaceAll("[.]{2,}", "."); 
-        
+        answer = answer.replaceAll("[.]{2,}", ".");
+
         //시작이 .이거나 끝이 .이면 ""로 변경
         answer = answer.replaceAll("^[.]|[.]$", "");    
-        
+
         if (answer.equals("")) {   
             answer += "a";
         }

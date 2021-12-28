@@ -1,10 +1,15 @@
 ---
-title:  "프로그래머스 구명보트(JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 구명보트(JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
-> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42885) 
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42885)
 
 
 
@@ -33,21 +38,21 @@ public int Solution(int[] people, int limit) {
 	for(int t : people) {
 		wl.add(t);
 	}
-	
+
 	Collections.sort(wl,Collections.reverseOrder());
 
 	while (wl.size() > 1) {
-		
+
 		if(wl.get(0) > limit/2 ) {
 				int temp = wl.get(0) + wl.get(wl.size()-1);
-					
+
 					if(temp >limit) {
 						wl.remove(0);
 					}else {
 						wl.remove(0);
 						wl.remove(wl.size()-1);
 					}    		
-				count++;	
+				count++;
 		}else {
 			break;
 		}
@@ -64,38 +69,38 @@ public int Solution(int[] people, int limit) {
 
 ```
 public int Solution(int[] people, int limit) {
-		 
+
 	 int count = 0;
 	 int remain = people.length;
 	 int start = 0;
 	 int end = people.length-1;
-	 
+
 	 Arrays.sort(people);
-	 
-	 
+
+
 	 while (remain > 1) {
 		 if(people[end] > limit/2 ) {
-			
+
 			 int temp = people[start] + people[end];
-			 
+
 			 if(temp <= limit) {
 				 start++;
 				 end--;
 				 remain -=2;
-				 
+
 			 }else {
 				 end--;
 				 remain -=1;
 			 }
-			 
+
 			 count++;	 
 		 }else {
 			 break;
 		 }
 	 }
-	 
+
 	 count += (int)Math.ceil((double)remain/2);
-	 
+
 	return count;
 }
 ```

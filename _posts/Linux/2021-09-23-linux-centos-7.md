@@ -1,15 +1,12 @@
 ---
-title:  "CentOS 7 JAVA TOMCAT 환경 구축"
+layout: post
+title: CentOS 7 JAVA TOMCAT 환경 구축
+date: 2021-09-23
+Author: Geon Son
+categories: Linux
+tags: [Linux, OS, Tomcat]
+comments: true
 toc: true
-toc_sticky: true
-categories:
-  - Linux
-tags:
-  - Java
-  - Linux
-  - OS
-  - infra
-  - tomcat
 ---
 
 
@@ -35,7 +32,7 @@ yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축
 
 # 2. JDK 설치 및 환경 설정 방법
 
-**1)  jdk설치 폴더 생성** 
+**1)  jdk설치 폴더 생성**
 
 - 설치 경로 : /usr/local/java
 
@@ -64,7 +61,7 @@ yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축
 
 
 
-**4) 심볼릭 링크 생성 및 자바 버전 설정** 
+**4) 심볼릭 링크 생성 및 자바 버전 설정**
 
 - 사용가능한 자바 버전을 추가한다.
 ```
@@ -82,10 +79,10 @@ yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축
 
 
 
-**5) 환경설정 및 적용** 
+**5) 환경설정 및 적용**
 
 
-- profile 설정 
+- profile 설정
 ```
 [root@localhost]# vi /etc/profile
 ```
@@ -98,14 +95,14 @@ PATH=$PATH:$JAVA_HOME/bin
 export JAVA_HOME CLASSPATH PATH
 ```
 
-- 설정된 profile 적용 
+- 설정된 profile 적용
 ```
 [root@localhost]# source /etc/profile
 ```
 
 
 
-**6) 설정 적용 확인** 
+**6) 설정 적용 확인**
 
 ```
 [root@localhost]# java -version
@@ -116,7 +113,7 @@ export JAVA_HOME CLASSPATH PATH
 
 # 3. tomcat 설치 및 환경 설정
 
-**1) Tomcat 계정 생성** 
+**1) Tomcat 계정 생성**
 ```
 [root@localhost]# useradd tomcat
 [root@localhost]# passwd tomcat
@@ -127,14 +124,14 @@ export JAVA_HOME CLASSPATH PATH
 [root@localhost]# su - tomcat
 ```
 
-Useradd 로 유저 생성시 옵션에 주의할 것 
+Useradd 로 유저 생성시 옵션에 주의할 것
 (다른 리눅스 버전에서는 -d, -m 옵션을 이용하여 홈 디렉토리를 설정해야 한다.)
 
 패스워드는 계정생성시 입력하지 않아도 되지만 차후 해당 계정으로 접속하기 위해서는 반드시 필요하기 때문에 계정 생성시 넣어주는 것을 추천한다. (패스워드가 짧다는 경고는 무시해도 된다.)
 
 
 
-**2) Tomcat 설치 경로 생성** 
+**2) Tomcat 설치 경로 생성**
 
 - 로그저장을 위한 폴더
 
@@ -146,7 +143,7 @@ mkdir에 -p 옵션을 주어야 하위 디렉토리가 한번에 생성된다.
 
 
 
-**3) 톰켓 파일 설치** 
+**3) 톰켓 파일 설치**
 
 ```
 [tomcat@localhost]# tar -xvzf apache-tomcat-9.0.41.tar.gz
@@ -154,7 +151,7 @@ mkdir에 -p 옵션을 주어야 하위 디렉토리가 한번에 생성된다.
 
 
 
-**4) Tomcat 심볼릭 링크 생성** 
+**4) Tomcat 심볼릭 링크 생성**
 
 ```
 [tomcat@localhost]# ln -s /home/tomcat/apache-tomcat-9.0.41/ tomcat
@@ -177,7 +174,7 @@ drwxrwxr-x. 2 tomcat tomcat        6 Apr 29 14:58 webapps
 
 
 
-**5) 톰캣 시작/정지 스크립트 심볼릭 설정** 
+**5) 톰캣 시작/정지 스크립트 심볼릭 설정**
 
 ```
 [tomcat@localhost]# ln -s /home/tomcat/tomcat/bin/startup.sh /home/tomcat/startup
@@ -200,10 +197,10 @@ drwxrwxr-x. 2 tomcat tomcat        6 Apr 29 14:58 webapps
 
 ```
 
-톰켓 실행 및 정지는 
+톰켓 실행 및 정지는
 /home/tomcat/startup
 /home/tomcat/shutdown
-을 입력하면 작동된다. 
+을 입력하면 작동된다.
 
 그냥 startup, shutdown을 입력하면 **bash: startup: command not found**를 출력하니 주의
 
@@ -212,7 +209,7 @@ drwxrwxr-x. 2 tomcat tomcat        6 Apr 29 14:58 webapps
 
 
 
-**6) 환경 변수 생성 <span style="color:red">[root 권한]</span>** 
+**6) 환경 변수 생성 <span style="color:red">[root 권한]</span>**
 
 - profile 설정
 
@@ -244,7 +241,7 @@ export JAVA_HOME CLASSPATH PATH CATALINA_HOME JRE_HOME
 
 
 
-**7) tomcat 로그 및 webapp 설정 변경** 
+**7) tomcat 로그 및 webapp 설정 변경**
 
 - catalina.sh 수정
 
@@ -341,16 +338,16 @@ net.ipv4.ip_forward = 1
 - 포트 포워딩 설정
 
 ```
-[root@localhost]# firewall-cmd --zone=public --add-forward-port=port=80:proto=tcp:toport=8080 --permanent 
+[root@localhost]# firewall-cmd --zone=public --add-forward-port=port=80:proto=tcp:toport=8080 --permanent
 
-[root@localhost]# firewall-cmd --zone=public --add-forward-port=port=443:proto=tcp:toport=8443 --permanent 
+[root@localhost]# firewall-cmd --zone=public --add-forward-port=port=443:proto=tcp:toport=8443 --permanent
 
 [root@localhost]# firewall-cmd --reload
 ```
 
 
 
-- 기타 방화벽 관련 명령어 
+- 기타 방화벽 관련 명령어
 
   - 허용된 방화벽 포트 확인
 
@@ -358,13 +355,10 @@ net.ipv4.ip_forward = 1
   firewall-cmd --list-all
   ```
 
-  
+
 
   - 방화벽 상태 확인
 
   ```
   firewall-cmd --state
   ```
-
-    
-

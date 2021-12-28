@@ -1,16 +1,15 @@
 ---
-title:  "Quartz job Scheduler 기본 사용법 정리"
+layout: post
+title: Quartz job Scheduler 기본 사용법 정리
+date: 2021-10-05
+Author: Geon Son
+categories: IT
+tags: [Java, Quartz, Scheduler]
+comments: true
 toc: true
-toc_sticky: true
-categories:
-  - IT
-tags:  
-  - Java
-  - Quartz
-  - Scheduler
 ---
 
-> 라이브러리 다운로드 
+> 라이브러리 다운로드
 http://www.quartz-scheduler.org/downloads/
 
 
@@ -19,7 +18,7 @@ http://www.quartz-scheduler.org/downloads/
 # 1. 구성 요소
 **JobDetail** : 스케줄러에서 수행할 작업을 담을 JOB을 생성, Job을 상속하는 클래스를 JobBuilder.newJob()을 이용하여 전달 해야 한다.
 
-**JobDataMap** : 스케줄러에서 JOB이 실행될떄 사용할 변수 값을 전달하는데 사용한다. 
+**JobDataMap** : 스케줄러에서 JOB이 실행될떄 사용할 변수 값을 전달하는데 사용한다.
 key-value 형식으로 값을 전달하고 JOB을 수행할떄 값을 꺼낼수 있다.
 
 **Trigger** : 스케줄러를 어떤 방식으로, 어떤 주기로 작동할 지 결정한다.
@@ -33,7 +32,7 @@ key-value 형식으로 값을 전달하고 JOB을 수행할떄 값을 꺼낼수 
 # 2. 기본 실행 방법
 
 ## 스케줄러 Job 클래스 생성
-Job interface를 implements 하여 execute() 메소드를 만든다. 
+Job interface를 implements 하여 execute() 메소드를 만든다.
 execute() 메소드는 스케줄러가 수행할 기능을 명시한다.
 
 ```
@@ -47,11 +46,11 @@ public class JobTest implements Job {
 	@Override
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {
 		System.out.println("## Test Job Call!!");
-		
+
 		String name = arg0.getJobDetail().getJobDataMap().get("jobName").toString();
-		
+
 		System.out.println("## Job Name : "+name);
-		
+
 	}
 }
 ```
@@ -87,26 +86,26 @@ public class QuartzMainTest {
 		//JobDataMap은 Quartz에서 실행되는 Job에 Key-value 형식으로 값을 전달할수 있다.
 		JobDataMap jobDataMap = new JobDataMap();
 		jobDataMap.put("jobName", "HELLO");		
-		
+
 		JobDetail jobDetail = newJob(JobTest.class)
 				//job Data 주입
 				.usingJobData(jobDataMap)
 				.build();
-		
+
 		Trigger trigger = newTrigger().build();
-		
+
         // 스케줄러 실행 및 JobDetail과 Trigger 정보로 스케줄링
         Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
         scheduler.start();
         scheduler.scheduleJob(jobDetail, trigger);
-		
+
 	}
  }
 ```
- 예제에서는 JobDetail, Trigger에 별다른 설정을 하지 않았지만 실제 사용할때는 Job에 ID, Group 등을 입력하여 구분하거나 여러 옵션을 넣을 수 있다. 
- 
+ 예제에서는 JobDetail, Trigger에 별다른 설정을 하지 않았지만 실제 사용할때는 Job에 ID, Group 등을 입력하여 구분하거나 여러 옵션을 넣을 수 있다.
+
 예를 들어 위에서는 JobDetail, JobDataMap를 따로 선언하여 값을 넣었지만 아래 코드처럼
-JobDetail 내부의 JobDataMap을 불러오는 방식으로 변수를 넣어줄 수 있고 
+JobDetail 내부의 JobDataMap을 불러오는 방식으로 변수를 넣어줄 수 있고
 
 ```
 JobDetail jobDetail = newJob(JobTest.class).build();
@@ -117,7 +116,7 @@ JobDetail.getJobDataMap().put("jobName", "HELLO");
 
 Trigger 또한 SimpleTrigger, CronTrigger로 선언 하여 여러 옵션을 줄 수 있다.
 
-> Quartz Tutorials 참고 
+> Quartz Tutorials 참고
 http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-05.html
 http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html
 
@@ -133,7 +132,7 @@ CronTrigger trigger = newTrigger()
     .withIdentity("ID", "group")
     .withSchedule(cronSchedule("0 0/2 8-17 * * ?"))  
     .build();
-    
+
 SimpleTrigger trigger1 =  (SimpleTrigger) newTrigger()
     .withIdentity("trigger1", "group1")
 	.startAt(DateBuilder.dateOf(5, 5, 5))

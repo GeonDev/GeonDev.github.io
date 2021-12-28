@@ -1,14 +1,12 @@
 ---
-title:  "CentOS 7 Oracle 11g xe 설치 및 환경설정"
+layout: post
+title: CentOS 7 Oracle 11g xe 설치 및 환경설정
+date: 2021-09-26
+Author: Geon Son
+categories: Linux
+tags: [IT, DataBase, Oracle]
+comments: true
 toc: true
-toc_sticky: true
-categories:
-  - Linux
-tags:
-  - IT
-  - Linux
-  - DataBase 
-  - Oracle
 ---
 
 # 1. 오라클 xe 최소 사항
@@ -32,7 +30,7 @@ tags:
 데이터 베이스를 관리용 계정을 만들때 따로 그룹을 만들기도 한다. 지금은
 간단한 형태의 실습이기 때문에 따로 계정의 기능을 분리하지 않고 하나의 계정을 생성하였다.
 
- 
+
 
 **2) oracle 설치 폴더 및 테이블스페이프 폴더 생성**
 
@@ -86,7 +84,7 @@ tags:
 - 설치 시작
 [root@localhost Disk1]# rpm –ivh oracle-xe-11.2.0-1.0.x86_64.rpm
 
- 
+
 
 
 # 3. Oracle-xe 설정
@@ -108,7 +106,7 @@ CentOS를 최소 설치하였다면 net-tools가 설치되어 있지 않아 포�
 
 당연히 SYSTEM이라고 입력한 비밀번호는 상황에 따라 변경할 수 있다.
 
- 
+
 
 **2) oracle 계정 환경변수 설정 [oracle 권한]**
 
@@ -123,7 +121,7 @@ export ORACLE_SID=XE
 export PATH=$ORACLE_HOME/bin:$PATH
 
 - 설정 값 적용
-[oracle@localhost ~]$ source /home/oracle/.bash_profile 
+[oracle@localhost ~]$ source /home/oracle/.bash_profile
 
 
 # 4. 오라클 설치 확인

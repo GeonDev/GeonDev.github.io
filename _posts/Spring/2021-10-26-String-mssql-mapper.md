@@ -1,18 +1,15 @@
 ---
-title:  "Mssql Mybatis DB툴과 웹에서 쿼리속도가 다를때 고려해 볼것"
+layout: post
+title: Mssql Mybatis DB툴과 웹에서 쿼리속도가 다를때 고려해 볼것
+date: 2021-10-26
+Author: Geon Son
+categories: Spring
+tags: [Springboot, Mybatis, Mssql]
+comments: true
 toc: true
-toc_sticky: true
-categories:
-  - Spring
-tags:  
-  - Web
-  - Java
-  - SpringBoot
-  - Mybatis
-  - Mssql
 ---
 
-스카우터에서 특정 쿼리를 수행할때 속도가 너무 느리다는 알람이 계속 출력되었다. 출력하는 양이 많아서 그런지 테스트를 해보았는데 조회되는 수량이 없다. 물론 스캔 수가 많을수는 있다지만 쿼리 결과가 0인 쿼리가 속도가 타임아웃이 걸릴 정도로 속도가 느리다니 뭔가 이상하다고 생각했다. 그래서 Mybatis의 쿼리를 DB툴로 가지고 와서 돌려보면 0.01초 만에 해결이 된다. 왜지?! 
+스카우터에서 특정 쿼리를 수행할때 속도가 너무 느리다는 알람이 계속 출력되었다. 출력하는 양이 많아서 그런지 테스트를 해보았는데 조회되는 수량이 없다. 물론 스캔 수가 많을수는 있다지만 쿼리 결과가 0인 쿼리가 속도가 타임아웃이 걸릴 정도로 속도가 느리다니 뭔가 이상하다고 생각했다. 그래서 Mybatis의 쿼리를 DB툴로 가지고 와서 돌려보면 0.01초 만에 해결이 된다. 왜지?!
 
 # 1. MSSQL의 특징
 
@@ -26,28 +23,28 @@ tags:
 
 # 3. 쿼리 수정
 
-쿼리 수정은 정말 간단하다. #{value} 를 ${value} 형태로 변경하면 된다. 여기서 주의 할 점은 스트링 타입을 사용하기 위해서는 ''(작은 따옴표)를 추가해서 데이터를 넣어야 한다는 것이다. LIKE연산을 수행할때도 Statement는 별도로 변환을 시켜주지 않는다. 쿼리 입력시 
+쿼리 수정은 정말 간단하다. #{value} 를 ${value} 형태로 변경하면 된다. 여기서 주의 할 점은 스트링 타입을 사용하기 위해서는 ''(작은 따옴표)를 추가해서 데이터를 넣어야 한다는 것이다. LIKE연산을 수행할때도 Statement는 별도로 변환을 시켜주지 않는다. 쿼리 입력시
 
 ```
-SELECT * FROM table WHERE id LIKE '%' + '${value}' + '%' 
+SELECT * FROM table WHERE id LIKE '%' + '${value}' + '%'
 ```
 
-이런 방식으로 쿼리를 작성해 주어야 한다. 또한 Statement로 쿼리를 작성할 경우 변경없이 그대로 변수를 넣어주기 때문에 쿼리물을 삽입해 버린다 같은 문제가 발생할수도 있다. 그래서 이부분은 Service나 Controller에서 문제점을 확인하고 막아줄수 있는 코드를 작성해야 추후에 문제점을 막을수 있다. 
+이런 방식으로 쿼리를 작성해 주어야 한다. 또한 Statement로 쿼리를 작성할 경우 변경없이 그대로 변수를 넣어주기 때문에 쿼리물을 삽입해 버린다 같은 문제가 발생할수도 있다. 그래서 이부분은 Service나 Controller에서 문제점을 확인하고 막아줄수 있는 코드를 작성해야 추후에 문제점을 막을수 있다.
 
 # 4. 의문점 - 강제로 Typecasting을 해주면?
 
 Mybatis 에는 파라미터의 타입을 명시해줄수 있는 기능이 있다. #{value, jdbcType=VARCHAR}
 
-![](/assets/images/spring/4qui89abgdf-1.png){: .align-center} 
+![](/assets/images/spring/4qui89abgdf-1.png){: .align-center}
 
-위에 지원하는 타입을 보면 분명히 NVARCHAR가 있다. 그러면 데이터를 삽입할때 #{value, jdbcType=NVARCHAR}로 입력하면 타입캐스팅이 자동으로 수행되서 따로 문제가 없지 않을까? 결론은 안된다. jdbcType이 수행되는 조건이 **JDBC타입은 insert, update 또는 delete 하는 null 입력이 가능한 칼럼에서만 필요하다.** 라고 되어 있어서 인지 쿼리에 변화가 발생하지 않았다. 다른 해결 방법이 있는지는 계속 찾아 봐야 할것 같다. 
+위에 지원하는 타입을 보면 분명히 NVARCHAR가 있다. 그러면 데이터를 삽입할때 #{value, jdbcType=NVARCHAR}로 입력하면 타입캐스팅이 자동으로 수행되서 따로 문제가 없지 않을까? 결론은 안된다. jdbcType이 수행되는 조건이 **JDBC타입은 insert, update 또는 delete 하는 null 입력이 가능한 칼럼에서만 필요하다.** 라고 되어 있어서 인지 쿼리에 변화가 발생하지 않았다. 다른 해결 방법이 있는지는 계속 찾아 봐야 할것 같다.
 
 > https://mybatis.org/mybatis-3/ko/sqlmap-xml.html
 
 ## 4.1 강제로 타입 캐스팅 하기
 
-Statement로 쿼리를 넣기에는 보안상 문제가 생길 것 같아 조금 조사를 해보면서 새로운 방법을 알게되서 포스팅에 추가 한다. 첫번째는 컬럼의 형을 변경해주는 CONVERT(), CAST()를 사용하라는 것! 
-비교하는 쿼리의 데이터 형을 변경해서 비교하면 mybatis에서 인식할때 타입 캐스팅한 데이터로 인식한다는 내용이다. 
+Statement로 쿼리를 넣기에는 보안상 문제가 생길 것 같아 조금 조사를 해보면서 새로운 방법을 알게되서 포스팅에 추가 한다. 첫번째는 컬럼의 형을 변경해주는 CONVERT(), CAST()를 사용하라는 것!
+비교하는 쿼리의 데이터 형을 변경해서 비교하면 mybatis에서 인식할때 타입 캐스팅한 데이터로 인식한다는 내용이다.
 간단하게 쿼리를 작성하면 이런 식으로 하라는 것이다.
 
 ```
@@ -83,5 +80,3 @@ from  emp e
 where  e.ename = @Name;
 ```
 이런 식으로 미리 타입이 결정되어 있는 변수에 mybatis 로 값을 넘겨주는 방법이다. 단 변수 선언 방식은 DBMS마다 조금 씩 차이가 있고 솔직히 깔끔한 방법은 아니라고 생각한다. 정말 방법이 없을때 쓰는 방식이다.
-
-

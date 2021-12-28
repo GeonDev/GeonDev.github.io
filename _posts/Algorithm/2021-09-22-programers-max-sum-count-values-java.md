@@ -1,10 +1,15 @@
 ---
-title:  "프로그래머스 - 수식 최대화"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 - 수식 최대화
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
-> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/67257) 
+> [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/67257)
 
 
 ### 기본적인 전략
@@ -26,53 +31,53 @@ import java.util.List;
 
 
 class Solution {
-	
+
     public long solution(String expression) {
         long answer = 0;
-        
+
         //수식에서 숫자 제거
         String sign = expression.replaceAll("[0-9]", "");
 
         //같은 문자가 있으면 넣지 않음
         List<String> list = new ArrayList<String>();
-        
+
         for(int i =0; i< sign.length(); i++) {
         	if(!list.contains(  sign.charAt(i)+"" ) ) {
         		list.add(sign.charAt(i)+"");
         	}
         }
-        
+
         boolean[] visited = new boolean[list.size()];
-        
+
         //수식의 순서를 넣어놓을 리스트
         List<String> orderList = new ArrayList<String>();
-        
-        
+
+
         code(list, list.size(), visited, "", orderList);
 
-                
-        
+
+
         for(String order : orderList ) {
-                	
+
         	List<String> numbers = new ArrayList<String>();
         	String[] temp1 =  (expression.replaceAll("[+*-]", " ")).split(" ");
-        	
+
         	for(String t1 : temp1 ) {
         		numbers.add(t1);
         	}
-        	
+
         	List<String> signs  = new ArrayList<String>();      
         	String[] temp2 =  (expression.replaceAll("[0-9]", "")).split("");
-        	
+
         	for(String t2 : temp2 ) {
         		signs.add(t2);
         	}
-        	
-        	        	
+
+
         	for(int  i =0; i< order.length(); i++ ) {
         		while (signs.contains(order.charAt(i)+"") ) {
         			int pos =0;
-        			
+
         			//첫번째 타겟 위치 찾기
 					for(int k =0;  k<signs.size(); k++) {						
 						if(signs.get(k).equals(order.charAt(i)+"") ) {
@@ -80,44 +85,44 @@ class Solution {
 							break;
 						}
 					}
-        			
+
 					long valus = 0;
-					
+
 					// 연산자에 따라서 연산 수행
-					
+
 					if(order.charAt(i) == '+') {
-						valus = Long.parseLong(numbers.get(pos)) +  Long.parseLong(numbers.get(pos+1)); 
-						
+						valus = Long.parseLong(numbers.get(pos)) +  Long.parseLong(numbers.get(pos+1));
+
 					}else if(order.charAt(i) == '-' ) {
-						valus = Long.parseLong(numbers.get(pos)) - Long.parseLong(numbers.get(pos+1)); 
-						
+						valus = Long.parseLong(numbers.get(pos)) - Long.parseLong(numbers.get(pos+1));
+
 					}else {
-						valus = Long.parseLong(numbers.get(pos)) * Long.parseLong(numbers.get(pos+1)); 
+						valus = Long.parseLong(numbers.get(pos)) * Long.parseLong(numbers.get(pos+1));
 					}					
-					
+
 					numbers.set(pos+1, String.valueOf(valus));  
 					numbers.remove(pos);
 					signs.remove(pos);
 				}
         	}
-    
+
         	//System.out.println(numbers.get(0));
         	answer = Math.max(Math.abs(answer) ,Math.abs(Long.parseLong(numbers.get(0)))   );
         }
-        
-        
+
+
         return Math.abs(answer);
     }
-        
-  
-	
+
+
+
 	public void code(List<String> list, int r,  boolean[] visited , String val, List<String> rs ) {
-		
+
 		if(r == 0 ) {
 			rs.add(val);
 			return;
 		}
-		
+
 		for( int i =0; i< list.size(); i++) {
 			if(!visited[i]) {
 				visited[i] = true;
@@ -127,5 +132,5 @@ class Solution {
 		}
 
 	}
- 
+
 ```

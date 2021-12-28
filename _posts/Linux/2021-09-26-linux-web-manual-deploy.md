@@ -1,15 +1,12 @@
 ---
-title:  "Springboot WAR 수동 배포하기"
-toc: true
-toc_sticky: true
-categories:
-  - Linux
-tags:
-  - IT
-  - Linux
-  - DataBase 
-  - web
-  - war
+layout: post
+title: Springboot WAR 수동 배포하기
+date: 2021-09-26
+Author: Geon Son
+categories: Linux
+tags: [IT, Linux, War]
+comments: true
+toc: true  
 ---
 
 스프링부트에서는 기본적으로 Jar 파일을 지원하지만 외부 톰켓을 사용하기 위해(JSP를 사용하기 때문에) war를 사용하는 경우가 있었다. 지금 회사 프로젝트는 모두 외부 톰켓을 사용하기 때문에 수동으로 배포하는 법을 기록 해놓는다.
@@ -44,7 +41,7 @@ vi 편집기를 이용하여 톰캣설치경로/conf/server.xml의 내용을 수
 
 별도 경로가 설정되어 있지 않다면 host 부분의 appBase=webapp 으로 되어 있을 텐데 이부분을 원하는 경로로 변경해 주어야 한다.
 
-그리고 추가할 프로젝트의 값을 넣어준다. 
+그리고 추가할 프로젝트의 값을 넣어준다.
 ```
 <Context path="" docBase="프로젝트명" reloadable="true">
 ```
@@ -54,10 +51,9 @@ vi 편집기를 이용하여 톰캣설치경로/conf/server.xml의 내용을 수
 
 # Tomcat log 실시간 확인
 배포중 문제가 생겨서 톰켓의 로그를 확인하고 싶다면 다음 명령어를 실행하면 된다.
-tail -f home/tomcat/logs/tomcat/catalina.out 
+tail -f home/tomcat/logs/tomcat/catalina.out
 
 톰캣 로그 경로를 별도 설정하였기 때문에 이런 상태이고 상황에 맞추어 catalina.out을 tail -f로 열면 실시간으로 로그를 볼수 있다.
 ![](/assets/images/linux/2cdf6514e528-5.jpg){: .align-center}
 
 실시간으로 보는 것을 중지하려면 Ctrl + c 를 누르면 된다.
-

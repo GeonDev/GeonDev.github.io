@@ -1,16 +1,12 @@
 ---
-title:  "Springboot + Spring Date JPA+ QueryDsl 적용하기(Maven) 1"
-toc: true
-toc_sticky: true
-categories:
-  - Spring
-tags:  
-  - Web
-  - Java
-  - SpringBoot
-  - JPA
-  - Database
-  - QueryDsl
+layout: post
+title: Springboot + Spring Date JPA+ QueryDsl 적용하기(Maven) 1
+date: 2021-11-09
+Author: Geon Son
+categories: Spring
+tags: [Springboot,  JPA, QueryDsl]
+comments: true
+toc: true  
 ---
 
 >전체 코드 :  https://github.com/GeonDev/Proptech
@@ -36,7 +32,7 @@ tags:
 ```
 우선 Querydsl을 사용하기 위해 라이브러리를 추가한다. Spring boot 2.4.2 기준으로는 4.4.0 버전이 자동으로 관리 되기 떄문에 버전은 입력하지 않는다. (오히려 버전을 입력하면 충돌이 일어나기도 해서 메이븐을 다시 세팅해야한다.)
 
-이후에 Querydsl에서 사용하는 Q클래스를 생성하기 위한 플러그인을 build 아래에 추가 한다. 
+이후에 Querydsl에서 사용하는 Q클래스를 생성하기 위한 플러그인을 build 아래에 추가 한다.
 
 ```
 			<!--  Querydsl 적용-->
@@ -91,10 +87,10 @@ public class QuerydslConfiguration {
 }
 ```
 
-이렇게 config를 만들게 되면 프로젝트 내부에서 어디서든 JPAQueryFactory를 주입 받을 수 있다. 
+이렇게 config를 만들게 되면 프로젝트 내부에서 어디서든 JPAQueryFactory를 주입 받을 수 있다.
 
 # 3. RepositorySupport 생성
-기존에 JPA에서 사용하던 Repository 인터페이스와 다르게 Querydsl을 이용하여 쿼리를 생성하는 QuerydslRepositorySupport를 상속받는 별도의 클래스를 만든다. 
+기존에 JPA에서 사용하던 Repository 인터페이스와 다르게 Querydsl을 이용하여 쿼리를 생성하는 QuerydslRepositorySupport를 상속받는 별도의 클래스를 만든다.
 이름은 중요하지 않지만 QuerydslRepositorySupport를 상속받아 만들었기 때문에 RepositorySupport라고 지정하였고 패키지는 Repository 패키지 하위에 support라는 위치에 새로 생성하였다. 당연히 위치도 중요한 것은 아니다.
 
 
@@ -172,9 +168,9 @@ public class UserRepositorySupport extends QuerydslRepositorySupport {
     }
 }
 ```
-내가 만든 UserRepositorySupport의 목적은 주어진 이름, 시작일, 종료일에 따라서 등록일을 기준으로 해당 이름을 포함하고 있는 between 또는 lessThen을 구하는 것이다. 이 과정에서 스트링으로 전달받은 값을 다른 형태로 변경하거나 특정 값이 있으면, 없으면 같은 조건을 분기로 나누어야 하는데 이때 QueryDsl로 만들어진 쿼리 where()에 원하는 조건을 생성하는 함수를 만들면 된다. 
+내가 만든 UserRepositorySupport의 목적은 주어진 이름, 시작일, 종료일에 따라서 등록일을 기준으로 해당 이름을 포함하고 있는 between 또는 lessThen을 구하는 것이다. 이 과정에서 스트링으로 전달받은 값을 다른 형태로 변경하거나 특정 값이 있으면, 없으면 같은 조건을 분기로 나누어야 하는데 이때 QueryDsl로 만들어진 쿼리 where()에 원하는 조건을 생성하는 함수를 만들면 된다.
 
-BooleanExpression 을 이용하여 주어진 조건이 내가 원하는 경우 일때 (ex 시작일 종료일이 모두 다 주어졌을떄) 연산을 수행하고 아니라면 null을 리턴하게 만든다. 이렇게 null이 리턴되면 해당조건을 체크하지 않고 넘어가게 되기 때문에 분기 처리를 하지 않아도 동적으로 쿼리를 생성해 준다. 
+BooleanExpression 을 이용하여 주어진 조건이 내가 원하는 경우 일때 (ex 시작일 종료일이 모두 다 주어졌을떄) 연산을 수행하고 아니라면 null을 리턴하게 만든다. 이렇게 null이 리턴되면 해당조건을 체크하지 않고 넘어가게 되기 때문에 분기 처리를 하지 않아도 동적으로 쿼리를 생성해 준다.
 
 ```
     private BooleanExpression betweenDate(String startDate, String endDate){
@@ -190,13 +186,13 @@ BooleanExpression 을 이용하여 주어진 조건이 내가 원하는 경우 �
     }
 ```
 위에 코드에서 보면 String startDate, String endDate의 값이 모두 있을때만 데이터 값을 정의 할수 있다. 또한 데이터를 조회하기 위해서 String 형이 아닌 LocalDateTime으로 값을 변경하는 것을 알수 있다. (CommonUtil은 따로 만든 클래스 이다.)
-이런 식으로 별도 함수에 여러 조건을 주면서 동적쿼리를 생성한다. 
+이런 식으로 별도 함수에 여러 조건을 주면서 동적쿼리를 생성한다.
 
 
-개인적으로 쿼리를 생성하는 것보다 특이하다고 생각했던 것은 이부분이다. 
+개인적으로 쿼리를 생성하는 것보다 특이하다고 생각했던 것은 이부분이다.
 **import static com.apt.proptech.domain.QUser.user;**
 
-이부분은 수동으로 내가 사용할 QUser를 static으로 선언하는 부분으로 이부분이 없으면 where절에서 계산을 해줄 클래스가 없기 떄문에 에러가 발생한다. 자동으로 추가 되지 않기 때문에 꼭 별도로 선언해 주어야 한다. 
+이부분은 수동으로 내가 사용할 QUser를 static으로 선언하는 부분으로 이부분이 없으면 where절에서 계산을 해줄 클래스가 없기 떄문에 에러가 발생한다. 자동으로 추가 되지 않기 때문에 꼭 별도로 선언해 주어야 한다.
 
 
 
@@ -218,7 +214,7 @@ BooleanExpression 을 이용하여 주어진 조건이 내가 원하는 경우 �
         });
     }
 ```
-테스트 코드는 특별하게 작성하지는 않았다. 값을 넣고 빼보면서 실행시켜보면 정상적으로 값을 조회하는 것을 알수 있다. 
+테스트 코드는 특별하게 작성하지는 않았다. 값을 넣고 빼보면서 실행시켜보면 정상적으로 값을 조회하는 것을 알수 있다.
 
 
 

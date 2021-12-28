@@ -1,15 +1,12 @@
 ---
-title:  "Spring Security JWT 구현해 보기"
+layout: post
+title: Spring Security JWT 구현해 보기
+date: 2021-10-12
+Author: Geon Son
+categories: Spring
+tags: [Springboot, Security, JWT]
+comments: true
 toc: true
-toc_sticky: true
-categories:
-  - Spring
-tags:  
-  - Web
-  - Java
-  - SpringBoot
-  - Security
-  - JWT
 ---
 
 > [소스코드](https://github.com/GeonDev/Springboot-JWT)
@@ -21,7 +18,7 @@ tags:
 
 # 1. CorsConfig 생성
   CORS(Cross-Origin Resource Sharing)는 교차 출처 리소스 공유 라고 번역하고 간단하게 생각하면
-  허용된 주소에서 받은 리소스만 사용할수 있다는 것입니다. 이부분을 스프링 시큐리티에서 해결해야 하는 이유는 시큐리티를 
+  허용된 주소에서 받은 리소스만 사용할수 있다는 것입니다. 이부분을 스프링 시큐리티에서 해결해야 하는 이유는 시큐리티를
   사용하면서 JWT, 즉 JSON을 사용하여야 하고 JSON 정보를 받는 것을 허용 하여야 하기 때문입니다.
 
 ```
@@ -57,7 +54,7 @@ public class CorsConfig {
 ```
 
 CORS 설정은 보안과 관련있는 사항이기 때문에 원래는 여러 제한을 두고 설정해야 하지만 예제 이기 때문에 모든 입력을 허용하는 쪽으로
-설정하였습니다. 이렇게 CorsConfig를 생성한 이후에 SecurityConfig를 설정하게 됩니다. 
+설정하였습니다. 이렇게 CorsConfig를 생성한 이후에 SecurityConfig를 설정하게 됩니다.
 
 하지만 우선 어떻게 필터를 생성하고 적용하는지 먼저 정리하겠습니다.
 
@@ -80,7 +77,7 @@ public class MyFilter1 implements Filter {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse res = (HttpServletResponse) servletResponse;
 
-       
+
         if(req.getMethod().equals("POST")){
             String headerAuth =  req.getHeader("Authrization");
             System.out.println("headerAuth(POST) : "+ headerAuth);
@@ -97,11 +94,11 @@ public class MyFilter1 implements Filter {
 }
 ```
 
-커스텀 필터를 만들때는 Filter interface를 이용하여 생성하게 됩니다.  위 필터는 POST 방식으로 들어온 request에서 
+커스텀 필터를 만들때는 Filter interface를 이용하여 생성하게 됩니다.  위 필터는 POST 방식으로 들어온 request에서
 헤더의 Authrization 항목 값을 출력합니다. 이 Authrization 값이 COS 라면 필터를 이어가고 아니라면 필터를 중단시켜서
 스프링 시큐리티 과정을 더이상 진행하지 않게 합니다.
 
-이렇게 만들어진 필터를 적용하려고 하기 위해서는 스프링 시큐리티 필터 중간에 적용하는 방법을 사용합니다. 
+이렇게 만들어진 필터를 적용하려고 하기 위해서는 스프링 시큐리티 필터 중간에 적용하는 방법을 사용합니다.
 ```
 //시큐리티 필터 실행 전에 MyFilter1() 실행
 http.addFilterBefore(new MyFilter1(), SecurityContextPersistenceFilter.class);
@@ -110,15 +107,15 @@ http.addFilterBefore(new MyFilter1(), SecurityContextPersistenceFilter.class);
 http.addFilterAfter(new MyFilter1(), SecurityContextPersistenceFilter.class);
 ```
 
-커스텀 필터는 addFilter를 사용하여 특정 스프링 시큐리티 필터 앞, 뒤에 적용할 수 있습니다. 
+커스텀 필터는 addFilter를 사용하여 특정 스프링 시큐리티 필터 앞, 뒤에 적용할 수 있습니다.
 
 # 3. SecurityConfig 설정
 
-SecurityConfig에서 JWT를 적용하기 위해서 설정하는 것은 앞에서 설정한 CORS에 대한 설정과 
-스프링시큐리티의 기본 로그인 폼을 사용하지 않겠다는 선언, 세션을 사용하지 않는다는 선언 입니다. 
+SecurityConfig에서 JWT를 적용하기 위해서 설정하는 것은 앞에서 설정한 CORS에 대한 설정과
+스프링시큐리티의 기본 로그인 폼을 사용하지 않겠다는 선언, 세션을 사용하지 않는다는 선언 입니다.
 
 이외에 설정은 특정 URL에 대한 권한을 설정하는 것과 이외 URL은 전부 풀어주는 것
-그리고 csrf 설정을 사용하지 않는 것 입니다. 
+그리고 csrf 설정을 사용하지 않는 것 입니다.
 
 
 ```
@@ -178,10 +175,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 ```
 
 ## 3.1. 스프링 시큐리티 적용을 위한 기본 모델 생성
-스프링 시큐리티를 적용하기 위해서는 기본적으로 UserDetails 클래스가 있어야 합니다. 
-UserDetails는 시큐리티의 요구사항에 따라 값을 반환 값을 주는 역할을 수행합니다. 
+스프링 시큐리티를 적용하기 위해서는 기본적으로 UserDetails 클래스가 있어야 합니다.
+UserDetails는 시큐리티의 요구사항에 따라 값을 반환 값을 주는 역할을 수행합니다.
 기능별 자세한 설명은 하지 않고 넘어가겠습니다. UserDetails을 그냥 상속하는 것 보다는 다른 정보를 넣고 반환하는 것을
-좀 더 쉽게하기 위하여 UserDetails을 상속하는 클래스를 생성합니다. 
+좀 더 쉽게하기 위하여 UserDetails을 상속하는 클래스를 생성합니다.
 
 ```
 package com.example.jwt.auth;
@@ -245,11 +242,11 @@ public class PrincipalDetail implements UserDetails {
 
 ```
 
-이렇게 생성한 PrincipalDetail을 반환하기 위하여 별도의 서비스를 생성합니다. 
+이렇게 생성한 PrincipalDetail을 반환하기 위하여 별도의 서비스를 생성합니다.
 Service에는 특별한 기능이 없기 때문에 어떻게 구현하였다 정도만 언급하겠습니다.
 
 loadUserByUsername() 메서드는 유저 이름을 받아 로그인 처리를 하고 결과를 반환하는 역할을 수행합니다.
-만약에 유저 정보가 있다면 PrincipalDetail을 반환합니다. 
+만약에 유저 정보가 있다면 PrincipalDetail을 반환합니다.
 
 ```
 package com.example.jwt.auth;
@@ -280,11 +277,11 @@ public class PrincipalService implements UserDetailsService {
 # 4. JwtAuthenticationFilter 필터 생성
 
 일반적인 스프링 시큐리티라면 로그인폼을 이용하여 로그인을 수행하지만 우리는 시큐리티의 로그인폼을 막아버렸기 때문에
-적용할 수 없습니다. 그래서 강제로 UsernamePasswordAuthenticationFilter를 불러와서 로그인을 수행하게 됩니다. 
+적용할 수 없습니다. 그래서 강제로 UsernamePasswordAuthenticationFilter를 불러와서 로그인을 수행하게 됩니다.
 
-만약 로그인을 수행하게 된다면 이후에 JWT토큰을 생성할수 있습니다. 
+만약 로그인을 수행하게 된다면 이후에 JWT토큰을 생성할수 있습니다.
 이 과정에서 JWT에 값을 넣어주어서 반환할 때 사용할수 있는데 토큰의 이름, id, username 그리고
-비밀키 값을 넣을 수 있습니다. 
+비밀키 값을 넣을 수 있습니다.
 
 ```
 package com.example.jwt.filter;
@@ -369,11 +366,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 # 5. JwtAuthenticationFilter 필터 생성
 
-JwtAuthorizationFilter는 생성된 JWT 토큰을 판단하는 기능을 수행합니다. 
-전달 받은 JWT토큰에서 데이터를 확인하고 비밀키를 통해 정보를 해석한 후에 principalDetails을 생성하고 
+JwtAuthorizationFilter는 생성된 JWT 토큰을 판단하는 기능을 수행합니다.
+전달 받은 JWT토큰에서 데이터를 확인하고 비밀키를 통해 정보를 해석한 후에 principalDetails을 생성하고
 생성된 principalDetails을 Authentication객체에 넣어 데이터를 저장하게 합니다.
 
-Authentication객체는 세션을 사용하게 되고  반드시 Authentication객체에 데이터를 넣을 필요는 없습니다. 
+Authentication객체는 세션을 사용하게 되고  반드시 Authentication객체에 데이터를 넣을 필요는 없습니다.
 다만 인증 정보를 조금 쉽게 관리하고 권한을 받아오기 위하여 사용합니다.
 
 ```

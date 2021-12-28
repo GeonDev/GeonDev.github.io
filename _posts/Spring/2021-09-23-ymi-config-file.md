@@ -1,14 +1,12 @@
 ---
-title:  "Springboot yml 파일 config로 활용하기"
+layout: post
+title: Springboot yml 파일 config로 활용하기
+date: 2021-09-23
+Author: Geon Son
+categories: Spring
+tags: [Springboot, Config]
+comments: true
 toc: true
-toc_sticky: true
-categories:
-  - Spring
-tags:
-  - Java
-  - Spring
-  - Springboot 
-  - config
 ---
 
 
@@ -17,7 +15,7 @@ tags:
 DB를 조회하는 것이 싫어서 별도 파일에 저장하기로 하고 알아보다
 yml파일을 파싱하여 저장하는 방법을 알게 되었다.
 
-application.yml 파일에 데이터를 저장하면 별도의 팩토리클래스를 만들 필요가 없지만 
+application.yml 파일에 데이터를 저장하면 별도의 팩토리클래스를 만들 필요가 없지만
 내가 저장할 데이터는 시스템 설정이 아니라 단순 상수 데이터 이기 때문에
 별도 파일을 만들어 관리하고 싶었기 때문에 tableConfig.yml 이라는 파일을 만들고 데이터를 넣었다.
 
@@ -58,11 +56,11 @@ table:
     - 주소
     - 이름
 ```
-사실 yml 파일에는 특별한 기능은 없다. 기존과 비슷하게 계층(?)을 주어 데이터를 넣으면 된다. 
-아마 properties 형식으로 데이터를 넣었다면 userSearch=전체,권한,상태 ... 와 같은 형태로 데이터를 넣고 Service 단에서 파싱을 하는 방식으로 작업하였을 텐데 
+사실 yml 파일에는 특별한 기능은 없다. 기존과 비슷하게 계층(?)을 주어 데이터를 넣으면 된다.
+아마 properties 형식으로 데이터를 넣었다면 userSearch=전체,권한,상태 ... 와 같은 형태로 데이터를 넣고 Service 단에서 파싱을 하는 방식으로 작업하였을 텐데
 yml은 데이터를 넣을 별도의 클래스를 생성하고 이 클래스를 불러오는 방식으로 작업을 한다.
 
-경로는 resource 하위에 바로 넣어주었다. 지금은 yml 파일이 많지 않기 때문에 따로 디렉토리 까지 필요할 것이라고 생각하지는 않았다. 
+경로는 resource 하위에 바로 넣어주었다. 지금은 yml 파일이 많지 않기 때문에 따로 디렉토리 까지 필요할 것이라고 생각하지는 않았다.
 
 
 
@@ -107,7 +105,7 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
 ```
 
 yml 파싱을 하기전에 먼저 파싱을 위한 팩토리클래스를 만들어야 한다.
-사실 이부분의 코드는 크게 신경쓰지 않고 인터넷에 있는 예제코드를 그대로 활용하였다. 
+사실 이부분의 코드는 크게 신경쓰지 않고 인터넷에 있는 예제코드를 그대로 활용하였다.
 대부분의 경우는 yml의 규칙을 잘 지켰다면 큰 문제 없이 사용할 수 있을 것이라고 생각한다.
 
 
@@ -176,11 +174,10 @@ class ProptechApplicationTests {
 
 ```
 
-간단하게 어떻게 받아온 데이터를 사용하는지 보면 @Autowired를 이용하여 TableColumnConfig를 생성하고 받아오면 된다. 
+간단하게 어떻게 받아온 데이터를 사용하는지 보면 @Autowired를 이용하여 TableColumnConfig를 생성하고 받아오면 된다.
 @Autowired를 사용하기 때문에 일반적으로 스프링이 관리하고 있는 클래스에는
-큰 무리없이 작동하게 될 것이다. 
+큰 무리없이 작동하게 될 것이다.
 
 ![centos](/assets/images/it/image-ymi-config-1.png){: .align-center}
 
-테스트를 수행하면 이런 식으로 결과가 나오게 된다. 
-
+테스트를 수행하면 이런 식으로 결과가 나오게 된다.

@@ -1,12 +1,17 @@
 ---
-title:  "프로그래머스 섬 연결하기(JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 섬 연결하기(JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
 > [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42861)
 >
-> [크루스칼 알고리즘](https://m.blog.naver.com/PostView.nhn?blogId=ndb796&logNo=221230994142&proxyReferer=https:%2F%2Fwww.google.com%2F) 
+> [크루스칼 알고리즘](https://m.blog.naver.com/PostView.nhn?blogId=ndb796&logNo=221230994142&proxyReferer=https:%2F%2Fwww.google.com%2F)
 
 
 
@@ -17,33 +22,33 @@ header: Algorithm
 ```
 public class Solution {
 	 public int solution(int n, int[][] costs) {
-	    	
+
 	    	int answer = 0;
 	    	int[] parent = new int[n];
-	    	
-	    	
+
+
 	    	for(int i =0; i < n; i++) {
 	    		parent[i] = i;
 	    	}
-	    	
-	    	
+
+
 	    	//오름차순 정렬
 	    	Arrays.sort(costs,(o1,o2)-> {
 	    		return o1[2] -o2[2];
 	    	});
-	    	
-	    	
+
+
 	    	for(int[]t : costs ) {
-	    			
+
 	    		if(!checkUnion(parent, t[0], t[1]) ) {
 	    			answer += t[2];
 	    			setUinon(parent, t[0], t[1]);
 	    		}
-	    		
+
 	    	}
 	        return answer;
 	    }
-	    
+
 	    //부모를 찾는다.
 	    public int getParent(int[] parent, int a) {    	
 			if(parent[a] == a ) {
@@ -52,26 +57,26 @@ public class Solution {
 			  return getParent(parent, parent[a]);
 			}
 	    }
-	    
+
         //두 노드를 연결
 	    public void setUinon(int[] parent, int a, int b) {
 	    	a = getParent(parent, a);
 	    	b = getParent(parent, b);
-	    	
+
 	    	if(a < b) {
 	    		parent[b] = a;
 	    	}else {
 	    		parent[a] = b;
 	    	}
 	    }
-	    
+
         //부모가 같은지 체크(연결되어 있는지 확인)
 	    public boolean checkUnion(int[] parent, int a, int b) {
 	    	a = getParent(parent, a);
 	    	b = getParent(parent, b);
-	       	
+
 	    	return a==b;
-	    }	
+	    }
 }
 ```
 
@@ -83,6 +88,3 @@ public class Solution {
 3. 두개를 서로 링크 시키는 방법(부모가 작은쪽으로 연결)
 
 이렇게 3가지를 알고 있어야 풀 수 있는 문제이다.
-
-
-

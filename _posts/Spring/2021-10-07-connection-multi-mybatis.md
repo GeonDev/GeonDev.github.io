@@ -1,22 +1,19 @@
 ---
-title:  "Springboot 데이터베이스 Connection 다중 연결 (mybatis)"
+layout: post
+title: Springboot 데이터베이스 Connection 다중 연결 (mybatis)
+date: 2021-10-07
+Author: Geon Son
+categories: Spring
+tags: [Springboot, Mybatis]
+comments: true
 toc: true
-toc_sticky: true
-categories:
-  - Spring
-tags:  
-  - Web
-  - Java
-  - SpringBoot
-  - Connection
-  - Mybatis
 ---
 
 >참고 한 블로그
 > https://dev-overload.tistory.com/30
 
 
-보통의 경우 스프링부트로 작성된 어플리케이션은 하나의 DB만 접근하여 사용한다. 아주 가끔 다른 DB의 정보를 가져오거나 역할 분리를 위해 서로 다른 DB에 접근하기도 하는데 어떻게 설정하는지 정의한다. 
+보통의 경우 스프링부트로 작성된 어플리케이션은 하나의 DB만 접근하여 사용한다. 아주 가끔 다른 DB의 정보를 가져오거나 역할 분리를 위해 서로 다른 DB에 접근하기도 하는데 어떻게 설정하는지 정의한다.
 
 # 1. application.yml 설정
 ```
@@ -56,7 +53,7 @@ spring:
 ```
 sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:com/example/demo/mybatis/master/*.xml"));
 ```
-sqlSessionFactory 에서 어떤 경로를 통하여 쿼리문 (xml)을 불러오게 될지 결정한다. 
+sqlSessionFactory 에서 어떤 경로를 통하여 쿼리문 (xml)을 불러오게 될지 결정한다.
 
 ## 2.1. MasterDatabaseConfig.java
 ```
@@ -100,13 +97,13 @@ public class SlaveDataBaseConfig {
     @Bean(name = "slave1DataSource")
     @ConfigurationProperties(prefix = "spring.slave-1.datasource")
     public DataSource masterDataSource() {
-        //application.properties에서 정의한 DB 연결 정보를 빌드 
+        //application.properties에서 정의한 DB 연결 정보를 빌드
         return DataSourceBuilder.create().build();
     }
 
     @Bean(name = "slave1SqlSessionFactory")
     public SqlSessionFactory slaveSqlSessionFactory(@Qualifier("slave1DataSource") DataSource slave1DataSource, ApplicationContext applicationContext) throws Exception {
-        // 세션 생성 시, 빌드된 DataSource를 세팅하고 SQL문을 관리할 mapper.xml의 경로를 알려준다. 
+        // 세션 생성 시, 빌드된 DataSource를 세팅하고 SQL문을 관리할 mapper.xml의 경로를 알려준다.
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(slave1DataSource);
         sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:com/example/demo/mybatis/slave1/*.xml"));
@@ -127,20 +124,20 @@ Xml 파일 또한 config 에서 설정한 경로에 저장 하여 설정한다
 ## 3.1. MasterDataBaseMapper.xml
 ```
 <?xml version="1.0" encoding="UTF-8"?>
- <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
- 
- <mapper namespace="com.example.demo.mapper.master.MasterDataBaseMapper"> 
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+ <mapper namespace="com.example.demo.mapper.master.MasterDataBaseMapper">
 	<select id="getSalary" resultType="com.example.demo.model.SalaryModel">
-		SELECT * FROM SALARY; 
-	</select> 
+		SELECT * FROM SALARY;
+	</select>
 </mapper>
 
 ```
 
 ## 3.2. SlaveDataBaseMapper.xml
 ```
-<?xml version="1.0" encoding="UTF-8"?> 
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.demo.mapper.slave1.Slave1DataBaseMapper">
 	<select id="getCountry" resultType="com.example.demo.model.CountryModel">
@@ -179,15 +176,15 @@ public interface Slave1DataBaseMapper {
 
 # 5. Service 클래스 정의
 
-정의한 mapper 클래스를 활용하여 Service 클래스 작성, Service 클래스 부터는 단일 커넥션으로 작성한 방식과 크게 다르지 않게 정의하여 사용한다. 클래스를 분리하여도 되고 분리하지 않아도 상관없다. 
+정의한 mapper 클래스를 활용하여 Service 클래스 작성, Service 클래스 부터는 단일 커넥션으로 작성한 방식과 크게 다르지 않게 정의하여 사용한다. 클래스를 분리하여도 되고 분리하지 않아도 상관없다.
 ```
 @Service
 public class MasterDataBaseService {
    @Autowired
    MasterDataBaseMapper masterDataBaseMapper;
 
-   @Autowired 
-   Slave1DataBaseMapper slave1DataBaseMapper; 
+   @Autowired
+   Slave1DataBaseMapper slave1DataBaseMapper;
 
    public List<SalaryModel> getSalary() throws Exception {
       return masterDataBaseMapper.getSalary();

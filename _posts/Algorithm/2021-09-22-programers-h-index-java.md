@@ -1,7 +1,12 @@
 ---
-title:  "프로그래머스 H-index (JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 H-index (JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
 > [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42747)
@@ -28,17 +33,17 @@ header: Algorithm
 class Solution {
  public int solution(int[] citations) {
         int answer = 0;
-        
-        
+
+
         //전체 논문수
         int n = citations.length;
-        
+
         //내림차순 정렬을 위하여 Integer 배열로 변경
         Integer[] conv = Arrays.stream(citations).boxed().toArray(Integer[]::new);
-        
+
         //내림차순 정렬
         Arrays.sort(conv, Collections.reverseOrder());        
-        
+
         for(int i = 0; i<conv.length; i++) {
         	if(conv[i] == i+1 ) {
         		answer = i+1;
@@ -47,7 +52,7 @@ class Solution {
                 answer = i;
         		break;
             }
-            
+
             //모든 논문의 인용수가 작성한 개수보다 많을때
             if(i+1 ==  conv.length){
                 answer = i+1;

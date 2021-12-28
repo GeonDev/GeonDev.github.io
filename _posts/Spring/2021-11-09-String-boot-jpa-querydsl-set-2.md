@@ -1,16 +1,12 @@
 ---
-title:  "Springboot + Spring Date JPA+ QueryDsl 적용하기(Maven) 2"
-toc: true
-toc_sticky: true
-categories:
-  - Spring
-tags:  
-  - Web
-  - Java
-  - SpringBoot
-  - JPA
-  - Database
-  - QueryDsl
+layout: post
+title: Springboot + Spring Date JPA+ QueryDsl 적용하기(Maven) 2
+date: 2021-11-09
+Author: Geon Son
+categories: Spring
+tags: [Springboot,  JPA, QueryDsl]
+comments: true
+toc: true  
 ---
 
 지난번에 QueryDsl을 사용하면 어떻게 Pageable을 사용하는지 만약에 사용 못한다면 대참사가 일어날거라고 생각했는데 당연히 사용하는 방법이 있었다. 여러 사용방법이 있는 것 같지만 지난번에 이미 QuerydslRepositorySupport를 구현하였기 때문에 그대로 활용하는 방법으로 구현하였다.
@@ -71,7 +67,7 @@ tags:
     }
 ```
 
-기존에 Pagination을 반환하는 UserService는 repository에 구현된 JPA 인터페이스를 불러와야 하기 때문에 불필요한 조건 분기도 있고 깔끔하지 않았다. 
+기존에 Pagination을 반환하는 UserService는 repository에 구현된 JPA 인터페이스를 불러와야 하기 때문에 불필요한 조건 분기도 있고 깔끔하지 않았다.
 
 
 ```
@@ -100,6 +96,6 @@ tags:
     }    
 ```
 
-새로 QueryDsl을 사용해 제작된 findUserTypeAndDatePage는 분기를 모두 내부에서 처리하기 떄문에 전달 받은 모든 파라미터를 넣기만 하면 동적 쿼리를 생성한다. 
+새로 QueryDsl을 사용해 제작된 findUserTypeAndDatePage는 분기를 모두 내부에서 처리하기 떄문에 전달 받은 모든 파라미터를 넣기만 하면 동적 쿼리를 생성한다.
 
 머스테치를 사용하기 때문에 전달하는 데이터의 양이 많아보이지만 이부분은 다른 템플릿을 사용하면 변경되는 부분 이기 떄문에 쿼리 부분만 비교하면 더 간단한 형태로 구현된 것을 알 수 있다.

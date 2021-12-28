@@ -1,7 +1,12 @@
 ---
-title:  "프로그래머스 프린터(JAVA)"
-description: This page demonstrates typography in markdown.
-header: Algorithm
+layout: post
+title: 프로그래머스 프린터(JAVA)
+date: 2021-09-22
+Author: Geon Son
+categories: Algorithm
+tags: [Java, Algorithm]
+comments: true
+toc: true
 ---
 
 > [프로그래머스 링크](https://programmers.co.kr/learn/courses/30/lessons/42587)
@@ -18,26 +23,26 @@ header: Algorithm
 
 ```
 class Solution {
-	
+
 	List<Print> printList = new LinkedList<Print>();
-	
+
     public static int solution(int[] priorities, int location) {
         int answer = 0;
-        
+
         List<Print> printList = new LinkedList<Print>();
-        
+
         for(int i = 0; i<priorities.length; i++) {
         	printList.add(new Print(i, priorities[i]));
         }
-        
-        
+
+
         while (!printList.isEmpty()) {
 			Print target = printList.get(0);
-        	printList.remove(0); 
-        	
+        	printList.remove(0);
+
         	Print max = maxValue(printList);
-        	
-        
+
+
     		if(target.priority >= max.priority) {
         		answer++;
                 //원하는 location이라면 break
@@ -50,16 +55,16 @@ class Solution {
 		}
         return answer;
     }
-    
+
     //리스트에서 가장 큰 Print 객체를 반환
     public static Print maxValue(List<Print> list ) {    	
     	if(list.isEmpty()) {
         	// 리스트가 비어 있다면 없는 값을 반환
     		return new Print(-1, 0);
     	}
-    	
+
     	Print result = list.get(0);
-    	
+
     	for(Print temp : list) {
     		if(temp.priority > result.priority) {
     			result = temp;
@@ -67,17 +72,16 @@ class Solution {
     	}    	
     	return result;
     }
-    
+
 }
 
-class Print{	
+class Print{
 	int location;
 	int priority;
-	
+
 	public Print(int location, int priority) {
 		this.location = location;
 		this.priority = priority;
 	}
 }
 ```
-
