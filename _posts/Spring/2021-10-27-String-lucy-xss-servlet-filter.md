@@ -103,7 +103,7 @@ lucy-xss-servlet을 사용하기 위해서는 resource 아래에 lucy-xss-servle
 <script> alert('test') </script>
 ```
 보통 xss를 이용할때 script 테그를 많이 사용한다고 합니다. 입력창에 lucy-xss를 적용하지 않은 상태로 위에 내용을 넣어서 테스트를 하면
-![](images/spring/dfegj4_2.jpeg){: .align-center}
+![](/images/spring/dfegj4_2.jpeg){: .align-center}
 
 정상적으로 화면에 출력되지 않는 상황이 발생합니다.
 ![](/images/spring/dfegj4_3.jpeg){: .align-center}
