@@ -9,7 +9,7 @@ comments: true
 toc: true    
 ---
 
-> [이 링크를 참고 했다.](https://www.javaer101.com/ko/article/5021464.html)
+> [이 링크를 참고 했다.](https://www.javaer101.com/ko/article/5021464)
 
 스프링 프레임워크에서 관리하지 않는 클래스에 Service를 사용하고 싶었다. 내가 생성한 쓰레드에서 Service 클래스를 이용해서 DB에 데이터를 삽입하고 싶었다. 아무 생각없이 쓰레드에 @Autowired를 하면 당연히 nullPointException을 날린다.
 그래서 스프링 프레임워크에서 생성한 Bean을 다른 클래스에 전달할수 있는 클래스가 필요하였다.
