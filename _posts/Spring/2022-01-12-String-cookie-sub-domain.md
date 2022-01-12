@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 쿠키 공유/ 서브 도메인
+title: 다른 서버에 쿠키를 공유 하는 법/ 서브 도메인
 date: 2022-01-12
 Author: Geon Son
 categories: Spring
