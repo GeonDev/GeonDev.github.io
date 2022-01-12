@@ -18,9 +18,7 @@ navigation:
   - name: TAG
     url: /tags
 
-
 paginate: 8
-
 
 footer-links:
   weibo: #frommidworld #请输入你的微博个性域名 https://www.weibo.com/<thispart>
@@ -44,9 +42,7 @@ footer-text: Copyright (c) 2021 GeonDev
 
 disqus: GeonDev
 
-
 google_analytics: G-G0FD371ZKE
-
 
 url: https://geondev.github.io
 
@@ -76,11 +72,8 @@ sass:
 
 # Use the following plug-ins
 plugins:
-  - jekyll-sitemap # Create a sitemap using the official Jekyll sitemap gem
   - jekyll-feed # Create an Atom feed using the official Jekyll feed gem
   - jekyll-paginate
-  - jekyll-admin
-
 # Exclude these files from your production _site
 exclude:
   - Gemfile
