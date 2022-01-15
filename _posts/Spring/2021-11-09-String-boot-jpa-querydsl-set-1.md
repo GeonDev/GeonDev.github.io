@@ -9,8 +9,7 @@ comments: true
 toc: true  
 ---
 
->전체 코드 :  https://github.com/GeonDev/Proptech
-
+> [전체 코드](https://github.com/GeonDev/Proptech)
 
 단일 조건을 조회하거나 간단한 조건들을 이용하여 데이터를 조회할때는 JPA만 사용하더라도 쉽게 조회가 가능하지만 검색 조건을 여러개 사용하게 되면 검색조건의 조합에 따라 어떤 값을 이용해서 조회할지 분기가 필요하고 분기가 많아지면 코드가 깔끔해지지 않기 때문에 동적쿼리를 적용해보기 위하여 QueryDsl을 적용해 보았다.
 

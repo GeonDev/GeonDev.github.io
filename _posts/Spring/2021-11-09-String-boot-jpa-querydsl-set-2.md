@@ -8,7 +8,7 @@ tags: [Springboot, JPA, QueryDsl]
 comments: true
 ---
 
->전체 코드 :  https://github.com/GeonDev/Proptech
+> [전체 코드](https://github.com/GeonDev/Proptech)
 
 지난번에 QueryDsl을 사용하면 어떻게 Pageable을 사용하는지 만약에 사용 못한다면 대참사가 일어날거라고 생각했는데
 당연히 사용하는 방법이 있었다. 여러 사용방법이 있는 것 같지만 지난번에 이미 QuerydslRepositorySupport를 구현하였기 때문에
