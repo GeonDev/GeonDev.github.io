@@ -72,3 +72,29 @@ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';
 ```
 계정별, DB별 접속가능한 IP를 개별 설정해주는 것이 보안에는 유리하겠지만 여기서는
 루트 계정으로 접속시 모든 IP 접속을 허용하였다.
+
+# 3.2. Mysql 데이터베이스 확인 및 생성
+```
+show databases;
+
++--------------------+
+| Database           |
++--------------------+
+| DB_BATCH           |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.11 sec)
+```
+
+현재 생성된 데이터베이스를 확인한다. root 계정으로 실행시 시스템 데이터베이스를 포함한 모든 데이터베이스가 표시된다.
+
+```
+mysql> CREATE DATABASE task_agile default CHARACTER SET UTF8;
+Query OK, 1 row affected, 1 warning (0.05 sec)
+```
+
+신규 데이터베이스를 생성한다. 한글을 사용할수 있도록 UTF8을  기본 문자열 형식으로 사용하였다.
+이후에 생성된 데이터베이스를 사용한다는 선언을 해주고 테이블을 생성하면 된다.
