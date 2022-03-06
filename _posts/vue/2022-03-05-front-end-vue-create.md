@@ -208,8 +208,11 @@ added 38 packages from 30 contributors, updated 2 packages and moved 9 packages 
  $ npm run serve
 ```
 
-## 남아있는 문제
-원래 내가 보고있는 책에서는 매뉴얼모드로 프로젝트를 생성하였다.
-하지만 매뉴얼모드로 실행시 chromedriver error가 발생하였다.
-어쩔수 없이 디폴트  모드로 실행 시켰는데 이게 무슨 에러를 발생 시킬지는
-나중에 확인해 봐야 겠다..
+## EACCES: permission 해결 방법 -  VS CODE 터미널 사용
+여러 방법으로 해결을 하려고 했는데 결국에 permission 문제를 해결하기 힘들었다.
+다른 방법으로 해결을 해보려고 찾아보다가 혹시 하는 생각으로 VS CODE의 터미널을 사용하여 진행해 봤다.
+(vs code는 전체 폴더 접근 권한을 설정했다.)
+결과는 '성공' 어이없게도 디폴트 설정이 아닌 매뉴얼 설정도 가능하고 서버 실행도 된다...
+이럴거면 왜 로제타를 설치 한거지 ㅜㅜ
+
+![](/images/vue/a4ga74d6ef1-vscode-t.png)
