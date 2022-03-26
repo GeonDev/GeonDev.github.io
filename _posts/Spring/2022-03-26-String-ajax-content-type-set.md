@@ -29,7 +29,7 @@ form> 내부에 <button>에 별다른 설정을 하지 않게 되면 디폴트�
 
 #2.현상 발생 과정
 
-```
+
 <form id="form-poll-entry" method="post">
 
     <input id="vote1" type="checkbox" name="key1" value="option1"/>
@@ -38,7 +38,7 @@ form> 내부에 <button>에 별다른 설정을 하지 않게 되면 디폴트�
 
     <button class="poll-submit" >제출</button>
 </form>
-```
+
 
  대략 이런 방식으로 from을 만들어 전송한다. form 내부에 버튼이 있는 형태로 만들어져 있기 때문에
  버튼을 누르게 되면 디폴트로 현재 페이지에 URL에 form 데이터를 전달한다.
@@ -46,7 +46,7 @@ form> 내부에 <button>에 별다른 설정을 하지 않게 되면 디폴트�
 
  문제는 이 페이지에서는 데이터 전송을 form페이지에 의지한 것이 아니라 ajax로 호출 된 데이터를 이용해서 데이터를 전달했다는 것이다.
 
-```
+
 var postData = $('#form-poll-entry').serializeArray();
   var postPayload = { userPollEntry: [] };
 
@@ -60,7 +60,7 @@ var postData = $('#form-poll-entry').serializeArray();
       xhrFields: {
           withCredentials: true
       }
-```
+
 
  실제 코드와는 다르지만 이 스크립트를 통하여 특정 테그를 가진 <button> 또는 <a> 테그를 누르면
  ID가 form-poll-entry인 데이터를 불러와서 저장하고 Ajax 호출을 실행한다.
@@ -84,7 +84,8 @@ var postData = $('#form-poll-entry').serializeArray();
 
  이를 막기 위해서 <button type="button"> 으로 설정을 하면 버튼의 역할만 수행하고
  <form> 호출은 하지 않는다. 위에 html에서는 다음과 같이 변경하면 된다.
- ```
+
+
  <form id="form-poll-entry" method="post">
 
      <input id="vote1" type="checkbox" name="key1" value="option1"/>
@@ -93,4 +94,3 @@ var postData = $('#form-poll-entry').serializeArray();
 
      <button class="poll-submit" type="button">제출</button>
  </form>
- ```
