@@ -75,3 +75,22 @@ var postData = $('#form-poll-entry').serializeArray();
  에러를 발생 시켰던 것이다.
 
  어처구니 없는 실수 였지만 솔직히 당시에는 생각도 못했고... 결국 선배님께 요청을 하여 원인을 알게 되었다.
+
+ #3.해결 방법
+
+ <form> 테그 버튼에서 값을 전송하지 않게 만들면 된다.
+ 디폴트값으로  <form> 내부의 <button>은 type ="submit" 으로 되어 있다.
+ 이때 버튼을 누르면 <form>을 호출하게 된다.
+
+ 이를 막기 위해서 <button type="button"> 으로 설정을 하면 버튼의 역할만 수행하고
+ <form> 호출은 하지 않는다. 위에 html에서는 다음과 같이 변경하면 된다.
+ ```
+ <form id="form-poll-entry" method="post">
+
+     <input id="vote1" type="checkbox" name="key1" value="option1"/>
+     <input id="vote2" type="checkbox" name="key2" value="option2"/>
+     <input id="vote3" type="checkbox" name="key3" value="option3"/>
+
+     <button class="poll-submit" type="button">제출</button>
+ </form>
+ ```
