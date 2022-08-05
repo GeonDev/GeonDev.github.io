@@ -20,7 +20,7 @@ application.yml 파일에 데이터를 저장하면 별도의 팩토리클래스
 별도 파일을 만들어 관리하고 싶었기 때문에 tableConfig.yml 이라는 파일을 만들고 데이터를 넣었다.
 
 # 1. yml 파일 생성
-```
+~~~
 table:
   userColumn:
     - 사용자명
@@ -55,7 +55,7 @@ table:
     - 단계
     - 주소
     - 이름
-```
+~~~
 사실 yml 파일에는 특별한 기능은 없다. 기존과 비슷하게 계층(?)을 주어 데이터를 넣으면 된다.
 아마 properties 형식으로 데이터를 넣었다면 userSearch=전체,권한,상태 ... 와 같은 형태로 데이터를 넣고 Service 단에서 파싱을 하는 방식으로 작업하였을 텐데
 yml은 데이터를 넣을 별도의 클래스를 생성하고 이 클래스를 불러오는 방식으로 작업을 한다.
@@ -65,7 +65,7 @@ yml은 데이터를 넣을 별도의 클래스를 생성하고 이 클래스를 
 
 
 # 2. PropertySourceFactory 생성
-```
+~~~
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
@@ -102,7 +102,7 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
         }
     }
 }
-```
+~~~
 
 yml 파싱을 하기전에 먼저 파싱을 위한 팩토리클래스를 만들어야 한다.
 사실 이부분의 코드는 크게 신경쓰지 않고 인터넷에 있는 예제코드를 그대로 활용하였다.
@@ -112,7 +112,7 @@ yml 파싱을 하기전에 먼저 파싱을 위한 팩토리클래스를 만들�
 
 
 # 3. TableColumnConfig 생성
-```
+~~~
 import com.apt.proptech.util.YamlPropertySourceFactory;
 import lombok.Getter;
 
@@ -138,7 +138,7 @@ public class TableColumnConfig {
     private List<String> associateSearch;
 
 }
-```
+~~~
 이제 yml을 파싱하여 저장할 클래스를 생성한다. @Configuration를 선언하여 스프링 빈으로 만들어 스프링에서 관리할수 있도록 선언해주고 @ConfigurationProperties(prefix = "table")를 통하여 yml의 최상위 기호(?)가 어떤 것인지 알려준다.
 
 @PropertySource(value = "classpath:tableConfig.yml", factory = YamlPropertySourceFactory.class) 는 어떤 파일을 파싱할지, 어떠한 팩토리를 사용할지 명시하는데 위에서 생성한 tableConfig.yml, YamlPropertySourceFactory를 불러오도록 한다.
@@ -152,7 +152,7 @@ public class TableColumnConfig {
 
 # 4. 테스트 코드 생성
 
-```
+~~~
 @SpringBootTest
 class ProptechApplicationTests {
 
@@ -172,7 +172,7 @@ class ProptechApplicationTests {
     }
 }
 
-```
+~~~
 
 간단하게 어떻게 받아온 데이터를 사용하는지 보면 @Autowired를 이용하여 TableColumnConfig를 생성하고 받아오면 된다.
 @Autowired를 사용하기 때문에 일반적으로 스프링이 관리하고 있는 클래스에는

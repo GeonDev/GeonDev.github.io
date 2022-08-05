@@ -20,7 +20,7 @@ apache poi는 오피스 프로그램을 java로 다루기 위한 라이브러리
 poi 와 poi-ooxml를 dependency에 추가 하면 된다. 나는 poi-scratchpad도 추가 하였다.
 현재 최신 버전은 5.0으로 보인다.
 
-```
+~~~
 <dependency>
 	<groupId>org.apache.poi</groupId>
 	<artifactId>poi</artifactId>
@@ -38,7 +38,7 @@ poi 와 poi-ooxml를 dependency에 추가 하면 된다. 나는 poi-scratchpad�
 	<artifactId>poi-scratchpad</artifactId>
 	<version>4.0.0</version>
 </dependency>
-```
+~~~
 
 # 2. Controller 구현
 
@@ -46,7 +46,7 @@ poi 와 poi-ooxml를 dependency에 추가 하면 된다. 나는 poi-scratchpad�
 따라서 Controller에서는 필요한 Service를 호출하여 model에 값만 넣어주면 된다.
 조금 특이한 점은 진짜 뷰(?)인 .html, jsp 파일을 return하는게 아니라 AbstractView 를 상속받는 클래스를 리턴한다는 것이다. AbstractView를 상속 받으면 해당 클래스는 뷰로 취급된다고 한다.
 
-```
+~~~
 @Controller
 @RequestMapping("user/*")
 public class UserController {
@@ -74,7 +74,7 @@ public class UserController {
 	return "excelDownloader";
 	}
 }
-```
+~~~
 위에서 설명한 것 처럼 Controller에서는 보통의 뷰에 데이터를 전달 하듯이 Model에 값을 전달하는 기능만 하고 excelDownloader를 리턴한다.
 
 
@@ -90,7 +90,7 @@ ExcelDownloader 다운로드 기능을 담당하는 클래스이다. 물론 이�
 
 ## renderMergedOutputModel 구현
 
-```
+~~~
 @Override
 protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
@@ -126,13 +126,13 @@ protected void renderMergedOutputModel(Map<String, Object> model, HttpServletReq
 
 		return format.format(d);
 	}
-```
+~~~
 
 클래스 위에 전역 변수로 파일을 저장할 위치, 콘텐츠 타입을 지정하는 변수 등이 있지만 이해하는데 어려운 코드는 아니다. 먼서 파일 작성을 위한 임시파일의 압축비율을 지정한다. SXSSFWorkbook를 사용하였을때 XSSFWorkbook보다 빠르게 파일을 생성할수 있는 이유는 임시 파일을 이용하기 때문이라고 한다. 나머지 기능은 보통 파일 쓰기와 크게 다르지 않다.
 
 ## generateUserExcel(model) 구현
 
-```
+~~~
 // 탬플릿 엑셀 파일에 리스트 값을 넣음
 public Workbook generateUserExcel(Map<String, Object> model) throws Exception{
 	List<User> userlist = (List<User>) model.get("list");
@@ -191,14 +191,14 @@ public Workbook generateUserExcel(Map<String, Object> model) throws Exception{
 
 		return workbook;
 	}
-```
+~~~
 
 이 코드는 탬플릿으로 저장된 엑셀파일을 읽어와서 두번째 시트(시트 이름을 "template"라고 입력했다.)의 서식을 불러와 저장하고 저장된 서식을 이용하여 첫번째 시트에 작성한다. 파일 작성이 끝나면 서식이 저장된 두번째 시트는 지우고 남아 있는 첫번째 시트만 반환한다. 실제 시트를 보면 첫번째 시트는 빈칸이고 두번째 시트에는 글자색이 지정되어 있다.
 
 
-![첫번째](/images/spring/excel/imageqwfqwf-1.png)
+![첫번째](/images/spring/excel/imageqwfqwf-1.png){: .align-center}
 
-![두번째](/images/spring/excel/imagedqwfqw-2.png)
+![두번째](/images/spring/excel/imagedqwfqw-2.png){: .align-center}
 
 
 for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행씩 엑셀파일에 데이터를 넣어주는 것을 볼수 있다. 원하는 칼럼의 개수, 값에 따라 다르게 작성하면 된다.
@@ -215,15 +215,16 @@ for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행
 읽기전용을 해제 하면 된다.
 
 ### 2. 열 삭제
-![](/images/spring/excel/imageasdf-3.png)
-비어있는 시트이고 읽기전용도 아닌데 오류가 발생하면 excel 파일을 열어서 열을 지워보면 해결되는 경우가 있다. 표시되지 않지만 데이터가 있는건지...왜 그런건지는 모르겠다....
+![](/images/spring/excel/imageasdf-3.png){: .align-center}
+비어있는 시트이고 읽기전용도 아닌데 오류가 발생하면 excel 파일을 열어서 열을 지워보면 해결되는 경우가 있다.
+표시되지 않지만 데이터가 있는건지...왜 그런건지는 모르겠다....
 
 
 ### 3. o.s.b.w.servlet.support.ErrorPageFilter
 스프링 타일즈를 적용하고 테스트를 하다보니 문제가 발생했다. 기존에는 String으로 AbstractView를 반환하였는데 타일즈를 적용하면서 viewResolver 설정을 변경하였기 때문에 작동이 안된다. (정확하게는 String 으로 화면을 전달하면 반드시 [스트링.jsp] 형태만 인식한다.)
 
 방법은 전달하는 AbstractView Class를 정확하게 View()로 사용한다고 명시하면 된다.
-```
+~~~
 	@RequestMapping(value = "/totalCall.excel" ,method = RequestMethod.POST)
 	public View getTotalCallList( Model model, SearchVO<TotalCallDto> searchVO) throws Exception{		
 
@@ -239,7 +240,7 @@ for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행
 		return new ExcelView();
 
 	}
-```
+~~~
 
 특별히 다른 것은 없고 반환형식을 View(org.springframework.web.servlet.View)로 사용하하고 new로 객체를 생성하여 반환하면 된다.
 
@@ -249,7 +250,7 @@ for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행
 
 단순 참고 용으로 첨부
 
-```
+~~~
 package com.vig.util;
 
 import java.io.FileInputStream;
@@ -426,7 +427,6 @@ public class ExcelDownloader extends AbstractView{
 	}
 
 
-
 	public String getDate() {
 		Date d = new Date();
 		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
@@ -440,4 +440,4 @@ public class ExcelDownloader extends AbstractView{
 
 }
 
-```
+~~~
