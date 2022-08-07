@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Spring POI, AbstractView를 활용한 Excel Download 구현 - 해더 생성
-date: 2022-08-06
+date: 2022-08-07
 Author: Geon Son
 categories: Spring
 tags: [Springboot, AbstractView, Excel]
@@ -184,7 +184,7 @@ renderMergedOutputModel() 은 AbstractView의 필수요소로 Controller에서 �
 이후에 generateUserExcel를 통하여 엑셀파일을 작성하는데 먼저 데이터 위에 간단한 칼럼명을 표시하기 위하여 header라는 배열을 만들고 먼저 한줄을 작성하였다.
 그 이후 부터는 기존 과 동일하게 데이터를 순회하면서 한줄씩 값을 채워주면 된다.
 
-![](/images/spring/excel/qwefqwef.png)
+![](/images/spring/excel/qwefqwef.png){: .align-center}
 대략 이런 결과물이 나온다.
 
 # 4. 개선이 필요한 부분
