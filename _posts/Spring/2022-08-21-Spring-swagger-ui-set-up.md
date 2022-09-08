@@ -105,7 +105,7 @@ public class RegisterController
 @RequestMapping(value = "/regist/admin" , method = RequestMethod.POST)
 @Operation(description = "어드민 계정 가입 API")
 @ApiResponses({
-				@ApiResponse(responseCode = "200", description = "성공"),
+				@ApiResponse(responseCode = "200", description = "성공" , content = @Content(schema = @Schema(implementation = AdminLoginLogDto.class))),
 				@ApiResponse(responseCode = "400", description = "중복된 ID" )
 public ResponseEntity registAdminUser(HttpServletRequest request,
 						@Parameter(name = "name", description = "이름", required = true) @RequestParam("name") String name,
@@ -123,10 +123,31 @@ public ResponseEntity registAdminUser(HttpServletRequest request,
 개별적으로 파라메터 마다 설명 작성하는게 귀찮다고 생각할수도 있다. 그러나 API를 만들고 문서 파일을 수정하는 과정을 반복하는 것 보다
 버전 관리 등에서 훨씬 수월하고 스웨거에서 직접 API를 테스트 할수 있다는 점에서 당연히 유용하다.
 
+
+## 3.1. ApiResponse 추가
+
 @ApiResponse의 경우 결과값을 반환하였을떄 어떤 메세지를 전달할지 지정할수 있다. 다만 실제 API반환값을 지정하는 것은 아니고
 스웨거의 반환 결과 값을 지정하는 것이다.
+저장된 메세지에 content를 추가하면 해당 메소드의 반환값 또한 표시해 줄수 있다. 반환값으로 지정할수 있는 클래스는 literal 타입만 지정할수 있다고한다.
+대부분 DTO를 반환하도록 만들면 반환 형태 까지 지정할수 있어 좀더 편리하게 프론트엔드 파트와 소통할수 있다.
+아무리 DTO에 @Schema를 지정하여 세팅을 하더라도 @ApiResponse에 지정되지 않는다면 스웨거에 노출되지 않는다.
 
-이외에도 스키마를 지정하거나 다양한 설정들이 있어 찾아보면서 적용하면 될것 같다.
+~~~
+@Getter
+@Setter
+@Schema(description = "유저 검색 결과값")
+public class SearchUserDto {
+
+    @Schema(required = true, description = "전체 유저수")
+    int totalCount;
+
+    @Schema(required = true, description = "개별 유저 리스트")
+    List<UserSimpleDto> userList;
+}
+~~~
+DTO 클래스에 @Schema를 이용해서 값에 대한 설명을 작성하고 @ApiResponse로 연결을 한 상태에서 스웨거에 접속하면
+![](/images/spring/sdi48vmqrvf.png){: .align-center}
+이런 식으로 반환값에 DTO 형식이 표시 되고 아래 Schema에서 해당 DTO에 대한 설명을 볼수 있다.
 
 
 # 4.Swagger 확인
