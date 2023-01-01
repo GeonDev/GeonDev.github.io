@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 맥북 M1에서 mariaDB 완전 삭제 하기
-date: 2023-01-02
+date: 2023-01-01
 Author: Geon Son
 categories: Spring
 tags: [DB, mariaDB, Homebrew]
