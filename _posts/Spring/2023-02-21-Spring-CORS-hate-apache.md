@@ -1,7 +1,7 @@
 ---
 layout: post
-title: 망할 Spring CORS 설정하기(apache, nginx)
-date: 2023-02-22
+title: 나를 괴롭히는 Spring CORS 해결하기(apache, nginx)
+date: 2023-02-21
 Author: Geon Son
 categories: Spring
 tags: [Springboot, CORS]
@@ -10,7 +10,7 @@ toc: true
 ---
 
 
-![그만보자](/assets/images/spring/f13ohwg13-gh3_01.jpeg)
+![그만보자](/images/spring/f13ohwg13-gh3_01.jpeg)
 
 분명히 개발서버에서는 아무 문제 없던 CORS 문제가 등장했다.
 서버에 Origin 설정을 안한 것 아니냐 라고 말한다면... 당연히 했다!
