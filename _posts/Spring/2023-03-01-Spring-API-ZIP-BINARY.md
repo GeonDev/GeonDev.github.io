@@ -25,12 +25,13 @@ toc: true
 
  json, xml도 아니고 압축데이터를 바이너리로 제공한다니.... 눈앞이 아찔하다...
  velog에서 같은 문제(?)를 격은 [포스팅](https://velog.io/@dragontiger/API-%ED%86%B5%EC%8B%A0%EC%9C%BC%EB%A1%9C-zip-%ED%8C%8C%EC%9D%BC%EC%9D%84-%EB%B0%9B%EA%B2%8C-%EB%90%9C%EB%8B%A4%EB%A9%B4-Java-IO-Stream-%EC%9D%B4%ED%95%B4)이 있어 참고하였는데
- 마지막 부분에 바이너리를 한번에 처리하는 기능은 **[Fatal Error] :1:1: 예기치 않은 파일의 끝입니다.** 라는 오류를 해결할수 없어 결국 바이너를 다운 받아
-  zip 압축을 풀고 xml을 파싱하는 방식으로 진행하였다.
+
+ 마지막 부분에 바이너리를 한번에 처리하는 기능은 **[Fatal Error] :1:1: 예기치 않은 파일의 끝입니다.** 라는 오류를 해결할 수 없어
+ 결국 API로 바이너리를 받아 zip 파일을 생성하고, 생성한 파일의 압축을 풀고 xml을 파싱하는 방식으로 진행하였다.
 
 
 # 1. binary 파일 다운로드 하기
-  전자공시 - 고유번호](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019018) API를 신청하고 그대로 브라우저에 넣어보니
+  [전자공시 - 고유번호](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019018) API를 신청하고 그대로 브라우저에 넣어보니
   파일이 zip이 아니라 exe 파일로 다운로드 되었다. 괜찮은 건가 싶긴 하지만 일단 바이너리 파일 부터 다운 받아 보기로 하였다.
 
 
