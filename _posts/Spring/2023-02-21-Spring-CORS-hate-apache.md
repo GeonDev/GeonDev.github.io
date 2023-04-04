@@ -88,7 +88,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 curl \
 --verbose \
 --request OPTIONS \
-'여기에 서버 URL' \
+  https:localhost:8080 (서버 URL) \
 --header 'Origin: 여기에 프론트 URL' \
 --header 'Access-Control-Request-Headers: Origin, Accept, Content-Type' \
 --header 'Access-Control-Request-Method: 호출 메소드'
