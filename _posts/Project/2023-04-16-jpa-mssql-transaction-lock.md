@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [트러블슈팅]트래픽이 급격하게 늘어났을때 해결방법(JPA + MSSQL) 
+title: 트러블슈팅 - 트래픽이 급격하게 늘어났을때 해결방법(JPA + MSSQL) 
 date: 2023-04-16
 Author: Geon Son
 categories: Project
