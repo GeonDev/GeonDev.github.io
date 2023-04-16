@@ -49,7 +49,9 @@ with(nolock)을 대신하는 옵션으로
 스프링 프로젝트를 처음 생성하면 커넥션 풀의 개수는 10개이다. 트랜젝션 락이 처음 발생했을때 고려해볼 방법으로 커넥션 풀 개수를 늘려 처리하는 총량을 늘리는 방법이다. 
 
 커넥션 풀을 결정하는 공식은 다음과 같다
+
 **connections = ((core_count) * 2) + effective_spindle_count)**
+
 정확하지는 않지만 core_count는 CPU의 개수 effective_spindle_count는 하드디스크 개수(I/O요청 수)라고 생각하면 된다. 커넥션풀 개수는 처음에 20개로 늘렸다가 추후에 100개로 올렸다. 
 
 ### 커넥션풀 개수 설정 및 확인
@@ -152,8 +154,9 @@ hibernate.connection.provider_disables_autocommit=true
 
 스카우터로 쿼리를 보면서 이상한 점을 발견했다.
 
-![](/images/spring/vió085ndfg3062.png)
-(이 사진은 예시일뿐 실제 상황과는 다르다. )
+![](/images/spring/085ndfg3062.png)
+
+(이 사진은 예시일뿐 실제 상황과는 다르다.  쿼리 순서와 수행내역만 동일한 예시이다)
 
 쿼리 수행속도는 빠르게 수행되는데 RESULT-SET-FETCH 라는 부분에서 수행시간을 잡아먹는다.  일단 이건 뭔가...? 쿼리를 받아오고 이후에 객체에 저장하는 과정에서 연산이 오래걸린 것으로 생각된다. GPT에 믈어보면 다음과 같이 답변해 준다.  내가 문제로 생각했던 이슈는 2번 필요한 데이터만 선택하는 것이다. 
 
@@ -177,7 +180,7 @@ hibernate.connection.provider_disables_autocommit=true
 
 네이티브 쿼리로 변경 할때 위에서 추가한 **with(nolock)** 도 추가 하였다. 쿼리 변경후 초당 1000회 테스트 코드를 돌렸을떄 결과는 다음과 같다.
 
-![](/images/spring/dsfno458pdf;lg5.png)
+![](/images/spring/dsfno458pdfg5.png)
 
 
 약 40만건의 insert를 수행하였는데 대부분 1초 내외로 수행되었다. 간혹 튀는 경우는 I/O block이 발생했을 경우로 DBA의 조언에 따라 서비스를 유지하는데는 문제가 없다고 판단했다. 
