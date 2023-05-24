@@ -36,14 +36,29 @@ toc: true
 
 ## MSSQL with(nolock) 설정 
 
-mssql은 다른 DB와 다르게 select를 수행할때도 lock이 발생한다. 물론 이러한 문제는 10버전이후에는 대부분 해결되었다고 한다. 하지만 지금 회사에서 사용하는 있는 mssql 버전은 9버전 이하 이고 업데이트 계획도 없다. 
+mssql은 다른 DB와 다르게 select를 수행할때도 lock이 발생한다.
 
 어떨수 없이 select를 할때마다 with(nolock)를 설정해야 한다. 문제는 **JPA에서는 어떻게 설정해야 되느냐** 하는 것이였다. jpa에도 DB마다 방언을 설정하는 옵션이 존재하긴 하지만 그렇다고 모든 옵션을 제공하지 않는다.
 with(nolock)을 대신하는 옵션으로
 ~~~
 @Transactional(isolation = Isolation.READ_UNCOMMITTED)
 ~~~
-이라는 설정을 걸수 있다.  트랜젝션 격리 레벨을 낮추어서 with(nolock)과 비슷한 효과를 나타나게 하는 방법이다. 하지만 해당 설정을 아무리 걸어도 **실제 수행되는 쿼리에는 with(nolock)이 출력되지 않는다.**  효과가 없다고 단언할수는 없지만 위에 설정을 추가하는 정도로는 개선되는 포인트가 없었다.
+이라는 설정을 걸수 있다.  트랜젝션 격리 레벨을 낮추어서 with(nolock)과 비슷한 효과를 나타나게 하는 방법이다.
+
+하지만 해당 설정을 아무리 걸어도 **실제 수행되는 쿼리에는 with(nolock)이 출력되지 않는다.**  효과가 없다고 단언할수는 없지만 위에 설정을 추가하는 정도로는 개선되는 포인트가 없었다.
+
+
+레파지토리를 사용하는 모든 서비스에 트랜젹션을 선언하는 것은 비효율적인 일이기 때문에 레파지토리에 직접 격리수준을 지정할수도 있다.
+
+~~~
+@Repository
+public interface EntityRepository extends JpaRepository<Entity, Long> {
+    @Lock(LockModeType.READ_UNCOMMITTED)
+    List<Entity> findAll();
+}
+~~~
+
+
 
 ## 커넥션풀 개수 증가
 스프링 프로젝트를 처음 생성하면 커넥션 풀의 개수는 10개이다. 트랜젝션 락이 처음 발생했을때 고려해볼 방법으로 커넥션 풀 개수를 늘려 처리하는 총량을 늘리는 방법이다. 
