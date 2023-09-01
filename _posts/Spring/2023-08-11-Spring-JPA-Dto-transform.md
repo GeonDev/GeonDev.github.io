@@ -86,7 +86,8 @@ public interface TagMapping {
 ~~~
 
 자주 사용하는 것은 아니자만 @Value를 사용하면 엔티티 필드를 조작하여 출력할수 있다.
-실무에서는 계층이 있는 정보 (ex 게시판 경로, 프로그램 정보) 등을 조회 할때 사용해 봤는데 데이터를 따로 받고 합치는 편이 유용한 적이 많아서 자주 사용하지는 않았다. 
+실무에서는 계층이 있는 정보 (ex 게시판 경로, 프로그램 정보) 등을 조회 할때 사용해 봤는데 
+오히려 데이터를 따로 받고 합치는 편이 유용한 적이 많아서 자주 사용하지는 않았다. 
 
 
 
@@ -97,8 +98,195 @@ Projections.constructor, Projections.fields, Projections.bean, @QueryProjection 
 @QueryProjection은 DTO class도 QClass를 생성해주는 방법이다. 
 
 
+~~~
+package com.quant.core.entity;
 
 
+import lombok.Data;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.time.LocalDate;
+
+@Entity
+@Data
+@Table(name = "TB_CORP_FINANCE")
+public class CorpFinance implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    Long financeId;
+
+    //분기코드
+    String rceptNo;
+
+    String corpCode;
+
+    String stockCode;
+
+    //연도 4자리
+    String yearCode;
+
+    LocalDate startDt;
+
+    LocalDate endDt;
+
+    //자본금
+    Long capital;
+
+    //자산 총계
+    Long totalAssets;
+
+    //부채 총계
+    Long totalDebt;
+
+    //자본 총계
+    Long totalEquity;
+
+    //매출액
+    Long revenue;
+
+    //당기 순이익
+    Long netIncome;
+
+    //영업 이익
+    Long operatingProfit;
+
+    //이익 잉여금
+    Long earnedSurplus;
+
+    //시가총액 % 매출액
+    Double PSR;
+
+    //시가총액 % 자본 총계
+    Double PBR;
+
+    //시가총액 % 당기 순이익
+    Double PER;
+
+    //시가총액 % 영업이익
+    Double POR;
+
+    Double YOY;
+
+    Double QOQ;
+
+    Double YTD;
+}
+~~~
+
+
+위에 코드를 보면 필드 값이 많이 있는 Entity 클래스를 확인할수 있다. 
+여기에서 내가 필요한 데이터만 뽑은 CorpFinanceSimpleDto를 만든다면 아래 처럼 된다.
+
+
+~~~
+package com.quant.api.dto;
+
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+@AllArgsConstructor
+public class CorpFinanceSimpleDto implements Serializable {
+
+    Long financeId;
+
+    //분기코드
+    String rceptNo;
+
+    String corpCode;
+
+    String stockCode;
+
+    //자본금
+    Long capital;
+
+    //자산 총계
+    Long totalAssets;
+
+    //부채 총계
+    Long totalDebt;
+
+    //자본 총계
+    Long totalEquity;
+
+    //매출액
+    Long revenue;
+
+    //당기 순이익
+    Long netIncome;
+
+    //영업 이익
+    Long operating;
+}
+~~~
+
+queryDsl의 메소드에서 Projections 내가 원하는 데이터를 바로 뽑아내는 메소드를 만들자고 한다면 아래 처럼 할수 있다. 
+
+~~~
+    public List<CorpFinanceSimpleDto> findByFinanceSimple(Long id){
+        List<CorpFinanceSimpleDto> results = queryFactory
+                .select(
+                        Projections.constructor(CorpFinanceSimpleDto.class,
+                                corpFinance.financeId,
+                                corpFinance.corpCode,
+                                corpFinance.stockCode,
+                                corpFinance.capital,
+                                corpFinance.totalAssets,
+                                corpFinance.totalDebt,
+                                corpFinance.totalEquity,
+                                corpFinance.revenue,
+                                corpFinance.netIncome,
+                                corpFinance.operatingProfit.as("operating")
+                        )
+                )                
+                .from(corpFinance)
+                .where(corpFinance.financeId.eq(id))
+                .fetch();
+                
+        return  results;
+    }
+~~~
+
+Projections.constructor를 활용하여 corpFinance값의 일부만 DTO에 매핑 시켰다. 예제에서는 interface를 활용한 Open Projection와 비교해서 큰 이점이 없어 보일수도 있다.
+하지만 조인이 포함되어 여러 Entity의 값을 하나의 DTO로 합치는 경우 Open Projection을 사용하는 것이 힘들수도 있고 as()를 활용하여 DTO의 필드명을 자유롭게 변경할수도 있다. (operatingProfit -> operating) 
+또 CASE문을 활용하여 프론트에서 작업하던 연산을 쿼리 단에서 바로 처리할수도 있게 한다. 
+
+
+## 2.1. CaseBuilder 추가
+위에 분기 코드(rceptNo)는 Q1, Q2, Q3, Q4와 같은 형식의 데이터를 받아오게 된다. 프론트에는 1분기, 2분기, 3분기와 같은 형태로 표시된다고 했을때 CaseBuilder를 이용하면 서비스단 또는 프론트에서 DTO를 수정하지 않아도 된다.
+
+~~~
+    public List<CorpFinanceSimpleDto> findByFinanceSimple(Long id){
+        List<CorpFinanceSimpleDto> results = queryFactory
+                .select(
+                        Projections.constructor(CorpFinanceSimpleDto.class,
+                                corpFinance.financeId,
+                                new CaseBuilder()
+                                        .when(corpFinance.corpCode.eq("Q1")).then("1분기")
+                                        .when(corpFinance.corpCode.eq("Q2")).then("2분기")
+                                        .when(corpFinance.corpCode.eq("Q3")).then("3분기")
+                                        .otherwise("4분기"),
+                                corpFinance.stockCode,
+                                corpFinance.capital,
+                                corpFinance.totalAssets,
+                                corpFinance.totalDebt,
+                                corpFinance.totalEquity,
+                                corpFinance.revenue,
+                                corpFinance.netIncome,
+                                corpFinance.operatingProfit
+                        )
+                )
+                .from(corpFinance).where(corpFinance.financeId.eq(id)).fetch();
+
+        return  results;
+    }
+~~~
+
+Case 문 쿼리를 사용하는 것과 방법은 똑같다. when() 메소드에 내가 원하는 조건을 넣고 만족하면 then()의 값을 반환하게 된다. 이런식으로 DTO에 들어가는 값을 직접 수정하면서 Projections을 유용하게 사용할 수 있다.
 
 
 
