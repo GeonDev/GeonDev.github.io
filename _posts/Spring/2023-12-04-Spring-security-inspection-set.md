@@ -76,9 +76,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
 # 3. 비인가된 OPTIONS HTTP 메소드 사용
-사용하지 않는 Http 메소드는 막는 것이 좋다고 한다. 다만 API의 경우 프론트에서 호출할때 사용가능한 Http 메소드를 확인하는 경우가 있어 option 메소드는 허용하기도 한다.
+사용하지 않는 Http 메소드는 막는 것이 좋다고 한다. 
+다만 API의 경우 프론트에서 호출할때 사용가능한 Http 메소드를 확인하는 경우가 있어 option 메소드는 허용하기도 한다.
 현재 인프라에서는 외부 톰켓을 사용하고 있어서 톰켓의 web.xml에 아래 설정을 추가하였다.
-
+(보안검수 요구사항이기 때문에 어쩔수 없이 메소드를 막았지만 GET,POST만 쓰라고 하는건 요즘 개발과 맞지 않는다고 생각한다.)
 
 ~~~
 <security-constraint>
