@@ -85,13 +85,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
 맥이나 리눅스라면 콘솔(또는 터미널에서) 아래 명령어를 호출 하면 CORS가 허용되는지 알수 있다.
 
 ~~~
-curl \
---verbose \
---request OPTIONS \
-  https:localhost:8080 (서버 URL) \
---header 'Origin: 여기에 프론트 URL' \
+curl --verbose --request OPTIONS '요청을 받는 origin(API)' \
+--header 'Origin: 요청하는 origin(서버)' \
 --header 'Access-Control-Request-Headers: Origin, Accept, Content-Type' \
---header 'Access-Control-Request-Method: 호출 메소드'
+--header 'Access-Control-Request-Method: GET'
+~~~
+
+예시를 만들면 아래와 같다
+~~~
+curl --verbose --request OPTIONS 'https://aaa.com' \
+--header 'Origin: http://localhost:8080' \
+--header 'Access-Control-Request-Headers: Origin, Accept, Content-Type' \
+--header 'Access-Control-Request-Method: GET'
 ~~~
 
 
@@ -182,3 +187,16 @@ public void addCorsMappings(CorsRegistry registry) {
 
 정말 어처구니 없지만 이렇게 설정을 해주니 CORS가 허용되었다...
 `*`가 안먹힐 줄은 생각도 못했는데 앞으로는 CORS는 잘게 나누어 세팅 해야겠다.
+
+
+# 4. js 파일 CORS 허용 (crossorigin)
+프론트 엔드 파트와 작업을 하면서 react나 node.js 같이 스크립트 파일의 CORS를 허용해 주어야 하는 일이 발생하였다. 위에 작업만 잘 수행해도 CORS가 해결되긴 하지만 스크립트에 CORS를 허용해주는 html 속성이 있어 정리 
+
+~~~
+<script id="jtbc-video-player" defer="defer" type="module" src="www.abc.com/test.js" crossorigin="anonymous"></script>
+~~~
+스크립트 테그안에 **crossorigin** 속성을 추가하면 된다. 기본값은 anonymous
+
+[속성 참고](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin).
+
+
