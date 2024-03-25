@@ -193,7 +193,7 @@ public void addCorsMappings(CorsRegistry registry) {
 프론트 엔드 파트와 작업을 하면서 react나 node.js 같이 스크립트 파일의 CORS를 허용해 주어야 하는 일이 발생하였다. 위에 작업만 잘 수행해도 CORS가 해결되긴 하지만 스크립트에 CORS를 허용해주는 html 속성이 있어 정리 
 
 ~~~
-<script id="jtbc-video-player" defer="defer" type="module" src="www.abc.com/test.js" crossorigin="anonymous"></script>
+<script defer="defer" type="module" src="www.abc.com/test.js" crossorigin="anonymous"></script>
 ~~~
 스크립트 테그안에 **crossorigin** 속성을 추가하면 된다. 기본값은 anonymous
 
