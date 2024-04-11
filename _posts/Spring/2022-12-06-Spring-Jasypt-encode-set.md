@@ -21,8 +21,6 @@ toc: true
   <artifactId>jasypt-spring-boot-starter</artifactId>
   <version>2.1.2</version>
 </dependency>
-
-
 ```
 
 
@@ -60,8 +58,8 @@ public class JasyptConfig {
 }
 ~~~
 
-암호화 수행을 할 config를 추가한다. 특이사항으로 JASYPT_PASSWORD를 사용하여 암호화를 하는데 서버 설정으로 지정하거나
-환경 변수로 설정하는게 좀더 안전하기는 하다. 다만 담당자가 변경되다 분실되는 경우가 있어 코드에 추가(권장하지는 않음)
+암호화 수행을 할 config를 추가한다. 특이사항으로 JASYPT_PASSWORD를 사용하여 암호화를 하는데  
+서버 설정으로 지정하거나 환경 변수로 설정하는게 좀더 안전하기는 하다. 다만 담당자가 변경되다 분실되는 경우가 있어 코드에 추가(권장하지는 않음)
 
 
 

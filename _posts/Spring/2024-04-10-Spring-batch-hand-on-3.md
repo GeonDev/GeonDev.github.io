@@ -13,8 +13,8 @@ toc: true
 
 ![](/images/spring/sflkjasdfgas-asdfgasgh-sfrf.png){: .align-center}
 
-기본 제공되는 ItemReader 구현체가 많음 (file, jdbc, Jpa 등등) 
-ItemReader 구현체가 없으면 직접 개발
+기본 제공되는 ItemReader 구현체가 많음 (file, jdbc, Jpa 등등)  
+ItemReader 구현체가 없으면 직접 개발  
 ItemStream은 ExecutionContext로 read, write 정보를 저장
 
 CustomItemReader 구현 예제
@@ -136,4 +136,74 @@ public class ItemReaderConfiguration {
 ~~~
 
 
+## 1.1. FlatFileItemReader
+파일에 저장된 데이터를 읽어 객체에 매핑 하는 ItemReader
 
+테스트를 위한 csv 파일을 생성 (test.csv 파일을 만든다.)
+위에서 생성한 Parson 객체는 그대로 사용한다.
+~~~
+id,이름,나이,거주지
+1,이경원,32,인천
+2,홍길동,30,서울
+3,아무개,25,강원
+~~~
+
+
+~~~
+    private FlatFileItemReader<Person> csvFileItemReader() throws Exception {
+        
+        /** CSV파일을 Parson 객체에 매핑 **/
+
+        //파일을 한줄씩 읽을수 있는 LineMapper 설정
+        DefaultLineMapper<Person> lineMapper = new DefaultLineMapper<>();
+
+        //파읠의 필드명을 설정할수 있는 Tokenizer 선언 
+        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
+        
+        tokenizer.setNames("id", "name", "age", "address");
+        
+        //LineMapper에 Tokenizer 세팅
+        lineMapper.setLineTokenizer(tokenizer);
+
+        //데이터를 필드 값에 맞추어 세팅
+        lineMapper.setFieldSetMapper(fieldSet -> {
+            int id = fieldSet.readInt("id");
+            String name = fieldSet.readString("name");
+            String age = fieldSet.readString("age");
+            String address = fieldSet.readString("address");
+
+            //읽은 데이터를 Person 객체로 전달 
+            return new Person(id, name, age, address);
+        });
+
+        /** FlatFileItemReader 생성 **/
+
+        FlatFileItemReader<Person> itemReader = new FlatFileItemReaderBuilder<Person>()
+                .name("csvFileItemReader")
+                .encoding("UTF-8")
+                // Resource 디랙토리 아래 파일을 읽을수 있는 스프링 클래스
+                .resource(new ClassPathResource("test.csv"))
+                //첫번째 라인을 무시 (Parson의 필드명이기 떄문에)
+                .linesToSkip(1)
+                //위에서 설정한 LineMapper 적용
+                .lineMapper(lineMapper)
+                .build();
+
+        //ItemReader에 필요한 필수 설정값이 정상적으로 세팅 되었는지 검증
+        //Exception를 출력하기 때문에 throws Exception 추가    
+        itemReader.afterPropertiesSet();
+
+        return itemReader;
+    }
+
+
+    // 생성한 csvFileItemReader을 실행시키기 위한 Step 세팅
+    @Bean
+    public Step csvFileStep() throws Exception {
+        return stepBuilderFactory.get("csvFileStep")
+                .<Person, Person>chunk(10)
+                .reader(this.csvFileItemReader())
+                .writer(itemWriter())
+                .build();
+    }
+~~~

@@ -9,7 +9,7 @@ comments: true
 toc: true    
 ---
 
-통계 프로그램을 만들면 결과를 엑셀로 다운로드 하는 기능이 거의 필수로 들어오는 것 같다.
+통계 프로그램을 만들면 결과를 엑셀로 다운로드 하는 기능이 거의 필수로 들어오는 것 같다.  
 파일을 업로드하는 것은 구현해 본적이 있지만 다운로드 하는 것은 구현해 본적이 없어서 정리하려고 한다.
 
 # 1. apache poi
@@ -42,8 +42,8 @@ poi 와 poi-ooxml를 dependency에 추가 하면 된다. 나는 poi-scratchpad�
 
 # 2. Controller 구현
 
-보통 스프링에서 대부분의 연산은 Controller에서 실행되지만 파일 다운로드는 view 단에서 이루어 진다고 한다.
-따라서 Controller에서는 필요한 Service를 호출하여 model에 값만 넣어주면 된다.
+보통 스프링에서 대부분의 연산은 Controller에서 실행되지만 파일 다운로드는 view 단에서 이루어 진다고 한다.  
+따라서 Controller에서는 필요한 Service를 호출하여 model에 값만 넣어주면 된다.  
 조금 특이한 점은 진짜 뷰(?)인 .html, jsp 파일을 return하는게 아니라 AbstractView 를 상속받는 클래스를 리턴한다는 것이다. AbstractView를 상속 받으면 해당 클래스는 뷰로 취급된다고 한다.
 
 ~~~
@@ -81,11 +81,12 @@ public class UserController {
 
 # 3. AbstractView를 상속 받은 ExcelDownloader 구현
 
-ExcelDownloader 다운로드 기능을 담당하는 클래스이다. 물론 이름은 원하는데로 작성하면 되기 때문에 신경 쓰지 않아도 되고 AbstractView의 메소드 중 renderMergedOutputModel()을 신경 쓰면 된다.
+ExcelDownloader 다운로드 기능을 담당하는 클래스이다. 물론 이름은 원하는데로 작성하면 되기 때문에 신경 쓰지 않아도 되고 AbstractView의 메소드 중 renderMergedOutputModel()을 신경 쓰면 된다.  
 컨트롤러에서 AbstractView를 상속한 클래스를 호출하면 renderMergedOutputModel()를 호출해서 기능을 수행한다. 매개변수로 HttpServletRequest request, HttpServletResponse response가 있기 때문에 왠만한 전달값은 전부 받을 수 있을 것 같다.
 
 ## XSSFWorkbook과 SXSSFWorkbook
-엑셀파일을 불러오기 위하여 사용하는 클래스이다. 기본적으로 SXSSFWorkbook은 XSSFWorkbook을 상속받아 만들어 졌다고 한다. SXSSFWorkbook를 사용하는 가장 큰 이유는 대용량의 파일을 빠르게 저장하고 사용할 수 있기 때문이라고 한다. 아직 대용량의 프로젝트를 경험해 본적은 없지만 회사의 프로젝트는 모두 SXSSFWorkbook로 구현되어 있어서 나도 SXSSFWorkbook로 구현하였다.
+엑셀파일을 불러오기 위하여 사용하는 클래스이다. 기본적으로 SXSSFWorkbook은 XSSFWorkbook을 상속받아 만들어 졌다고 한다.  
+SXSSFWorkbook를 사용하는 가장 큰 이유는 대용량의 파일을 빠르게 저장하고 사용할 수 있기 때문이라고 한다. 아직 대용량의 프로젝트를 경험해 본적은 없지만 회사의 프로젝트는 모두 SXSSFWorkbook로 구현되어 있어서 나도 SXSSFWorkbook로 구현하였다.
 
 
 ## renderMergedOutputModel 구현
@@ -128,7 +129,8 @@ protected void renderMergedOutputModel(Map<String, Object> model, HttpServletReq
 	}
 ~~~
 
-클래스 위에 전역 변수로 파일을 저장할 위치, 콘텐츠 타입을 지정하는 변수 등이 있지만 이해하는데 어려운 코드는 아니다. 먼서 파일 작성을 위한 임시파일의 압축비율을 지정한다. SXSSFWorkbook를 사용하였을때 XSSFWorkbook보다 빠르게 파일을 생성할수 있는 이유는 임시 파일을 이용하기 때문이라고 한다. 나머지 기능은 보통 파일 쓰기와 크게 다르지 않다.
+클래스 위에 전역 변수로 파일을 저장할 위치, 콘텐츠 타입을 지정하는 변수 등이 있지만 이해하는데 어려운 코드는 아니다.   
+먼저 파일 작성을 위한 임시파일의 압축비율을 지정한다. SXSSFWorkbook를 사용하였을때 XSSFWorkbook보다 빠르게 파일을 생성할수 있는 이유는 임시 파일을 이용하기 때문이라고 한다. 나머지 기능은 보통 파일 쓰기와 크게 다르지 않다.
 
 ## generateUserExcel(model) 구현
 
@@ -193,7 +195,8 @@ public Workbook generateUserExcel(Map<String, Object> model) throws Exception{
 	}
 ~~~
 
-이 코드는 탬플릿으로 저장된 엑셀파일을 읽어와서 두번째 시트(시트 이름을 "template"라고 입력했다.)의 서식을 불러와 저장하고 저장된 서식을 이용하여 첫번째 시트에 작성한다. 파일 작성이 끝나면 서식이 저장된 두번째 시트는 지우고 남아 있는 첫번째 시트만 반환한다. 실제 시트를 보면 첫번째 시트는 빈칸이고 두번째 시트에는 글자색이 지정되어 있다.
+이 코드는 탬플릿으로 저장된 엑셀파일을 읽어와서 두번째 시트(시트 이름을 "template"라고 입력했다.)의 서식을 불러와 저장하고 저장된 서식을 이용하여 첫번째 시트에 작성한다.   
+파일 작성이 끝나면 서식이 저장된 두번째 시트는 지우고 남아 있는 첫번째 시트만 반환한다. 실제 시트를 보면 첫번째 시트는 빈칸이고 두번째 시트에는 글자색이 지정되어 있다.
 
 
 ![첫번째](/images/spring/excel/imageqwfqwf-1.png){: .align-center}
@@ -201,7 +204,7 @@ public Workbook generateUserExcel(Map<String, Object> model) throws Exception{
 ![두번째](/images/spring/excel/imagedqwfqw-2.png){: .align-center}
 
 
-for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행씩 엑셀파일에 데이터를 넣어주는 것을 볼수 있다. 원하는 칼럼의 개수, 값에 따라 다르게 작성하면 된다.
+for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행씩 엑셀파일에 데이터를 넣어주는 것을 볼수 있다. 원하는 칼럼의 개수, 값에 따라 다르게 작성하면 된다.  
 이렇게 작성이 끝나면 브라우저의 다운로드 경로에 저장되어지는 엑셀파일을 볼수 있다.
 
 
@@ -216,7 +219,7 @@ for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행
 
 ### 2. 열 삭제
 ![](/images/spring/excel/imageasdf-3.png){: .align-center}
-비어있는 시트이고 읽기전용도 아닌데 오류가 발생하면 excel 파일을 열어서 열을 지워보면 해결되는 경우가 있다.
+비어있는 시트이고 읽기전용도 아닌데 오류가 발생하면 excel 파일을 열어서 열을 지워보면 해결되는 경우가 있다.  
 표시되지 않지만 데이터가 있는건지...왜 그런건지는 모르겠다....
 
 
@@ -242,9 +245,7 @@ for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행
 	}
 ~~~
 
-특별히 다른 것은 없고 반환형식을 View(org.springframework.web.servlet.View)로 사용하하고 new로 객체를 생성하여 반환하면 된다.
-
-
+특별히 다른 것은 없고 반환형식을 View(org.springframework.web.servlet.View)로 사용하고 new로 객체를 생성하여 반환하면 된다.
 
 ## ExcelDownloader 전체 코드
 

@@ -12,8 +12,7 @@ toc: true
 # 1. Task 기반 배치와 Chunk 기반 배치 
 
 ## 1.1 Task 기반 배치
-배치 처리 과정이 비교적 쉽게 사용할수 있다.
-
+배치 처리 과정이 비교적 쉽게 사용할수 있다.  
 대용량 처리를 할 경우에는 더 복잡할 수 있어 하나의 큰 덩어리를 여러개로 처리 하기 부적합
 
 ~~~
@@ -66,7 +65,7 @@ public class TaskProcessConfiguration {
 }
 ~~~
 
-## 1.1.1 Task 기반 배치를 수동으로 나누어 처리하기
+### 1.1.1 Task 기반 배치를 수동으로 나누어 처리하기
 
 ~~~
     private Tasklet tesklet(){
@@ -101,11 +100,9 @@ public class TaskProcessConfiguration {
 
 
 ## 1.2 Chunk 기반 배치
-itemReader, itemProcesser, itemWriter로 구성되어 있다.
-대용량 처리에 적합 
+itemReader, itemProcesser, itemWriter로 구성되어 있고 대용량 처리에 적합하다 
 
-Chunk - 10000개의 덩어리를 1000개씩 10번에 나누어 수행하도록 설정 가능
-
+Chunk - 10000개의 덩어리를 1000개씩 10번에 나누어 수행하도록 설정 가능  
 Task - 10000개의 데이터를 한번에 수행/ 또는 수동으로 나누어야 함
 
 ~~~
@@ -180,21 +177,18 @@ public class ChunkProcessConfiguration {
 ![](/images/spring/sfetl-4e5hqwdghq3gy4gyrfh4y.png){: .align-center}
 
 
-ItemReader에서 null을 반환할때 까지 Step 반복 -> 처리할 데이터가 없다는 의미
-ItemReader와 ItemProcesser는 아이템을 1개 씩 받아서 처리하지만
+ItemReader에서 null을 반환할때 까지 Step 반복 -> 처리할 데이터가 없다는 의미  
+ItemReader와 ItemProcesser는 아이템을 1개 씩 받아서 처리하지만  
 ItemWriter는 아이템을 리스트로 받아서 처리 
 
 ### <INPUT, OUTPUT>chunk(int)
-예제 코드의 **<String, String>chunk(10)** 부분
-
-reader에서 INPUT 을 return
-processor에서 INPUT을 받아 processing 후 OUPUT을 return (INPUT, OUTPUT은 같은 타입일 수 있음)
-
+예제 코드의 **<String, String>chunk(10)** 부분  
+reader에서 INPUT 을 return 한다  
+processor에서 INPUT을 받아 processing 후 OUPUT을 return (INPUT, OUTPUT은 같은 타입일 수 있음)  
 writer에서 List<OUTPUT>을 받아 write
 
 # 2. JobParameters 
-배치를 실행에 필요한 값을 parameter를 통해 외부에서 주입
-
+배치를 실행에 필요한 값을 parameter를 통해 외부에서 주입  
 배치 실행 시 조금 더 유연한 세팅을 위하여 사용 
 
 ## 2.1 JobParameters 객체를 활용하여 데이터를 전달하는 방법
@@ -241,7 +235,7 @@ writer에서 List<OUTPUT>을 받아 write
 
 ## 2.2 Spring EL(Expression Language)로 접근
 **@Value(“#{jobParameters[key]}”)** 
-예저 1.2 에서 chunkBaseStep를 변경
+예제 1.2 에서 chunkBaseStep를 변경
 
 ~~~
 
@@ -258,8 +252,8 @@ writer에서 List<OUTPUT>을 받아 write
     }
 ~~~
 
-@Value 가 lombok의 value가 아니라 org.springframework.beans.factory.annotation.Value 라는 것에 주의
-위 예제와 동일하게 chunkSize 변수가 있다면 해당 데이터로 없다면 10을 기본 값으로 하도록 생성
+@Value 가 lombok의 value가 아니라 org.springframework.beans.factory.annotation.Value 라는 것에 주의  
+위 예제와 동일하게 chunkSize 변수가 있다면 해당 데이터로 없다면 10을 기본 값으로 하도록 생성  
 chunkBaseStep의 시그니처가 변경되었음으로 실행을 위해 chunkProcessJob에서 chunkBaseStep을 호출하는 것도 변경
 
 ~~~
@@ -276,18 +270,19 @@ chunkBaseStep의 시그니처가 변경되었음으로 실행을 위해 chunkPro
 
 
 ## 2.3 JobScope와 StapScope의 이해
-@Scope는 어떤 시점에 bean을 생성/소멸 시킬 지 bean의 lifecycle을 설정
-스프링에서 @Scope는 싱글톤으로 구현되어 있음 
-  * @JobScope는 job 실행 시점에 생성/소멸 -> Step에 선언
+@Scope는 어떤 시점에 bean을 생성/소멸 시킬 지 bean의 lifecycle을 설정  
+스프링에서 @Scope는 싱글톤으로 구현되어 있음
+  * @JobScope는 job 실행 시점에 생성/소멸 -> Step에 선언  
   * @StepScope는 step 실행 시점에 생성/소멸 -> Tasklet, Chunk(ItemReader, ItemProcessor, ItemWriter) 에 선언
 
-에제의 ItemReader, ItemProcessor, ItemWriter는 @Bean 선언이 없었지만 @StepScope를 사용하기 위해서는 @Bean으로 설정이 필요
+에제의 ItemReader, ItemProcessor, ItemWriter는 @Bean 선언이 없었지만  
+@StepScope를 사용하기 위해서는 @Bean으로 설정이 필요  
 (@StepScope의 라이프 사이클이 @Bean을 따르기 때문 -> 데이터 및 설정을 스프링 기반 시스템에 의존한다.)
 
-Spring의 @Scope과 같은 것 이기 때문에 @Scope의 속성중 ScopeName이 있는데 아래와 같이 선언하면 기능이 동일하게 작동
+Spring의 @Scope과 같은 것 이기 때문에 @Scope의 속성중 ScopeName이 있는데 아래와 같이 선언하면 기능이 동일하게 작동  
 @Scope(“job”) ->  @JobScope / @Scope(“step”) -> @StepScope
 
-Job과 Step 라이프사이클에 의해 생성되기 때문에 Thread safe하게 작동
+Job과 Step 라이프사이클에 의해 생성되기 때문에 Thread safe하게 작동  
 @Value(“#{jobParameters[key]}”)를 사용하기 위해 @JobScope와 @StepScope는 필수
 
 2.1 예제에서 JobParameters 사용부분을 @StepScope 사용으로 변경해보면 
