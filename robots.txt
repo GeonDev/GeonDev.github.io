@@ -1,4 +1,7 @@
 User-agent: *
-Allow: /
+Disallow: /assets/*
+Disallow: /*.css$
+Disallow: /*.jpg$
+Disallow: /*.png$
 
 Sitemap: https://geondev.github.io/sitemap.xml
