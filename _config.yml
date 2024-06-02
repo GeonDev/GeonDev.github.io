@@ -1,6 +1,6 @@
 
 name: GeonDev Site
-description: 4년차 게임 기획자, 2년차 웹 프로그래머
+description: 현 백엔드 프로그래머, 전 게임 기획자
 
 
 avatar: /images/logo.png
@@ -27,11 +27,11 @@ footer-links:
   email: geons.dev@gmail.com
   facebook: #https://www.facebook.com/<>
   flickr: #https://www.flickr.com/<>
-  github: GeonDev #https://github.com/<>
+  github: GeonDev
   instagram: geons_pic
   linkedin: #https://www.linkedin.com/in/<>
   pinterest: #https://www.pinterest.com/<>
-  rss: #随便填点啥RSS就能用了
+  rss: #RSS
   stackoverflow: # http://stackoverflow.com/<>
   tumblr: # https://<username>.tumblr.com
   twitter: # https://www.twitter.com/<your_twitter_username>
@@ -48,7 +48,6 @@ url: https://geondev.github.io
 
 
 baseurl: /
-
 
 permalink: /:title/
 paginate_path: /page:num/
