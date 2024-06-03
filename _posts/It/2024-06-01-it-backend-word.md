@@ -73,6 +73,7 @@ toc: true
   *  로딩된 class파일들은 Execution engine을 통해 해석
   *  해석된 바이트코드는 Runtime Data Areas 에 배치되어 수행
 <br>  
+
 *  **GC(Garbage Collector)** : 힙 영역에서 사용하지 않는 객체들을 제거하는 작업. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
    *  **Minor GC** : Young 영역은 Eden / Survivor 이라는 두 영역으로 나뉨, Eden 영역에서 참조가 남아있는 객체를 mark하고 survivor 영역으로 복사한다. 그리고 Eden 영역을 비웁니다. Survivor 영역도 가득차면 같은 방식으로 다른 Survivor 영역에 복사하고 비웁니다. 이를 반복하다 보면 계속 해서 살아남는 객체는 old 영역으로 이동하게 됩니다.
   
@@ -125,14 +126,25 @@ JWT는 헤더, 페이로드, 시그니쳐로 구분됩니다. 헤더는 토큰�
 <br>
 * **Spring Bean** : IoC 컨테이너 안에 들어있는 객체로 필요할 때 IoC컨테이너에서 가져와서 사용한다. `@Bean` 을 사용하거나 xml설정을 통해 일반 객체를 Bean으로 등록할 수 있다.
 
-* **Spring Bean 생성과정** : 객체 생성 → 의존 설정 → 초기화 → 사용 → 소멸 과정의 생명주기를 가지고 있습니다. Bean은 스프링 컨테이너에 의해 생명주기를 관리하며 빈 초기화방법은 @PostConstruct 를 빈 소멸에서는 @PreDestroy 를 사용한다.
-생성한 스프링 빈을 등록할 때는 ComponentScan을 이용하거나 @Configuration 의 @Bean 을 사용하여 빈 설정파일에 직접 빈을 등록할 수 있습니다.
+* **Spring Bean 생성과정** : 객체 생성 → 의존 설정 → 초기화 → 사용 → 소멸 과정의 생명주기를 가지고 있습니다. Bean은 스프링 컨테이너에 의해 생명주기를 관리하며 빈 초기화방법은 `@PostConstruct` 를, 빈 소멸에서는 `@PreDestroy` 를 사용한다.
+생성한 스프링 빈을 등록할 때는 ComponentScan을 이용하거나 `@Configuration` 의 `@Bean` 을 사용하여 빈 설정파일에 직접 빈을 등록할 수 있습니다.
 <br>
 
 * **Bean Scope** : 빈 스코프는 빈이 존재할 수 있는 범위를 뜻하며 싱글톤(singleton), 프로토타입(prototype), request, session, application 등이 있다.
   * **singleton Scope** : 스프링 빈 스코프의 기본값, 스프링 컨테이너의 시작과 종료까지 유지, 싱글톤 스코프의 빈을 조회하면, 스프링 컨테이너는 항상 같은 인스턴스를 반환한다.
   * **prototype Scope** : 빈의 생성과 의존관계 주입까지만 관여하고 더는 관리하지 않는 매우 짧은 범위의 스코프, 항상 새로운 인스턴스를 생성해서 반환한다  
 <br>
+
+* **Bean/Component 차이점**
+  * **@Bean** : 개발자가 작성한 method를 기반으로 메서드에서 반환하는 객체를 인스턴스 객체로 1회(싱글톤) 생성
+  * **@Component** : 개발자가 작성한 class를 기반으로 실행시점에 인스턴스 객체를 1회(싱글톤) 생성 (`@Controller`, `@Service`, `@Repository` 는 모두 `@Component` 이다)
+
+
+* **Servlet Filter** : 서블릿 실행 전, 후에 어떤 작업을 하고자 할때 사용한다. 이 필터가 있음으로써 WAS에서 설정을 변경하지 않고도 모든 서블릿에 영향을 준다.
+  * **Filter 에러 처리** : Filter는 DispatcherServlet 외부에 존재하기 때문에 예외가 발생했을 때 ErrorController에서 처리
+
+* **Spring Interceptor** : Spring에서 Handler를 실행하기 전후나, ViewResolver를 통해 컨트롤러에서 리턴한 View Name으로부터 렌더링을 담당할 View 오브젝트를 준비해 돌려준 후 실제 View를 렌더링한 후에 어떠한 처리를 담당.
+   * **Interceptor 에러 처리** : Interceptor는 DispatcherServlet 내부에 존재하기 때문에 `@ControllerAdvice`를 적용해서 처리.
 
  # 용어정리 – JPA
  * **영속성 컨텍스트** : 엔티티를 영구 저장하는 환경. 애플리케이션과 데이터베이스 사이에서 객체를 보관하는 가상의 데이터베이스 같은 역할을 한다. 엔티티 매니저를 통해 엔티티를 저장하거나 조회하면 엔티티 매니저는 영속성 컨텍스트에 엔티티를 보관하고 관리한다.
