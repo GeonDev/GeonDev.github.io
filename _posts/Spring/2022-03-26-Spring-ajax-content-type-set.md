@@ -4,7 +4,7 @@ title: ContentType이 정상적으로 들어오지 않는 경우(FORM 전송)
 date: 2022-03-26
 Author: Geon Son
 categories: Spring
-tags: [Springboot, ContentType]
+tags: [Spring]
 comments: true
 toc: true    
 ---

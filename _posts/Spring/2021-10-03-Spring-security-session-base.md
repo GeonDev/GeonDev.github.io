@@ -4,7 +4,7 @@ title: 스프링 시큐리티 간단 적용 - 세션 기반
 date: 2021-10-03
 Author: Geon Son
 categories: Spring
-tags: [Springboot, Security]
+tags: [Spring]
 comments: true
 toc: true
 ---

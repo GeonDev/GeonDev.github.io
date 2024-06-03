@@ -4,7 +4,7 @@ title: 스프링 배치 hands on 5
 date: 2024-05-31
 Author: Geon Son
 categories: Spring
-tags: [Spring, batch, ItemWriter]
+tags: [Spring]
 comments: true
 toc: true    
 ---

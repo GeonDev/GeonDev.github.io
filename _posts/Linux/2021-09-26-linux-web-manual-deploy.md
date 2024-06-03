@@ -4,7 +4,7 @@ title: Springboot WAR 수동 배포하기
 date: 2021-09-26
 Author: Geon Son
 categories: Linux
-tags: [IT, Linux, War]
+tags: [Linux]
 comments: true
 toc: true  
 ---

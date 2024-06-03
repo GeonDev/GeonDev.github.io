@@ -4,7 +4,7 @@ title: Springboot + log4j2 적용하기
 date: 2021-10-03
 Author: Geon Son
 categories: Spring
-tags: [Springboot, Web, Log4j]
+tags: [Spring]
 comments: true
 toc: true
 ---

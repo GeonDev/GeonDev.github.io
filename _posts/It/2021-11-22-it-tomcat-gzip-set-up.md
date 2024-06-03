@@ -4,7 +4,7 @@ title: 톰켓 세팅으로 response 크기를 줄여보자 - Gzip 설정
 date: 2021-11-22
 Author: Geon Son
 categories: IT
-tags: [Tomcat, Gzip, Web]
+tags: [IT]
 comments: true
 toc: true
 ---

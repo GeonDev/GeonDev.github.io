@@ -4,7 +4,7 @@ title: 시험이나 면접을 위한 IT 용어 정리
 date: 2021-09-24
 Author: Geon Son
 categories: IT
-tags: [OS, IT, DataBase, network]
+tags: [IT]
 comments: true
 toc: true
 ---

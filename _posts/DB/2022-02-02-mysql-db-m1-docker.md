@@ -4,7 +4,7 @@ title: 맥북 M1에서 Mysql 사용법, 도커 이미지 설치
 date: 2022-02-02
 Author: Geon Son
 categories: Spring
-tags: [DB, Mysql, Docker]
+tags: [DB]
 comments: true
 toc: true
 ---

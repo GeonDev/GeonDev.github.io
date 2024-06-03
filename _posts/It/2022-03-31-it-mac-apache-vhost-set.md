@@ -4,7 +4,7 @@ title: 맥북에서 포트포워딩 설정하여 로컬에서 도메인으로 �
 date: 2022-03-31
 Author: Geon Son
 categories: IT
-tags: [Tomcat, Apache, Web]
+tags: [IT]
 comments: true
 toc: true
 ---

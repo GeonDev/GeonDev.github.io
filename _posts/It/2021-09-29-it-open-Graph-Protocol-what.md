@@ -4,7 +4,7 @@ title: 오픈 그래프 프로토콜(OpenGraphProtocol)이 뭐지?
 date: 2021-09-29
 Author: Geon Son
 categories: IT
-tags: [Web, OpenGraphProtocol ]
+tags: [IT]
 comments: true
 toc: true
 ---

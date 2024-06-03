@@ -4,7 +4,7 @@ title: SMappingJackson2JsonView를 이용하여 JSON 파싱(jsonView)
 date: 2021-10-05
 Author: Geon Son
 categories: Spring
-tags: [Springboot, MappingJackson2JsonView, Json]
+tags: [Spring]
 comments: true
 toc: true
 ---

@@ -4,7 +4,7 @@ title: mustache + Springboot 사용해보기
 date: 2021-10-04
 Author: Geon Son
 categories: Spring
-tags: [Springboot, Mustache]
+tags: [Spring]
 comments: true
 toc: true
 ---

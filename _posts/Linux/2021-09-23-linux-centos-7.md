@@ -4,7 +4,7 @@ title: CentOS 7 JAVA TOMCAT 환경 구축
 date: 2021-09-23
 Author: Geon Son
 categories: Linux
-tags: [Linux, OS, Tomcat]
+tags: [Linux]
 comments: true
 toc: true
 ---

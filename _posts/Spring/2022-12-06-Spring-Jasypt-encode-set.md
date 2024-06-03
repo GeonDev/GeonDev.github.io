@@ -4,7 +4,7 @@ title: Jasypt를 활용하여 서버 설정 암호화 하기
 date: 2022-12-06
 Author: Geon Son
 categories: Spring
-tags: [Springboot, Jasypt]
+tags: [Spring]
 comments: true
 toc: true    
 ---

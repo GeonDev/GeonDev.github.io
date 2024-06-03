@@ -4,7 +4,7 @@ title: SSL 인증서 남은 기간 확인 하는 방법
 date: 2022-12-06
 Author: Geon Son
 categories: IT
-tags: [Tomcat, Apache, Web]
+tags: [IT]
 comments: true
 toc: true
 ---

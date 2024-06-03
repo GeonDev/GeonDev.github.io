@@ -4,7 +4,7 @@ title: URL 주소를 넣고 파일 다운로드 하기 (Spring, FileUtils)
 date: 2023-09-01
 Author: Geon Son
 categories: Spring
-tags: [Spring, FileUtils]
+tags: [Spring]
 comments: true
 toc: true    
 ---

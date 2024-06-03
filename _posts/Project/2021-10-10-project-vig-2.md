@@ -4,7 +4,7 @@ title: 이미지 검색프로젝트(VIG) Migration/Refactoring -2
 date: 2021-10-10
 Author: Geon Son
 categories: Project
-tags: [Springboot, Vision, Migration]
+tags: [Project]
 comments: true
 toc: true
 ---

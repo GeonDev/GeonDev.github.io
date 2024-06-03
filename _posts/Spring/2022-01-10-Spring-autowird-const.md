@@ -4,7 +4,7 @@ title: 스프링 의존성 주입 알아보기
 date: 2022-01-10
 Author: Geon Son
 categories: Spring
-tags: [Springboot,  Autowired]
+tags: [Spring]
 comments: true
 toc: true    
 ---

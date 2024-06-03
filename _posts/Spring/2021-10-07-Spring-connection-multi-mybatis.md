@@ -4,7 +4,7 @@ title: Springboot 데이터베이스 Connection 다중 연결 (mybatis)
 date: 2021-10-07
 Author: Geon Son
 categories: Spring
-tags: [Springboot, Mybatis]
+tags: [Spring]
 comments: true
 toc: true
 ---

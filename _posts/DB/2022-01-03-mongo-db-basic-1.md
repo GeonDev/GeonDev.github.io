@@ -4,7 +4,7 @@ title: 맥북 M1에서 MongoDB 사용해 보기
 date: 2022-01-08
 Author: Geon Son
 categories: Spring
-tags: [DB, MongoDB, Docker]
+tags: [DB]
 comments: true
 toc: true
 ---

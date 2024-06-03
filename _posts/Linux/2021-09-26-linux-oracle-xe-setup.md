@@ -4,7 +4,7 @@ title: CentOS 7 Oracle 11g xe 설치 및 환경설정
 date: 2021-09-26
 Author: Geon Son
 categories: Linux
-tags: [IT, DataBase, Oracle]
+tags: [Linux]
 comments: true
 toc: true
 ---

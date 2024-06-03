@@ -4,7 +4,7 @@ title: JAVA에서 API로 전달 받은 zip binary 파싱(feat. DART API 고유�
 date: 2023-03-01
 Author: Geon Son
 categories: Spring
-tags: [Springboot, ZIP, BINARY]
+tags: [Spring]
 comments: true
 toc: true    
 ---

@@ -3,8 +3,8 @@ layout: post
 title: 데이터베이스 이중화 란?
 date: 2021-10-10
 Author: Geon Son
-categories: IT
-tags: [Database]
+categories: DB
+tags: [DB]
 comments: true
 toc: true  
 ---

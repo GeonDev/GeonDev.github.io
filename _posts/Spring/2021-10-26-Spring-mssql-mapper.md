@@ -4,7 +4,7 @@ title: Mssql Mybatis DB툴과 웹에서 쿼리속도가 다를때 고려해 볼�
 date: 2021-10-26
 Author: Geon Son
 categories: Spring
-tags: [Springboot, Mybatis, Mssql]
+tags: [Spring]
 comments: true
 toc: true
 ---

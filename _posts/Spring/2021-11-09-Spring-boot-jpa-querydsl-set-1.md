@@ -4,7 +4,7 @@ title: Springboot + Spring Date JPA+ QueryDsl 적용하기(Maven) 1
 date: 2021-11-09
 Author: Geon Son
 categories: Spring
-tags: [Springboot,  JPA, QueryDsl]
+tags: [Spring]
 comments: true
 toc: true  
 ---

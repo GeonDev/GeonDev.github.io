@@ -4,7 +4,7 @@ title: Springboot yml 파일 config로 활용하기
 date: 2021-09-23
 Author: Geon Son
 categories: Spring
-tags: [Springboot, Config]
+tags: [Spring]
 comments: true
 toc: true
 ---

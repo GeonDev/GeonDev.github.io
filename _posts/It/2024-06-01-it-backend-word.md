@@ -4,7 +4,7 @@ title: 백엔드 면접을 위한 IT 용어 정리
 date: 2024-06-01
 Author: Geon Son
 categories: IT
-tags: [OS, IT, Backend, Spring]
+tags: [IT]
 comments: true
 toc: true
 ---

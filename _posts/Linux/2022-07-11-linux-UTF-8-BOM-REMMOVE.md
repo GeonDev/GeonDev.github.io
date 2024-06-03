@@ -4,7 +4,7 @@ title: 리눅스에서 UTF-8 BOM 삭제하는 방법
 date: 2022-07-11
 Author: Geon Son
 categories: Linux
-tags: [Linux, ENCODING]
+tags: [Linux]
 comments: true
 toc: true
 ---

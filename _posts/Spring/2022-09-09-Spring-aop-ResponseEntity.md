@@ -4,7 +4,7 @@ title: Spring REST API 예외처리 - Http code를 변경하여 반환(ResponseE
 date: 2022-09-09
 Author: Geon Son
 categories: Spring
-tags: [Springboot, REST, API,  ResponseEntity]
+tags: [Spring]
 comments: true
 toc: true    
 ---

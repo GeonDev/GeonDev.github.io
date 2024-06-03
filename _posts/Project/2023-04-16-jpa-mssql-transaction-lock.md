@@ -4,7 +4,7 @@ title: 트러블슈팅 - 트래픽이 급격하게 늘어났을때 해결방법(
 date: 2023-04-16
 Author: Geon Son
 categories: Project
-tags: [Springboot, JPA, mssql]
+tags: [Project]
 comments: true
 toc: true
 ---

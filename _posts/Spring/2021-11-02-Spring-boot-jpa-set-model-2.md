@@ -4,7 +4,7 @@ title: Springboot JPA 적용해 보기 - 2 (연관 관계)
 date: 2021-11-02
 Author: Geon Son
 categories: Spring
-tags: [Springboot,  JPA]
+tags: [Spring]
 comments: true
 toc: true    
 ---

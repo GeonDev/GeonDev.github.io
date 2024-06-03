@@ -4,7 +4,7 @@ title: 스프링 배치 hands on 2
 date: 2024-04-10
 Author: Geon Son
 categories: Spring
-tags: [Spring, batch, Task, Chunk]
+tags: [Spring]
 comments: true
 toc: true    
 ---

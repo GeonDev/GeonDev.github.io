@@ -4,7 +4,7 @@ title: 맥북 루트 폴더 경로에 접근 할수 있도록 심볼릭 링크�
 date: 2022-09-15
 Author: Geon Son
 categories: IT
-tags: [Tomcat, Apache, Web]
+tags: [IT]
 comments: true
 toc: true
 ---

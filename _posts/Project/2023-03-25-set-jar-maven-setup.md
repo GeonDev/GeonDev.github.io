@@ -4,7 +4,7 @@ title: 단일 실행되는 jar maven 빌드 설정하기 (dependency 포함)
 date: 2023-03-25
 Author: Geon Son
 categories: Project
-tags: [Springboot, maven, jar]
+tags: [Project]
 comments: true
 toc: true
 ---
