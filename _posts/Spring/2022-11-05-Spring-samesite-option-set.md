@@ -108,5 +108,6 @@ lax에서 허용하는 경우는 $<a>$ 테그나 다른 링크를 통하여 다�
 </Context>
 ~~~
 
-톰켓 설정에 따라 테크가 많을수도 있다. 기존에 CookieProcessor가 있다면 sameSiteCookies="none"을 넣으면 된다.  
+톰켓 설정에 따라 테크가 많을수도 있다. 
+기존에 CookieProcessor가 있다면 sameSiteCookies="none"을 넣으면 된다.  
 개인적으로는 어플리케이션에서 설정하는 것을 좀더 선호 한다.

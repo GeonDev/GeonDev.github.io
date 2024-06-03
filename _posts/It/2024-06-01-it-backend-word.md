@@ -55,7 +55,6 @@ toc: true
 * **CASCADE**: 레코드를 변경 또는 삭제하면, 해당 레코드를 참조하고 있는 개체도 변경 또는 삭제된다. 
 
 * **SET NULL**: 레코드를 변경 또는 삭제하면, 해당 레코드를 참조하고 있는 개체의 값을 NULL로 설정한다.    
-<br>
 
 # 용어정리 – JAVA
 
@@ -116,7 +115,7 @@ toc: true
 JWT는 헤더, 페이로드, 시그니쳐로 구분됩니다. 헤더는 토큰의 타입, 암호화 알고리즘을 담고 있고, 페이로드는 토큰의 정보를 담는 부분이며, 시그니처는 토큰의 정보가 신뢰할 수 있는것인지 판단할 수 있도록 한다.
 세션기반 인증은 서버에서 세션 정보를 관리해야하는 비용이 들고 분산환경에서도 관리하기 어렵지만 JWT는 그 자체로 정보를 가지고 있기 때문에 세션의 단점을 보완할 수 있다.
 
-<br>
+
 
  # 용어정리 – SPRING
 
@@ -152,11 +151,7 @@ JWT는 헤더, 페이로드, 시그니쳐로 구분됩니다. 헤더는 토큰�
 * **Spring Interceptor** : Spring에서 Handler를 실행하기 전후나, ViewResolver를 통해 컨트롤러에서 리턴한 View Name으로부터 렌더링을 담당할 View 오브젝트를 준비해 돌려준 후 실제 View를 렌더링한 후에 어떠한 처리를 담당.
    * **Interceptor 에러 처리** : Interceptor는 DispatcherServlet 내부에 존재하기 때문에 전역처리 방법인  `@ControllerAdvice`를 적용해서 처리.
 
-<br>
-
 * **Spring Security 인증 과정** : 사용자가 로그인 정보와 함께 인증 요청(HttpRequest)을 하면 AuthenticationFilter가 요청을 가로채고 가로챈 정보를 통해 UsernamePasswordAuthenticationToken(인증용 객체)를 만들고 이를 이용해 AuthenticationManager의 인증 메서드를 호출한다. 이후 UserDetailsService 구현체를 통해 DB에 저장된 정보와 비교해 일치하면 UserDetails 구현 객체를 반환해 SecurityContext에 저장한다.
-
-<br>
 
  # 용어정리 – JPA
  * **영속성 컨텍스트** : 엔티티를 영구 저장하는 환경. 애플리케이션과 데이터베이스 사이에서 객체를 보관하는 가상의 데이터베이스 같은 역할을 한다. 엔티티 매니저를 통해 엔티티를 저장하거나 조회하면 엔티티 매니저는 영속성 컨텍스트에 엔티티를 보관하고 관리한다.

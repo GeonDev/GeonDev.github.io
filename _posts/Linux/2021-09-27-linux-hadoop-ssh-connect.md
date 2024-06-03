@@ -72,7 +72,7 @@ systemctl stop firewalld
 
 
 ```
-// 재 시작에도 방화벽 켜지지 않음
+// 재시작에도 방화벽 켜지지 않음
 systemctl disable firewalld
 ```
 
