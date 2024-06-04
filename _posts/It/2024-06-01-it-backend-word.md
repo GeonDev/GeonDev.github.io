@@ -23,7 +23,7 @@ toc: true
   * **READ UNCOMMITTED**: 어떤 트랙잭션의 변경내용이 COMMIT이나 ROLLBACK에 상관없이 모두 노출된다. 
 * **트랜잭션 부정합 종류**:
   * **Phantom Read(유령읽기)** : 트랜잭션이 끝나기 전에 다른 트랜잭션에 의해 추가된 레코드가 조회됨
-  * **Non-Repeatable Read(반복 읽기 불가능)** : 한 트랜잭션 안에서 똑같은 쿼리를 실행했을 때 항상 같은 결과를 가져오지 못하는 현상
+  * **Non-Repeatable Read(반복 읽기 불가능)** : 트랜잭션이 동일한 행을 업데이트하고 커밋하는 경우 행을 다시 읽을 때 다른 값을 가져오는 경우
   * **Dirty Read** : 트랜잭션의 작업이 완료되지 않았는데도 다른 트랜잭션에서 해당 데이터를 읽는 현상
 
 * **ACID 속성** : 트랜잭션이 안전하게 수행된다는 것을 보장하기 위한 성질
@@ -162,12 +162,25 @@ toc: true
   * **@Bean** : 개발자가 작성한 method를 기반으로 메서드에서 반환하는 객체를 인스턴스 객체로 1회(싱글톤) 생성
   * **@Component** : 개발자가 작성한 class를 기반으로 실행시점에 인스턴스 객체를 1회(싱글톤) 생성 (`@Controller`, `@Service`, `@Repository` 는 모두 `@Component` 이다)
 
-
 * **Servlet Filter** : 서블릿 실행 전, 후에 어떤 작업을 하고자 할때 사용한다. 이 필터가 있음으로써 WAS에서 설정을 변경하지 않고도 모든 서블릿에 영향을 준다.
   * **Filter 에러 처리** : Filter는 DispatcherServlet 외부에 존재하기 때문에 예외가 발생했을 때 ErrorController에서 처리
 
 * **Spring Interceptor** : Spring에서 Handler를 실행하기 전후나, ViewResolver를 통해 컨트롤러에서 리턴한 View Name으로부터 렌더링을 담당할 View 오브젝트를 준비해 돌려준 후 실제 View를 렌더링한 후에 어떠한 처리를 담당.
    * **Interceptor 에러 처리** : Interceptor는 DispatcherServlet 내부에 존재하기 때문에 전역처리 방법인  `@ControllerAdvice`를 적용해서 처리.
+<br>
+
+* **AOP(Aspect Oriented Programming)** :기능을 핵심 관심 사항(Core Concern)과 공통 관심 사항(Cross-Cutting Concern)으로 분리시키고 각각을 모듈화 하는 것을 의미, AOP는 부가 기능을 애스펙트(Aspect)로 정의하여, 핵심 기능에서 부가 기능을 분리함으로써 핵심 기능을 설계하고 구현할 때 객체지향적인 가치를 지킬 수 있게 도와주는 개념
+
+* **AOP 특징**
+  * 스프링 IoC 컨테이너가 객체를 생성할 때 프록시 객체를 자동으로 생성하고 타겟 객체(Target) 대신 프록시 빈으로 등록
+  * 생성된 프록시는 타겟 객체(Target)의 호출을 가로채고 Advice의 기능을 호출 후에 타겟 객체(Target)의 기능을 호출한다.
+
+* **@Transactinal Annotation** : Spring AOP를 통해 구현되어 있다. @Transactional이 선언되면 해당 클래스에 트랜잭션이 적용된 프록시 객체 생성하고 예외가 없을 때는 Commit, 예외가 발생한 경우 Rollback 한다.
+
+* **@Transactinal Annotation 특징**
+  * @Transactional은 우선순위를 가지고 있다. 클래스 메서드에 선언된 트랜잭션의 우선순위가 가장 높고, 인터페이스에 선언된 트랜잭션의 우선순위가 가장 낮다
+  * @Transactional은 Proxy Mode가 Default로 설정되어 있어, `반드시 public 메서드에 적용`되어야한다
+<br>
 
 * **Spring Security 인증 과정** : 사용자가 로그인 정보와 함께 인증 요청(HttpRequest)을 하면 AuthenticationFilter가 요청을 가로채고 가로챈 정보를 통해 UsernamePasswordAuthenticationToken(인증용 객체)를 만들고 이를 이용해 AuthenticationManager의 인증 메서드를 호출한다. 이후 UserDetailsService 구현체를 통해 DB에 저장된 정보와 비교해 일치하면 UserDetails 구현 객체를 반환해 SecurityContext에 저장한다.
 
