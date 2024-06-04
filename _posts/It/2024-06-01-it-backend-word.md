@@ -65,7 +65,7 @@ toc: true
 
 # 용어정리 – JAVA
 
-* **JVM** : 자바 가상 머신의 약자를 따서 줄여 부르는 용어로 JVM의 역할은 자바 애플리케이션을 클래스 로더를 통해 읽어 자바 API와 함께 실행하는 것입니다. 메모리 관리(GC)을 수행하며 스택기반의 가상머신. Class Loader, Execution engine, Runtime Data Area, JNI, Native Method Library로 이루어져 있다.
+* **JVM** : 자바 가상 머신의 약자를 따서 줄여 부르는 용어로 JVM의 역할은 자바 애플리케이션을 클래스 로더를 통해 읽어 자바 API와 함께 실행하고 메모리 관리(GC)을 수행하는 스택기반의 가상머신이다.
   * **Class Loader** : VM내로 클래스를 로드하고, 링크를 통해 배치하는 작업을 수행하는 모듈
   * **Execution engine** : 바이트 코드를 실행시키는 역할
       * **Interpreter** : 바이트 코드를 한줄 씩 실행합니다.
@@ -84,7 +84,6 @@ toc: true
 
 *  **GC(Garbage Collector)** : 힙 영역에서 사용하지 않는 객체들을 제거하는 작업. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
    *  **Minor GC** : Young 영역은 Eden / Survivor 이라는 두 영역으로 나뉨, Eden 영역에서 참조가 남아있는 객체를 mark하고 survivor 영역으로 복사한다. 그리고 Eden 영역을 비웁니다. Survivor 영역도 가득차면 같은 방식으로 다른 Survivor 영역에 복사하고 비웁니다. 이를 반복하다 보면 계속 해서 살아남는 객체는 old 영역으로 이동하게 됩니다.
-  
    *  **Major GC** : 위와 반대로 삭제되어야 하는 객체를 mark합니다. 그리고 지웁(sweep)니다. 메모리는 단편화 된 상태이므로 이를 한 군데에 모아주는 것을 Compaction이라 하며 compact라고 합니다. 그래서 Mark-Sweep-Compact 알고리즘이라고 합니다.
    <br>  
 * **SOLID(객체지향 5대원칙)** 
