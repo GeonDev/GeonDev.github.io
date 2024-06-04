@@ -5,7 +5,7 @@ title: 프로그래머스[2020 KAKAO BLIND RECRUITMENT] / 문자열 압축
 date: 2023-12-15
 Author: Geon Son
 categories: Algorithm
-tags: [Java, Algorithm]
+tags: [Algorithm]
 comments: true
 toc: true
 ---

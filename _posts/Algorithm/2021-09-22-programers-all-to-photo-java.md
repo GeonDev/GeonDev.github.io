@@ -4,7 +4,7 @@ title: 프로그래머스 단체 사진(JAVA)
 date: 2021-09-22
 Author: Geon Son
 categories: Algorithm
-tags: [Java, Algorithm]
+tags: [Algorithm]
 comments: true
 toc: true
 ---

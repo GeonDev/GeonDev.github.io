@@ -4,7 +4,7 @@ title: 프로그래머스[PCCP 기출문제] 1번 / 붕대 감기
 date: 2023-12-06
 Author: Geon Son
 categories: Algorithm
-tags: [Java, Algorithm]
+tags: [Algorithm]
 comments: true
 toc: true
 ---

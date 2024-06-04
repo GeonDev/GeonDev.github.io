@@ -5,7 +5,7 @@ title: 프로그래머스[PCCE 기출문제] 9번 / 이웃한 칸
 date: 2023-12-06
 Author: Geon Son
 categories: Algorithm
-tags: [Java, Algorithm]
+tags: [Algorithm]
 comments: true
 toc: true
 ---

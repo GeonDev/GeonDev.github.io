@@ -4,7 +4,7 @@ title: 프로그래머스 입양 시각 구하기(2)
 date: 2021-09-22
 Author: Geon Son
 categories: Algorithm
-tags: [Java, Algorithm]
+tags: [Algorithm]
 comments: true
 toc: true
 ---
