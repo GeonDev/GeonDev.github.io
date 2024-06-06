@@ -82,10 +82,13 @@ public class UserController {
 # 3. AbstractView를 상속 받은 ExcelDownloader 구현
 
 ExcelDownloader 다운로드 기능을 담당하는 클래스이다. 물론 이름은 원하는데로 작성하면 되기 때문에 신경 쓰지 않아도 되고 AbstractView의 메소드 중 renderMergedOutputModel()을 신경 쓰면 된다.  
+
 컨트롤러에서 AbstractView를 상속한 클래스를 호출하면 renderMergedOutputModel()를 호출해서 기능을 수행한다. 매개변수로 HttpServletRequest request, HttpServletResponse response가 있기 때문에 왠만한 전달값은 전부 받을 수 있을 것 같다.
 
 ## XSSFWorkbook과 SXSSFWorkbook
-엑셀파일을 불러오기 위하여 사용하는 클래스이다. 기본적으로 SXSSFWorkbook은 XSSFWorkbook을 상속받아 만들어 졌다고 한다.  
+엑셀파일을 불러오기 위하여 사용하는 클래스이다. 
+기본적으로 SXSSFWorkbook은 XSSFWorkbook을 상속받아 만들어 졌다고 한다.
+
 SXSSFWorkbook를 사용하는 가장 큰 이유는 대용량의 파일을 빠르게 저장하고 사용할 수 있기 때문이라고 한다. 아직 대용량의 프로젝트를 경험해 본적은 없지만 회사의 프로젝트는 모두 SXSSFWorkbook로 구현되어 있어서 나도 SXSSFWorkbook로 구현하였다.
 
 
@@ -130,7 +133,7 @@ protected void renderMergedOutputModel(Map<String, Object> model, HttpServletReq
 ~~~
 
 클래스 위에 전역 변수로 파일을 저장할 위치, 콘텐츠 타입을 지정하는 변수 등이 있지만 이해하는데 어려운 코드는 아니다.   
-먼저 파일 작성을 위한 임시파일의 압축비율을 지정한다. SXSSFWorkbook를 사용하였을때 XSSFWorkbook보다 빠르게 파일을 생성할수 있는 이유는 임시 파일을 이용하기 때문이라고 한다. 나머지 기능은 보통 파일 쓰기와 크게 다르지 않다.
+먼저 파일 작성을 위한 임시파일의 압축비율을 지정한다. SXSSFWorkbook를 사용하였을때 XSSFWorkbook보다 빠르게 파일을 생성할 수 있는 이유는 임시 파일을 이용하기 때문이라고 한다. 나머지 기능은 보통 파일 쓰기와 크게 다르지 않다.
 
 ## generateUserExcel(model) 구현
 
@@ -196,6 +199,7 @@ public Workbook generateUserExcel(Map<String, Object> model) throws Exception{
 ~~~
 
 이 코드는 탬플릿으로 저장된 엑셀파일을 읽어와서 두번째 시트(시트 이름을 "template"라고 입력했다.)의 서식을 불러와 저장하고 저장된 서식을 이용하여 첫번째 시트에 작성한다.   
+
 파일 작성이 끝나면 서식이 저장된 두번째 시트는 지우고 남아 있는 첫번째 시트만 반환한다. 실제 시트를 보면 첫번째 시트는 빈칸이고 두번째 시트에는 글자색이 지정되어 있다.
 
 
@@ -214,8 +218,7 @@ for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행
 라는 오류가 발생했다. 이미 다른 기록이 작성되어 있다는데 액셀파일은 빈칸이다. 크게 2가지 해결방법이 있다.
 
 ### 1. 읽기 전용 파일인지 확인
-읽으려는 excel 파일이 읽기 전용이면 해당 파일에 접근할수 없어 쓰기오류가 발생한다.
-읽기전용을 해제 하면 된다.
+읽으려는 excel 파일이 읽기 전용이면 해당 파일에 접근할수 없어 쓰기오류가 발생한다. 읽기전용을 해제 하면 된다.
 
 ### 2. 열 삭제
 ![](/images/spring/excel/imageasdf-3.png){: .align-center}

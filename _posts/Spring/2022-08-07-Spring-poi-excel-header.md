@@ -11,29 +11,28 @@ toc: true
 
 이전에 엑셀파일을 다운로드 할때는 별도의 템플릿 파일을 이용하여 엑셀파일을 생성하였다.  
 이렇게 설정하면 이미 서식이 있기 때문에 예쁜 틀이 나오지만 파일 경로 문제나 동시에 파일을 조작하면 에러가 발생하기도 한다.
-
 이번에는 별도의 파일없이 엑셀파일 다운기능을 구현해 보았다.
 
 # 1. 의존성 주입
 ```
-		<!-- 엑셀 제어  -->
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>4.0.0</version>
-		</dependency>
+<!-- 엑셀 제어  -->
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi</artifactId>
+    <version>4.0.0</version>
+</dependency>
 
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml</artifactId>
-			<version>4.0.0</version>
-		</dependency>
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>4.0.0</version>
+</dependency>
 
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-scratchpad</artifactId>
-			<version>4.0.0</version>
-		</dependency>
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-scratchpad</artifactId>
+    <version>4.0.0</version>
+</dependency>
 ```
 
 이전에 설명을 한적이 있으니 설명은 생략한다.

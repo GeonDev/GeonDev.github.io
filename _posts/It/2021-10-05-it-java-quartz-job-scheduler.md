@@ -55,9 +55,6 @@ public class JobTest implements Job {
 }
 ```
 
-
-
-
 ## 스케줄러 실행 코드
 JobDetail에 위에서 생성한 JobTest 클래스를 이용하여 실행될 Job을 만든다.
 이때 JobDataMap을 추가로 입력하여 job 수행중에 값을 불러올 수 있도록 한다.

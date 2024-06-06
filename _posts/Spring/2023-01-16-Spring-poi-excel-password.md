@@ -9,7 +9,8 @@ comments: true
 toc: true    
 ---
 
-액셀파일을 다운로드 하는데 가끔 암호화를 요구 하기도 한다. 처음에는 어떻게 만들어야 하는지 몰랐는데 의외로 간단하게 액셀파일 생성 부분만 수정하면 된다.  
+액셀파일을 다운로드 하는데 가끔 암호화를 요구 하기도 한다. 
+처음에는 어떻게 만들어야 하는지 몰랐는데 의외로 간단하게 액셀파일 생성 부분만 수정하면 된다.  
 이전에 컨트롤러 등은 구현한 적이 있음으로 이전 포스팅을 참고 하고 암호화 부분만 살펴 보려고 한다.
 
 # 1. 암호화 구현
@@ -111,28 +112,28 @@ public class ExcelDownloader extends AbstractView {
             response.setHeader("Content-Disposition", "attachement; filename=\""+ java.net.URLEncoder.encode(title+".xlsx", "UTF-8") + "\";charset=\"UTF-8\"");
 
             //이 부분이 기존 소스와 다르게 변경되었다.						
-						ByteArrayOutputStream file = new ByteArrayOutputStream();
-						workbook.write(file);
+            ByteArrayOutputStream file = new ByteArrayOutputStream();
+            workbook.write(file);
 
-						InputStream fileIn = new ByteArrayInputStream(file.toByteArray());
-						POIFSFileSystem fs = new POIFSFileSystem();
+            InputStream fileIn = new ByteArrayInputStream(file.toByteArray());
+            POIFSFileSystem fs = new POIFSFileSystem();
 
-						//비밀번호 세팅
-						EncryptionInfo info = new EncryptionInfo(EncryptionMode.agile);
-						Encryptor enc = info.getEncryptor();
+            //비밀번호 세팅
+            EncryptionInfo info = new EncryptionInfo(EncryptionMode.agile);
+            Encryptor enc = info.getEncryptor();
 
-						String password = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-						enc.confirmPassword(password);
+            String password = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            enc.confirmPassword(password);
 
-						OPCPackage opc = OPCPackage.open(fileIn);
-						OutputStream os = enc.getDataStream(fs);
-						opc.save(os);
-						opc.close();
+            OPCPackage opc = OPCPackage.open(fileIn);
+            OutputStream os = enc.getDataStream(fs);
+            opc.save(os);
+            opc.close();
 
-						OutputStream fileOut = response.getOutputStream();
-						fs.writeFilesystem(fileOut);
-						fileOut.close();
-						file.close();
+            OutputStream fileOut = response.getOutputStream();
+            fs.writeFilesystem(fileOut);
+            fileOut.close();
+            file.close();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -193,3 +194,8 @@ public class ExcelDownloader extends AbstractView {
 
 }
 ```
+# 4. 아쉬운 점
+지금 사용하고 있는 POI 버전이 너무 낮다. Apache POI 버전이 5.0 이상이 되었는데 
+암호화에서 사용하고 있는 라이브러리는 3.5 버전이다.
+
+POI 4.0 이상으로 라이브러리를 사용하면 이상하게 암호화 해제를 할때 파일이 깨지는데 추후에 보충이 필요할것 같다.
