@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Quick sort 구현
+title: 간단하고 반복적인 문제들 
 
 date: 2024-06-04
 Author: Geon Son
@@ -10,8 +10,10 @@ comments: true
 toc: true
 ---
 
+> [참고](https://velog.io/@rhdguswlx/ofjwsqq0)
 
-### 퀵 정렬 구현 코드 
+
+## 퀵 정렬 구현 코드 
 
 ```
 import java.io.IOException;
@@ -70,3 +72,53 @@ public class Main {
 }
 
 ```
+
+
+
+## 최대 공약수 최소공배수  
+~~~
+//최대공약수
+private int gcd(int a, int b) {
+    if (b == 0)
+        return a;
+    return gcd(b, a % b);
+}
+
+
+// 두 수의 곱을 최대 공약수로 나누면 최소 공배수
+private int lcm(int a, int b) {
+    return a * b / gcd(a, b);
+}
+~~~
+
+## 피보나치 (재귀)
+~~~
+ private int fibo(int n) {
+        if (n < 2) 
+            return n;
+        return fibo(n - 1) + fibo(n - 2);
+    }
+~~~
+
+## 피보나치(DP)
+~~~
+ private int fibo(int n) {
+        int[] dp = new int[n + 1];
+        dp[0] = 0;
+        dp[1] = 1;
+
+        for (int i = 2; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
+    }
+~~~
+
+## 팩토리얼
+~~~
+int fact(int n) {
+    if(n==1) 
+        return 1;
+    return n * fact(n-1);
+}
+~~~
