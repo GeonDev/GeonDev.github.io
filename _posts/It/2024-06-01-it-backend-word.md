@@ -53,7 +53,6 @@ toc: true
 * **Index 설정 기준**
   * **카디널리티 (Cardinality) 높음** : 중복도가 낮은 칼럼
   * **선택도 (Selectivity) 낮음** : 한 칼럼으로 적은 ROW가 찾아진다
-
 * **INDEX SCAN 종류**
   * **INDEX RANGE SCAN** : B*Tree인덱스의 가장 일반적이고 정상적인 형태, 필요한 범위만 스캔
   * **INDEX FULL SCAN** : 처음부터 끝까지 수평적으로 탐색하는 방식, 최적의 인덱스가 없을 때 차선으로 선택
@@ -65,7 +64,6 @@ toc: true
   * **개체 무결성(Entity integrity)**: 모든 테이블이 기본키로 선택된 필드를 가지고 있어야 한다. 기본키로 선택된 필드는 NULL을 허용하지 않는다.
   * **참조 무결성(Referential integrity)**: 참조관계에 있는 두 테이블의 데이터가 항상 일관된 값을 갖도록 유지하는 것
 <br> 
- 
 
 # 용어정리 – JAVA
 * **JVM** : 자바 가상 머신의 약자를 따서 줄여 부르는 용어로 JVM의 역할은 자바 애플리케이션을 클래스 로더를 통해 읽어 자바 API와 함께 실행하고 메모리 관리(GC)을 수행하는 스택기반의 가상머신이다.
@@ -102,18 +100,26 @@ toc: true
    * **G1 GC (Garbage First)** : 기존의 GC 알고리즘에서는 Heap 영역을 물리적으로 고정된 Young/Old 영역으로 나누어 사용하였지만, G1 gc는 아예 이러한 개념을 뒤엎는 Region이라는 개념을 새로 도입하여 사용, 전체 Heap에 대해서 탐색하지 않고 부분적으로 Region 단위로 탐색하여, 각각의 Region에만 GC가 발생하기 떄문에 Stop The World 시간이 짧다
 <br>  
 
-* **스태틱(Static)** : static은 클래스 멤버라고 하며, 클래스 로더가 클래스를 로딩해서 메소드 메모리 영역에 적재할 때 클래스별로 관리된다. static 키워드를 통해 생성된 정적멤버들은 PermGen 또는 Metaspace에 저장되며 저장된 메모리는 모든 객체가 공유하며 하나의 멤버를 어디서든지 참조할 수 있는 장점이 있다. 그러나, GC의 관리 영역 밖에 존재하기 때문에 프로그램 종료시까지 메모리가 할당된 채로 존재하기 때문에 너무 남발하게 되면 시스템 성능에 악영향을 줄 수 있다.
+* **자바의 메모리 영역**
+  * **Stack 영역** : 기본 자료형(원시 자료형, Primitive type), 지역변수, 매개변수가 저장되는 메모리 영역, Heap 영역에 생성된 데이터의 참조값이 할당됨, 메소드가 호출될 때 메모리에 할당, 메서드 종료시 메모리에서 삭제된다.
+  * **Heap 영역** : 인스턴스를 생성(new)할 때 사용되는 메모리 영역, 참조형 데이터 객체의 실제 데이터가 저장되는 공간 (Stack 영역에서 실제데이터가 존재하는 Heap 영역의 참조값을 가지고 있다.), GC가 관리한다.
+  * **Static 영역** : static 키워드를 통해 생성된 정적멤버들은 모든 객체가 공유하며 어디서든지 참조할 수 있다. 그러나, GC의 관리 영역 밖에 존재하기 때문에 프로그램 종료시까지 메모리가 할당된 채로 존재한다.
+<br>
+
+* **Final** : final 키워드는 변수(variable), 메서드(method), 또는 클래스(class)에 사용될 수 있으며 프로그램 실행 도중에 수정 할수 없다. final 변수는 한 번 초기화되면 그 이후에 변경할 수 없다. final 메소드는 오버라이딩을 금지한다. final 클래스는 다른 클래스에서 상속할 수 없다.
+  * **static final** : 객체(인스턴스)가 아닌 클래스에 존재하는 단 하나의 상수 라는 의미. 클래스 상수는 클래스 선언과 동시에 초기화 하여야 한다.
 <br>
 
 * **JDK와 JRE** : JDK는 Java Development KIT의 약자로 개발하는데 사용되는 도구이며 JRE를 포함하고 있으며 JRE는 Java Runtime Environment의 약자로 자바로 만들어진 프로그램을 실행시키는데 필요한 도구가 들어있는 차이가 있다.
 <br>
 
-* **Checked Exception과 Unchecked Exception** 
-  * **Checked Exception** : RuntimeException을 상속하지 않고 반드시 에러 처리(try/catch or throw)를 해야한다. (대표적으로 FileNotFoundException)
-  * **UncheckedException** : RuntimeException을 상속하면 UncheckedException. 체크 예외와는 달리 에러 처리를 강제하지 않음 (대표적으로 NullPointerException)
-스프링 트랜잭션 추상화에서 rollback 대상은 UncheckedException
+* **Error와 Exception**
+  * **Error** : 실행 중 일어날 수 있는 치명적 오류. 컴파일 시점에 체크할 수 없고, 오류가 발생하면 프로그램은 비정상 종료 한다.
+  * **Exception** : Error보다 비교적 경미한 오류이며, try-catch를 이용해 프로그램의 비정상 종료를 막을 수 있다. 
+    * **Checked Exception과 Unchecked Exception** 
+      * **Checked Exception** : RuntimeException을 상속하지 않고 반드시 에러 처리(try/catch or throw)를 해야한다. (대표적으로 FileNotFoundException)
+      * **UncheckedException** : RuntimeException을 상속하면 UncheckedException. 체크 예외와는 달리 에러 처리를 강제하지 않음 (대표적으로 NullPointerException)
 <br>
-
 
 * **동일성(identity)와 동등성(equality)**
   * **동일성(identity)** : 객체의 주소를 비교 ,equals() 사용하고 오버라이드 가능
@@ -137,7 +143,6 @@ toc: true
    * **직렬화(Serialization)** : 객체들의 데이터를 연속적인 데이터(스트림)로 변형하여 전송 가능한 형태로 만드는 것 (객체 데이터를 JSON으로 바꾼다.)
    * **역직렬화(Deserialization)** : 직렬화된 데이터를 다시 객체의 형태로 만드는 것 (JSON 데이터를 객체로 바꾼다)
 <br>
-
 
 * **JWT(Json Web Token)** : JWT란 객체에 인증에 필요한 정보들을 담은 후 비밀키로 서명한 토큰, 토큰 자체에 사용자의 권한 정보나 서비스를 사용하기 위한 정보가 포함되어 있고 무상태(Stateless)인 환경에서 사용자 데이터를 주고받을 수 있다.
   * **Header(헤더)** : 서명 시 사용하는 키(kid), 사용할 타입(typ), 서명 암호화 알고리즘(alg)의 정보가 담겨 있다.
@@ -186,7 +191,12 @@ toc: true
   * 스프링 컨테이너가 객체(스프링 빈)를 생성할 때 프록시 객체를 자동으로 생성하고 타겟 객체(Target) 대신 프록시 빈으로 등록
   * 생성된 프록시는 타겟 객체(Target)의 호출을 가로채고 Advice의 기능을 호출 후에 타겟 객체(Target)의 기능을 호출한다.
 
-* **@Transactinal** : Spring AOP를 통해 구현되어 있다. @Transactional이 선언되면 해당 클래스에 트랜잭션이 적용된 프록시 객체 생성하고 예외가 없을 때는 Commit, 예외가 발생한 경우 Rollback 한다.
+* **AOP 주요 요소**
+
+
+<br>
+
+* **@Transactinal** : Spring AOP를 통해 구현되어 있다. @Transactional이 선언되면 해당 클래스에 트랜잭션이 적용된 프록시 객체 생성하고 예외가 없을 때는 Commit, 예외가 발생한 경우 Rollback 한다. (스프링 트랜잭션 추상화에서 rollback 대상은 UncheckedException)
 
 * **@Transactinal 특징**
   * @Transactional은 우선순위를 가지고 있다. 클래스 메서드에 선언된 트랜잭션의 우선순위가 가장 높고, 인터페이스에 선언된 트랜잭션의 우선순위가 가장 낮다
@@ -229,6 +239,9 @@ toc: true
 * **물리 트랜잭션과 논리 트랜잭션** : DB의 트랜젝션을 사용하는 것을 물리 트랜잭션이라고 한다. 스프링은 성능을 위해 트랜잭션 매니저를 통해 트랜잭션을 처리하는데 이를 논리 트랜잭션이라고 한다. `모든 논리 트랜잭션이 커밋되어야 물리 트랜잭션이 커밋 되고 하나의 하나의 논리 트랜잭션이라도 롤백되면 물리 트랜잭션은 롤백된다.`
   * **물리 트랜잭션** : 실제 데이터베이스에 적용되는 트랜잭션으로, 커넥션을 통해 커밋/롤백하는 단위
   * **논리 트랜잭션** : 스프링이 트랜잭션 매니저를 통해 트랜잭션을 처리하는 단위
+
+# 용어정리 – 운영체제
+
 
 # 용어정리 – 기타  
 
