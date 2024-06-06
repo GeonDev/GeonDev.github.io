@@ -23,7 +23,7 @@ toc: true
   * **READ UNCOMMITTED**: 어떤 트랙잭션의 변경내용이 COMMIT이나 ROLLBACK에 상관없이 모두 노출된다. Dirty Read가 발생 할수 있다. 
 * **트랜잭션 부정합 종류**:
   * **Phantom Read(유령 읽기)** : 트랜잭션이 끝나기 전에 다른 트랜잭션에 의해 추가된 레코드가 조회됨
-  * **Non-Repeatable Read(반복 읽기 불가능)** : 트랜잭션이 동일한 행을 업데이트하고 커밋하는 경우 행을 다시 읽을 때 다른 값을 가져오는 경우
+  * **Non-Repeatable Read(반복 읽기 불가능)** : 서로 다른 트랜잭션이 동일한 행을 업데이트하고 커밋하는 경우, 행을 다시 읽을 때 다른 값을 가져오는 경우
   * **Dirty Read** : 트랜잭션의 작업이 완료되지 않았는데도 다른 트랜잭션에서 해당 데이터를 읽는 현상
 <br>
 
@@ -44,18 +44,21 @@ toc: true
 * **클러스터**: 디스크로부터 데이터를 읽어오는 시간을 줄이기 위해 조인이나 자주 사용하는 테이블의 데이터를 디스크의 같은 위치에 저장시키는 것, 데이터 조회 속도는 향상시키지만 저장, 수정, 삭제 또는 한 테이블 전체 Scan의 성능은 감소한다. (주로 조회에 사용되고 컬럼안에 많은 중복데이터를 가지는 테이블, join을 자주 하는 테이블에 클러스터링을 한다.)
 <br>
 
-* **인덱스(Index)** : 추가적인 쓰기 작업과 저장 공간을 활용하여 데이터베이스 테이블의 검색 속도를 향상시키기 위한 자료구조
-* **Index 설정 기준**
-  * **카디널리티 (Cardinality) 높음** : 중복도가 낮은 칼럼
-  * **선택도 (Selectivity) 낮음** : 한 칼럼으로 적은 ROW가 찾아진다
+* **인덱스(Index)** : 추가적인 쓰기 작업과 저장 공간을 활용하여 데이터베이스 테이블의 검색 속도를 향상시키기 위한 자료구조,
+크게 클러스터 인덱스(물리적), 논클러스터인덱스(논리적) 두 종류가 있다.
 * **Clustered Index와 Non Clustered Index**
   * **클러스터 인덱스(Clustered Index)**: 물리적으로 행을 재배열, 넌 클러스터 인덱스보다 작은 사이즈, 30%이내에서 사용해야 좋다. 테이블당 1개를 갖으며 Primary Key 설정 시 해당 칼럼은 자동적으로 클러스터 인덱스 생성
   * **논클러스터 인덱스(Non Clustered Index)**: 물리적으로 재배치하지 않음, 클러스터 인덱스 용량이 큼, 3% 이내에서 사용해야 좋은 선택도를 갖는다. 테이블당 249개를 갖으며 논클러스터 인덱스를 따로 명시해야 한다(인덱스 페이지를 따로 만듬)
+
+* **Index 설정 기준**
+  * **카디널리티 (Cardinality) 높음** : 중복도가 낮은 칼럼
+  * **선택도 (Selectivity) 낮음** : 한 칼럼으로 적은 ROW가 찾아진다
 
 * **INDEX SCAN 종류**
   * **INDEX RANGE SCAN** : B*Tree인덱스의 가장 일반적이고 정상적인 형태, 필요한 범위만 스캔
   * **INDEX FULL SCAN** : 처음부터 끝까지 수평적으로 탐색하는 방식, 최적의 인덱스가 없을 때 차선으로 선택
   * **INDEX UNIQUE SCAN** : 수직적 탐색만으로 데이터를 찾는 방식, 등치(=)조건으로 탐색하는 경우에 작동
+  * **INDEX SKIP SCAN** : 인덱스 선두 컬럼이 조건절에 없어도 인덱스를 활용하는 방식, 조건절에 빠진 인덱스 선두 컬럼의 중복값이 많고 후행 컬럼의 중복값이 적을때 활용
 <br>
 
 * **데이터 무결성**: 데이터의 정확성, 일관성, 유효성을 유지하는 것, RDBMS의 중요한 기능으로 주로 데이터에 적용하는 연산을 제한하여 무결성을 유지한다.
@@ -75,6 +78,7 @@ toc: true
   * **JNI(Java Native Interface)**: 자바 애플리케이션에서 C, C++, 어셈블리어로 작성된 함수를 사용할 수 있는 방법을 제공, Native 키워드를 사용하여 메서드를 호출 (대표적인 메서드는 Thread의 currentThread())
   * **Native Method Library**: C, C++로 작성된 라이브러리    
 <br>     
+
 * **Java의 실행방식**
   *  자바 컴파일러(javac)가 자바 소스코드(.java)를 읽어 자바 바이트코드(.class)로 변환
   *  Class Loader를 통해 class 파일들을 JVM으로 로딩.
@@ -90,6 +94,8 @@ toc: true
   * **Sweep**: Mark되지 않은 객체들을 제거하는 과정
   * **Compact**: Sweep 과정에 의해 삭제되면 메모리 단편화가 발생하는데, Compact를 통해 빈자리들을 채워줌
   * **Promotion** : Survivor 영역에서 계속해서 살아남은 객체들이 특정 age 값에 도달하면, Old Generation으로 이동하게 되는 과정
+<br>
+
 *  **GC(Garbage Collector) 알고리즘**
    * **Serial GC** : 서버의 CPU 코어가 1개일 때 사용하기 위해 개발된 GC, Stop The World 시간이 길다, Mark & Sweep & Compact 알고리즘을 사용
    * **Parallel GC** : Serial GC와 기본적인 알고리즘은 같지만, Young 영역의 Minor GC를 멀티 쓰레드로 수행
@@ -106,6 +112,12 @@ toc: true
   * **Checked Exception** : RuntimeException을 상속하지 않고 반드시 에러 처리(try/catch or throw)를 해야한다. (대표적으로 FileNotFoundException)
   * **UncheckedException** : RuntimeException을 상속하면 UncheckedException. 체크 예외와는 달리 에러 처리를 강제하지 않음 (대표적으로 NullPointerException)
 스프링 트랜잭션 추상화에서 rollback 대상은 UncheckedException
+<br>
+
+
+* **동일성(identity)와 동등성(equality)**
+  * **동일성(identity)** : 객체의 주소를 비교 ,equals() 사용하고 오버라이드 가능
+  * **동등성(equality)** : 객체가 같음을 비교 , == 사용
 <br>
 
 * **오버라이딩과 오버로딩**
@@ -125,6 +137,7 @@ toc: true
    * **직렬화(Serialization)** : 객체들의 데이터를 연속적인 데이터(스트림)로 변형하여 전송 가능한 형태로 만드는 것 (객체 데이터를 JSON으로 바꾼다.)
    * **역직렬화(Deserialization)** : 직렬화된 데이터를 다시 객체의 형태로 만드는 것 (JSON 데이터를 객체로 바꾼다)
 <br>
+
 
 * **JWT(Json Web Token)** : JWT란 객체에 인증에 필요한 정보들을 담은 후 비밀키로 서명한 토큰, 토큰 자체에 사용자의 권한 정보나 서비스를 사용하기 위한 정보가 포함되어 있고 무상태(Stateless)인 환경에서 사용자 데이터를 주고받을 수 있다.
   * **Header(헤더)** : 서명 시 사용하는 키(kid), 사용할 타입(typ), 서명 암호화 알고리즘(alg)의 정보가 담겨 있다.
