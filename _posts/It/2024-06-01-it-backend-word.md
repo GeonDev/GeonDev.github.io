@@ -9,18 +9,19 @@ comments: true
 toc: true
 ---
 
->[네트워크 & 운영체제 용어 참고](https://geondev.github.io/it-word-list-network/)  
->[참고](https://github.com/ksundong/backend-interview-question?tab=readme-ov-file)
+>[네트워크 & 운영체제 용어](https://geondev.github.io/it-word-list-network/) | [참고](https://github.com/ksundong/backend-interview-question?tab=readme-ov-file)
 
 업무만 하다보니 이론을 너무 까먹어서 정리하려고 한다. 
 
 
 # 용어정리 – 데이터 베이스
-* **트랜잭션 격리수준(Isolation Level)**: 동시에 여러 트랜잭션이 실행될 때, 트랜잭션 끼리 서로 얼마나 고립 되어 있는지를 확인하는 것, 특정 트랜잭션이 다른 트랜잭션에서 변경한 데이터를 조회할 수 있는지 없는지 판단한다. 격리수준이 내려갈수록 성능이 좋아지지만 오류가 발생할 가능성이 커진다.
+* **트랜잭션 격리수준(Isolation Level)**: 동시에 여러 트랜잭션이 실행될 때, 트랜잭션 끼리 서로 얼마나 고립 되어 있는지를 확인하는 것, 격리수준이 내려갈수록 성능이 좋아지지만 오류가 발생할 가능성이 커진다.
   * **SERIALIZABLE**: 가장 강력한 격리수준으로 읽기 작업에도 잠금을 발생시켜 다른 트랜잭션이 레코드를 변경할 수 없도록 한다. 동시처리 능력이 떨어지고 성능이 저하된다.
   * **REPEATABLE READ**: 트랜잭션이 시작되기 전에 COMMIT된 내용에 대해서만 조회할 수 있는 격리 수준이다. Phantom Read가 발생할수 있다. 
-  * **READ COMMITTED**: 어떤 트랜잭션의 변경내용이 COMMIT되어야만 다른 트랜잭션에서 조회할 수 있다.Non-Repeatable Read가 발생한다.
+  * **READ COMMITTED**: 어떤 트랜잭션의 변경내용이 COMMIT되어야만 다른 트랜잭션에서 조회할 수 있다. Non-Repeatable Read가 발생한다.
   * **READ UNCOMMITTED**: 어떤 트랙잭션의 변경내용이 COMMIT이나 ROLLBACK에 상관없이 모두 노출된다. Dirty Read가 발생 할수 있다. 
+<br>
+
 * **트랜잭션 부정합 종류**:
   * **Phantom Read(유령 읽기)** : 트랜잭션이 끝나기 전에 다른 트랜잭션에 의해 추가된 레코드가 조회됨
   * **Non-Repeatable Read(반복 읽기 불가능)** : 서로 다른 트랜잭션이 동일한 행을 업데이트하고 커밋하는 경우, 행을 다시 읽을 때 다른 값을 가져오는 경우
@@ -68,7 +69,7 @@ toc: true
 # 용어정리 – JAVA
 * **JVM** : 자바 가상 머신의 약자를 따서 줄여 부르는 용어로 JVM의 역할은 자바 애플리케이션을 클래스 로더를 통해 읽어 자바 API와 함께 실행하고 메모리 관리(GC)을 수행하는 스택기반의 가상머신이다.
   * **Class Loader** : VM내로 클래스를 로드하고, 링크를 통해 배치하는 작업을 수행하는 모듈
-  * **Execution engine** : 바이트 코드를 실행시키는 역할
+  * **Execution engine(실행 엔진)** : 바이트 코드를 실행시키는 역할
       * **Interpreter** : 바이트 코드를 한줄 씩 실행합니다.
       * **JIT 컴파일러** : 인터프리터가 반복되는 코드를 발견하면 JIT 컴파일러가 반복되는 코드를 네이티브 코드로 바꿔줍니다. 그 다음부터 인터프리터는 네이티브 코드로 컴파일된 코드를 바로 사용합니다.
       * **GC(Garbage Collector)** : 힙 영역에서 사용되지 않는 객체들을 제거하는 작업을 수행
@@ -84,9 +85,9 @@ toc: true
   *  해석된 바이트코드는 Runtime Data Areas 에 배치되어 수행
 <br>  
 
-*  **GC(Garbage Collector)** :Heap 영역에서 동적으로 할당했던 메모리 중 필요 없게 된 메모리 객체(garbage)를 모아 주기적으로 제거한다. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
-   *  **Minor GC** : Young 영역은 Eden / Survivor 이라는 두 영역으로 나뉨, Eden 영역에서 참조가 남아있는 객체를 mark하고 survivor 영역으로 복사한다. 그리고 Eden 영역을 비웁니다. Survivor 영역도 가득차면 같은 방식으로 다른 Survivor 영역에 복사하고 비웁니다. 이를 반복하다 보면 계속 해서 살아남는 객체는 old 영역으로 이동하게 됩니다.
-   *  **Major GC(Full GC)** : Old 영역의 메모리가 부족해지면 발생, 삭제되어야 하는 객체를 mark합니다. 그리고 지웁(sweep)니다. 메모리는 단편화 된 상태이므로 이를 한 군데에 모아주는 것을 Compaction이라 하며 compact라고 합니다. 
+* **GC(Garbage Collector)** :Heap 영역에서 동적으로 할당했던 메모리 중 필요 없게 된 메모리 객체(garbage)를 모아 주기적으로 제거한다. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
+   * **Minor GC** : Young 영역은 Eden / Survivor 이라는 두 영역으로 나뉨, Eden 영역에서 참조가 남아있는 객체를 mark하고 survivor 영역으로 복사한다. 그리고 Eden 영역을 비운다. Survivor 영역도 가득차면 같은 방식으로 다른 Survivor 영역에 복사하고 비운다. 이를 반복하다 계속 해서 살아남는 객체는 old 영역으로 이동
+   * **Major GC(Full GC)** : Old 영역의 메모리가 부족해지면 발생, 삭제되어야 하는 객체를 mark합니다. 그리고 지웁(sweep)니다. 메모리는 단편화 된 상태이므로 이를 한 군데에 모아주는 것을 Compaction이라 하며 compact라고 한다. 
 * **Mark & Sweep & Compact & Promotion**
   * **Mark**: 접근 가능한 객체에 Mark하여 표시
   * **Sweep**: Mark되지 않은 객체들을 제거하는 과정
@@ -94,7 +95,7 @@ toc: true
   * **Promotion** : Survivor 영역에서 계속해서 살아남은 객체들이 특정 age 값에 도달하면, Old Generation으로 이동하게 되는 과정
 <br>
 
-*  **GC(Garbage Collector) 알고리즘**
+* **GC(Garbage Collector) 알고리즘**
    * **Serial GC** : 서버의 CPU 코어가 1개일 때 사용하기 위해 개발된 GC, Stop The World 시간이 길다, Mark & Sweep & Compact 알고리즘을 사용
    * **Parallel GC** : Serial GC와 기본적인 알고리즘은 같지만, Young 영역의 Minor GC를 멀티 쓰레드로 수행
    * **G1 GC (Garbage First)** : 기존의 GC 알고리즘에서는 Heap 영역을 물리적으로 고정된 Young/Old 영역으로 나누어 사용하였지만, G1 gc는 아예 이러한 개념을 뒤엎는 Region이라는 개념을 새로 도입하여 사용, 전체 Heap에 대해서 탐색하지 않고 부분적으로 Region 단위로 탐색하여, 각각의 Region에만 GC가 발생하기 떄문에 Stop The World 시간이 짧다
@@ -106,8 +107,14 @@ toc: true
   * **Static 영역** : static 키워드를 통해 생성된 정적멤버들은 모든 객체가 공유하며 어디서든지 참조할 수 있다. 그러나, GC의 관리 영역 밖에 존재하기 때문에 프로그램 종료시까지 메모리가 할당된 채로 존재한다.
 <br>
 
-* **Final** : final 키워드는 변수(variable), 메서드(method), 또는 클래스(class)에 사용될 수 있으며 프로그램 실행 도중에 수정 할수 없다. final 변수는 한 번 초기화되면 그 이후에 변경할 수 없다. final 메소드는 오버라이딩을 금지한다. final 클래스는 다른 클래스에서 상속할 수 없다.
-  * **static final** : 객체(인스턴스)가 아닌 클래스에 존재하는 단 하나의 상수 라는 의미. 클래스 상수는 클래스 선언과 동시에 초기화 하여야 한다.
+* **자바 원시타입** : boolean(1), char(unsigned 2), byte(1), short(2), int(4), long(8), float(4), double(8) / 단 JVM에 종속적임으로 대략적인 크기
+<br>
+
+* **Final** : final 키워드는 변수(variable), 메서드(method), 또는 클래스(class)에 사용될 수 있으며 프로그램 실행 도중에 수정 할수 없다.
+  * **final 변수** : 한 번 초기화되면 그 이후에 변경할 수 없다.
+  * **final 메소드** : 오버라이딩을 금지한다.
+  * **final 클래스** : 다른 클래스에서 상속할 수 없다.
+* **static final** : 객체(인스턴스)가 아닌 클래스에 존재하는 단 하나의 상수 라는 의미. 클래스 상수는 클래스 선언과 동시에 초기화 하여야 한다.
 <br>
 
 * **JDK와 JRE** : JDK는 Java Development KIT의 약자로 개발하는데 사용되는 도구이며 JRE를 포함하고 있으며 JRE는 Java Runtime Environment의 약자로 자바로 만들어진 프로그램을 실행시키는데 필요한 도구가 들어있는 차이가 있다.
@@ -164,13 +171,16 @@ toc: true
 * **BeanFactory와 ApplicationContext 차이** : BeanFactory는 Bean을 미리 생성하지 않고 호출 시점에 생성, ApplicationContext는 Application을 시작할때 미리 생성한다. 
 <br>
 
-* **Spring Bean** : 스프링 컨테이너에 의해 생성되고 관리되는자바 객체를 뜻하며, 스프링 컨테이너는 하나 이상의 빈(Bean)을 관리한다.
+* **Spring Bean** : 스프링 컨테이너에 의해 생성되고 관리되는 자바 객체를 뜻하며, 스프링 컨테이너는 하나 이상의 빈(Bean)을 관리한다.
 
-* **Spring Bean 생성과정** : 객체 생성 → 의존 설정 → 초기화 → 사용 → 소멸 과정의 생명주기를 가지고 있다. Bean은 스프링 컨테이너에 의해 생명주기를 관리하며 빈 초기화방법은 `@PostConstruct` 를, 빈 소멸에서는 `@PreDestroy` 를 사용한다. 생성한 스프링 빈을 등록할 때는 `@ComponentScan`을 이용하여 `@Component`로 설정된 클래스를 자동으로 등록하거나 `@Configuration`(클래스), `@Bean`(메소드) 을 사용하여 빈 설정파일에 직접 빈을 등록할 수 있다.
-
-* **Bean/Component 차이점**
-  * **@Bean** : 개발자가 작성한 method를 기반으로 메서드에서 반환하는 객체를 인스턴스 생성
-  * **@Component** : 개발자가 작성한 class를 기반으로 실행시점에 인스턴스 객체를 생성. `@Controller`, `@Service`, `@Repository` 는 모두 `@Component` 이다
+* **Spring Bean 생명주기** : 스프링 빈 생성 → 의존관계 주입 → 초기화 콜백 메소드 호출 → 사용 → 제거 콜백 메소드 호출 → 스프링 종료 
+  * **Spring Bean 등록** : 스프링 빈을 등록할 때는 `@ComponentScan`을 이용하여 `@Component`로 설정된 클래스를 자동으로 등록하거나 `@Configuration`(클래스), `@Bean`(메소드) 을 사용하여 빈 설정파일에 직접 빈을 등록할 수 있다.
+    * **Bean/Component 차이점**
+      * **@Bean** : 개발자가 작성한 method를 기반으로 메서드에서 반환하는 인스턴스 객체 생성
+      * **@Component** : 개발자가 작성한 class를 기반으로 실행시점에 인스턴스 객체를 생성. `@Controller`, `@Service`, `@Repository` 는 모두 `@Component` 이다
+  * **Spring Bean 콜백(초기화 및 소멸)** :  
+    * **@PostConstruct** : 초기화 콜백 (의존관계 주입이 끝나면 호출) 
+    * **@PreDestory** : 제거 콜백 (메모리 반납, 연결 종료와 같은 과정)
 <br>
 
 * **Bean Scope** : 빈 스코프는 빈이 존재할 수 있는 범위를 뜻하며 싱글톤(singleton), 프로토타입(prototype), request, session, application 등이 있다.
@@ -192,8 +202,11 @@ toc: true
   * 생성된 프록시는 타겟 객체(Target)의 호출을 가로채고 Advice의 기능을 호출 후에 타겟 객체(Target)의 기능을 호출한다.
 
 * **AOP 주요 요소**
-
-
+  * **Target** : 부가기능을 부여할 대상 (핵심기능을 담고 있는 모듈)
+  * **Aspect** : 부가기능을 정의한 모듈 , Advice 와 PointCut을 갖고 있다. 
+  * **Advice** : 실질적으로 부가기능을 담은 구현체
+  * **PointCut** : 부가기능이 적용될 대상(Method)을 선정하는 방법
+  * **JoinPoint** : Advice가 적용될 수 있는 위치
 <br>
 
 * **@Transactinal** : Spring AOP를 통해 구현되어 있다. @Transactional이 선언되면 해당 클래스에 트랜잭션이 적용된 프록시 객체 생성하고 예외가 없을 때는 Commit, 예외가 발생한 경우 Rollback 한다. (스프링 트랜잭션 추상화에서 rollback 대상은 UncheckedException)
@@ -239,9 +252,6 @@ toc: true
 * **물리 트랜잭션과 논리 트랜잭션** : DB의 트랜젝션을 사용하는 것을 물리 트랜잭션이라고 한다. 스프링은 성능을 위해 트랜잭션 매니저를 통해 트랜잭션을 처리하는데 이를 논리 트랜잭션이라고 한다. `모든 논리 트랜잭션이 커밋되어야 물리 트랜잭션이 커밋 되고 하나의 하나의 논리 트랜잭션이라도 롤백되면 물리 트랜잭션은 롤백된다.`
   * **물리 트랜잭션** : 실제 데이터베이스에 적용되는 트랜잭션으로, 커넥션을 통해 커밋/롤백하는 단위
   * **논리 트랜잭션** : 스프링이 트랜잭션 매니저를 통해 트랜잭션을 처리하는 단위
-
-# 용어정리 – 운영체제
-
 
 # 용어정리 – 기타  
 
