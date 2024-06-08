@@ -9,7 +9,8 @@ comments: true
 toc: true
 ---
 
->[네트워크 & 운영체제 용어](https://geondev.github.io/it-word-list-network/) | [참고](https://github.com/ksundong/backend-interview-question?tab=readme-ov-file)
+>[네트워크 & 운영체제 용어](https://geondev.github.io/it-word-list-network/) 
+>[참고 내용](https://github.com/ksundong/backend-interview-question?tab=readme-ov-file)
 
 업무만 하다보니 이론을 너무 까먹어서 정리하려고 한다. 
 
