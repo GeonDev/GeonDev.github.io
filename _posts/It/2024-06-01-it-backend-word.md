@@ -214,8 +214,24 @@ toc: true
 
 * **@Transactinal 특징**
   * @Transactional은 우선순위를 가지고 있다. 클래스 메서드에 선언된 트랜잭션의 우선순위가 가장 높고, 인터페이스에 선언된 트랜잭션의 우선순위가 가장 낮다
-  * @Transactional은 Proxy Mode가 Default로 설정되어 있어, `반드시 public 메서드에 적용`되어야한다
+  * @Transactional은 Proxy Mode가 Default로 설정되어 있어, `private 메서드에 적용 할 수 없다.`
 <br>
+
+* **@Async** : Spring AOP를 통해 구현되어 있다. @Async가 선언되면 스프링이 프록시 겍체를 만들어 준다. 프록시 객체 이기 떄문에 private 메소드로 생성하면 작동하지 않는다. self-invocation(자가 호출)의 경우에는 프록시 객체를 거치지 않고 직접 Method A를 호출하기 때문에 Async가 동작하지 않는다.
+
+* **@Async의 Thread Pool**
+  * **SimpleAsyncTaskExecutor** : 작업마다 새로운 스레드를 생성하고 비동기 방식으로 동작한다. 스레드 풀 방식이 아니므로, 스레드를 재사용하지 않는다.
+  * **ThreadPoolTaskExecutor** :  스레드 풀 기반의 TaskExecutor, 스프링 부트의 경우 기본 설정
+    * **ThreadPoolTaskExecutor 옵션**
+      * corePoolSize : 스레드 풀에 살아있는 최소 개수
+      * maxPoolSize : 스레드 풀에 살아있는 최대 개수
+      * keepAliveSeconds : 스레드풀 내 스레드 개수가 corePoolSize 초과인 상태에서, 대기 상태의 스레드가 종료되는 시간
+    * **ThreadPool 작동방식** 
+      * 스레드풀에 작업(task)를 등록하면, 스레드풀에 corePoolSize 만큼의 스레드가 존재하는지 확인한다.
+      * corePoolSize보다 적으면, 스레드풀에 새로운 스레드를 생성하고 작업을 할당한다. 
+      * 스레드풀의 스래드 개수가 corePoolSize보다 크면, 스레드풀의 대기 상태 스레드에게 작업을 할당한다.
+      * 스레드풀에 존재하는 모든 스레드가 작업중이면 BlockingQueue에 작업을 넣어 작업을 대기시킨다
+      * 작업중인 스레드가 작업을 마치면, BlockingQueue에 대기중인 작업이 있는지 확인한다.
 
 * **Spring Security 인증 과정** : 사용자가 로그인 정보와 함께 인증 요청(HttpRequest)을 하면 AuthenticationFilter가 요청을 가로채고 가로챈 정보를 통해 UsernamePasswordAuthenticationToken(인증용 객체)를 만들고 이를 이용해 AuthenticationManager의 인증 메서드를 호출한다. 이후 UserDetailsService 구현체를 통해 DB에 저장된 정보와 비교해 일치하면 UserDetails 구현 객체를 반환해 SecurityContext에 저장한다.
 
