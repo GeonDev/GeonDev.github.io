@@ -16,59 +16,49 @@ toc: true
 ## 퀵 정렬 구현 코드 
 
 ```
-import java.io.IOException;
 
-
-public class Main {
-
-    public static void main(String args[]) throws IOException {
-        int[] arr = {6,4,1,8,9,2,7,5,3};
-        quickSort(arr, 0, arr.length-1);
+public static int[] quickSort(int[] arr, int left, int right ){
+    if(arr == null){
+        return null;
     }
 
-    public static int[] quickSort(int[] arr, int left, int right ){
-        if(arr == null){
-            return null;
-        }
-
-        int[] result = arr;
-        if(left >= right){
-            return result;
-        }
-
-        int pivot = partition(result, left, right);
-
-        result = quickSort(result, left ,pivot- 1);
-        result = quickSort(result, pivot+1 ,right);
-
-        return  result;
+    int[] result = arr;
+    if(left >= right){
+        return result;
     }
 
-    private static int partition(int[] arr, int left, int right){
-        if(arr == null || left < 0){
-            return -1;
-        }
+    int pivot = partition(result, left, right);
 
-        int pivotVal = arr[right];
-        int endPos = left -1;
+    result = quickSort(result, left ,pivot- 1);
+    result = quickSort(result, pivot+1 ,right);
 
-        for(int i = left; i< right; i++){
-            if(pivotVal > arr[i]){
-                endPos +=1;
-                swapValue(arr, i, endPos);
-            }
-        }
-        endPos +=1;
-        swapValue(arr, right, endPos);
-        return endPos;
+    return  result;
+}
+
+private static int partition(int[] arr, int left, int right){
+    if(arr == null || left < 0){
+        return -1;
     }
 
-    public static int[] swapValue(int[] arr, int a, int b) {
-        int temp = arr[a];
-        arr[a] = arr[b];
-        arr[b] = temp;
-        return arr;
+    int pivotVal = arr[right];
+    int endPos = left -1;
+
+    for(int i = left; i< right; i++){
+        if(pivotVal > arr[i]){
+            endPos +=1;
+            swapValue(arr, i, endPos);
+        }
     }
+    endPos +=1;
+    swapValue(arr, right, endPos);
+    return endPos;
+}
+
+public static int[] swapValue(int[] arr, int a, int b) {
+    int temp = arr[a];
+    arr[a] = arr[b];
+    arr[b] = temp;
+    return arr;
 }
 
 ```
@@ -122,3 +112,42 @@ int fact(int n) {
     return n * fact(n-1);
 }
 ~~~
+
+## 스텍 2개로 구현하는 큐
+ 삽입보다는 제거에 집중, inStack에 있는 정보를 OutStack으로 옮기면서 데이터 순서를 바꾼다.
+ ~~~
+ public class Que {
+
+    public Stack<Integer> inStack = new Stack<>();
+    public Stack<Integer> outStack = new Stack<>();
+
+
+    public void setInStack(Integer num){
+        inStack.push(num);
+    }
+
+    public Integer outStack(){
+        if(outStack.empty()){
+            if(inStack.empty()){
+                return null;
+            }else {
+                return deQue();
+            }
+        }else {
+            if(inStack.empty()){
+                return outStack.pop();
+            }else {
+                return deQue();
+            }
+        }
+    }
+
+    private Integer deQue() {
+        while (!inStack.isEmpty()){
+            Integer temp = inStack.pop();
+            outStack.push(temp);
+        }
+        return outStack.pop();
+    }
+}
+ ~~~   
