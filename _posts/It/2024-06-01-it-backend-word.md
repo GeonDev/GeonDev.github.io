@@ -207,6 +207,13 @@ toc: true
    * **Interceptor 에러 처리** : Interceptor는 DispatcherServlet 내부에 존재하기 때문에 전역처리 방법인 `@ControllerAdvice`를 적용해서 처리.
 <br>
 
+* **Spring의 레이어드 아키텍처**
+하나의 레이어는 자신의 고유 역할을 수행하고, 인접한 다른 레이어에 무언가를 요청하거나 응답한다. 각 레이어는 다른 레이어를 신경 쓸 필요가 없기 때문에 자신의 역할에 충실할 수 있다. (특정한 레이어의 기능을 개선하거나 교체할 수 있기 때문에 재사용성과 유지 보수에 유리)
+  * **Persistence Layer** : 데이터 관련 처리를 담당하는 부분, repository
+  * **Application Layer** : 비즈니스 핵심 로직을 처리하는 부분, service
+  * **Presentation Layer** : view를 담당하는 부분, controller
+
+
 * **AOP(Aspect Oriented Programming)** : 기능을 핵심 관심 사항(Core Concern)과 공통 관심 사항(Cross-Cutting Concern)으로 분리시키고 각각을 모듈화 하는 것을 의미, AOP는 부가 기능을 `@Aspect`로 정의하여, 핵심 기능에서 부가 기능을 분리함으로써 핵심 기능을 설계하고 구현할 때 객체지향적인 가치를 지킬 수 있게 도와주는 개념
 
 * **AOP 특징**
