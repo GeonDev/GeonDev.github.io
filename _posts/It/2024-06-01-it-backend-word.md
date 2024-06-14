@@ -95,7 +95,6 @@ toc: true
     * Pattern Matching for switch : 타입 매칭 추가, Null 처리 추가, 
 <br>
 
-
 * **GC(Garbage Collector)** :Heap 영역에서 동적으로 할당했던 메모리 중 필요 없게 된 메모리 객체(garbage)를 모아 주기적으로 제거한다. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
    * **Minor GC** : Young 영역은 Eden / Survivor 이라는 두 영역으로 나뉨, Eden 영역에서 참조가 남아있는 객체를 mark하고 survivor 영역으로 복사한다. 그리고 Eden 영역을 비운다. Survivor 영역도 가득차면 같은 방식으로 다른 Survivor 영역에 복사하고 비운다. 이를 반복하다 계속 해서 살아남는 객체는 old 영역으로 이동
    * **Major GC(Full GC)** : Old 영역의 메모리가 부족해지면 발생, 삭제되어야 하는 객체를 mark합니다. 그리고 지웁(sweep)니다. 메모리는 단편화 된 상태이므로 이를 한 군데에 모아주는 것을 Compaction이라 하며 compact라고 한다. 
@@ -157,6 +156,16 @@ toc: true
 * **제네릭(Generics)** : 클래스 내부에서 사용할 데이터 타입을 외부에서 지정하는 기법, 객체의 타입을 컴파일 시에 체크하기 때문에 객체의 타입 안정성을 높이고 형변환의 번거로움을 줄여준다.
 <br>
 
+* **리플렉션(Reflection)** : 구체적인 클래스 타입을 알지 못해도 그 클래스의 메소드, 타입, 변수들에 접근할 수 있도록 해주는 자바 API, 런타임에 지금 실행되고 있는 클래스를 가져와서 실행해야할 때 동적으로 객체를 생성하고 메서드를 호출하는 방법
+<br>
+
+* **Stram API** : Collections Type의 데이터를 Stream 메소드로 내부 반복을 통해 정렬 혹은 필터링을 지원해주는 API, 원본데이터로부터 데이터를 읽기만 할 뿐, 원본데이터 자체를 변경하지 않는다(Immutable). parallel 메서드 제공을 통해 병렬처리 가 가능
+<br>
+
+* **Mutable 객체** : 생성된 이후 수정 가능, 이미 존재하는 객체에 재할당 할수 있다. 값을 변경할 수 있는 메소드 제공한다(setter).
+* **Immutable 객체** : 생성된 이후 수정 불가능, 이미 존재하는 객체이더라도 새로운 객체를 생성하여 재할당, 값을 변경할 수 있는 메소드가 없다(setter 없음).
+<br>
+
 * **직렬화(Serialization)과 역직렬화(Deserialization)**
    * **직렬화(Serialization)** : 객체들의 데이터를 연속적인 데이터(스트림)로 변형하여 전송 가능한 형태로 만드는 것 (객체 데이터를 JSON으로 바꾼다.)
    * **역직렬화(Deserialization)** : 직렬화된 데이터를 다시 객체의 형태로 만드는 것 (JSON 데이터를 객체로 바꾼다)
@@ -212,7 +221,7 @@ toc: true
   * **Persistence Layer** : 데이터 관련 처리를 담당하는 부분, repository
   * **Application Layer** : 비즈니스 핵심 로직을 처리하는 부분, service
   * **Presentation Layer** : view를 담당하는 부분, controller
-
+<br>
 
 * **AOP(Aspect Oriented Programming)** : 기능을 핵심 관심 사항(Core Concern)과 공통 관심 사항(Cross-Cutting Concern)으로 분리시키고 각각을 모듈화 하는 것을 의미, AOP는 부가 기능을 `@Aspect`로 정의하여, 핵심 기능에서 부가 기능을 분리함으로써 핵심 기능을 설계하고 구현할 때 객체지향적인 가치를 지킬 수 있게 도와주는 개념
 
@@ -304,6 +313,15 @@ toc: true
   * **뮤텍스(Mutex)** : 공유된 자원의 데이터 혹은 임계영역(Critical Section) 등에 하나의 Process 혹은 Thread가 접근하는 것을 막음(동기화 대상이 하나), 임계구역(Critical Section)을 가진 스레드들의 실행시간(Running Time)이 서로 겹치지 않고 각각 단독으로 실행(상호배제_Mutual Exclusion)되도록 하는 기술
   * **세마포어(Semaphore)** :  공유된 자원의 데이터 혹은 임계영역(Critical Section) 등에 여러 Process 혹은 Thread가 접근하는 것을 막아줌 (동기화 대상이 하나 이상) 
 <br>
+
+ * **스레드 안전(Thread-Safety)** : 하나의 함수가 한 스레드로부터 호출되어 실행 중일 때, 다른 스레드가 그 함수를 호출하여 동시에 함께 실행되더라도 각 스레드에서의 함수의 수행 결과가 옳바르게 나오는 것을 말한다.
+ * **스레드 안전(Thread-Safety) 요소**
+   * **Mutual Exclusion (상호 배제)** : 공유 자원에 하나의 Thread만 접근할 수 있도록 세마포어 / 뮤텍스로 락을 통제하는 방법.
+   * **Atomic Operation (원자 연산)** : 공유 자원에 접근할 때는 원자 연산을 이용하거나 원자적으로 정의된 접근 방법을 사용함으로써 상호 배제를 구현할 수 있다.
+   * **Thread-Local Storage (쓰레드 지역 저장소)** : 공유 자원의 사용을 최대한 줄이고 해당 쓰레드에서만 접근 가능한 저장소들을 사용함으로써 동시 접근을 막는 방법
+   * **Re-Entrancy (재진입성)** : 쓰레드 호출과 상관 없이 프로그램에 문제가 없도록 작성하는 방법, 쓰레드끼리 독립적으로 동작할 수 있도록 코드를 작성
+<br>
+
 
 * **교착상태(Deadlock)** : 둘 이상의 프로세스들이 자원을 점유한 상태에서 서로 다른 프로세스가 점유하고 있는 자원을 요구하며 무한정 기다리는 상황
   * **교착상태(Deadlock) 조건**
