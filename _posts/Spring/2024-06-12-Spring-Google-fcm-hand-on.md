@@ -127,14 +127,126 @@ public class FcmAdminSender {
 ~~~
 
 위에 파일을 읽는 과정은 레거시 프로젝트 구성이 특이하게 되어 있어 선택한 부득이한 방법이였다.
-단순히 InputStream을 FileInputStream으로 변환하는 과정이다. 
+스프링 프로젝트 내부의 resource 하위 폴더에 있는 FCM 키 파일에 접근하기 위해 InputStream 으로 파일을 읽어
+File 객체를 생성하고 이를 FileInputStream으로 변환하는 과정이다. 
 
-FirebaseApp.initializeApp()을 활용하여 초기화된 데이터를 반환 받는데 이때 별명을 추가할수 있다. 별명을 추가한 이유는 하나의 서버에서 여러 앱의 FirebaseApp을 사용해야 할때 구분자로 사용하기 위함이다. 
-
-
-
-
+FirebaseApp.initializeApp()을 활용하여 초기화된 데이터를 반환 받는데 이때 별명을 추가할 수 있다. 별명을 추가한 이유는 하나의 서버에서 여러 앱의 FirebaseApp을 사용해야 할때 구분자로 사용하기 위함이다. 
+(실제 서비스 에서도 하나의 배치에서 2개 이상의 앱의 푸시를 담당하고 있다.)
 
 
 
+# 4. FCM 푸시 발송
 
+~~~
+	private static BatchResponse FirebaseMessagingSender (Integer apiNo, List<String> devices, Map<String, String> data , boolean delayWhileIdle, int timeToLive) throws FirebaseMessagingException {
+		MulticastMessage message = MulticastMessage.builder()
+				.setNotification(Notification.builder()
+						.setTitle("푸시 타이틀 입력")
+						.setBody("푸시 메세지 입력")
+						.build())
+				.putAllData(data)
+				.addAllTokens(devices)
+				// 안드로이드 메세지 옵션 지정
+				.setAndroidConfig(AndroidConfig.builder()
+						//잠금 모드에서 전송되지 않는 경우가 발생하여 중요도 높음으로 세팅
+						.setPriority(AndroidConfig.Priority.HIGH)
+						.setTtl(timeToLive != 0 ? (long) timeToLive : 86400L)
+						.setNotification(AndroidNotification.builder()
+								.setPriority(AndroidNotification.Priority.HIGH)
+								//푸시 액션 지정
+								.setClickAction("android.intent.action.VIEW")
+								//각진 아이콘 형식으로 전송(앱파트 요청)
+								.setIcon("ic_status")
+								.build())
+						.build())
+				.build();
+
+				return FirebaseMessaging.getInstance(newsFirebaseApp).sendMulticast(message);		
+	}
+~~~
+
+푸시 발송 방식은 생각보다 간단하게 이루어진다. 
+FCM으로 메세지를 보내려면 디바이스 키(토큰)에 메세지를 매칭 시켜 주면 된다. 다만 모든 디바이스를 순회 하면서 1건 씩 메세지를 발송하게 되면 서버 부하, 네트워크 트래픽 상승 등 여러가지 않좋은 점이 있기 때문에 많은 양의 디바이스에 푸시를 날려야 할때는 500개 씩 묶어 전송할수 있는 MulticastMessage 객체를 FirebaseApp에 전달 하면 된다. 
+(이때도 최대 수용치가 있기 때문에 한꺼번에 너무 많은 데이터를 전송하는 것은 오류가 발생할수도 있다.)
+
+
+ FCM에서는 Notification 이라는 객체 형태로 메세지를 전송한다. 
+Notification 객체를 열어보면 아래와 같은 데이터를 갖고 있는 것을 알수 있다. 타이틀과 내용, 이미지가 FCM 푸시의 기본 형태로 해당 데이터를 설정해주면 앱에서 데이터를 읽어 표시해 주게 되어 있다.
+
+~~~
+
+public class Notification {
+    @Key("title")
+    private final String title;
+    @Key("body")
+    private final String body;
+    @Key("image")
+    private final String image;
+
+    //이하 생략
+    ....
+}
+
+~~~
+
+앱마다 특정한 메세지를 추가하거나 다른 메세지 타입을 넣고 싶은 경우 MulticastMessage.putAllData(data) 를 통하여 커스텀 메세지를 설정할 수 있다. 위에 함수에서 보여지듯  data는 Key-value 형식으로 전달 할수 있다. 
+Notification 없이 메세지를 전송할수도 있다. 다만 데이터를 파싱하는 과정에서 Notification이 없는 경우 일부 앱에서 FCM 푸시를 정상적으로 읽어들이지 못하는 경우가 발생 할수도 있어 포멧을 맞추어 주는 것을 추천한다.
+
+공식 문서를 찾아 보면 상세하게 나와 있지만 각각의 디바이스 타입별로 설정을 추가할수 있다. 
+나 같은 경우는 안드로이드만을 대상으로 하기 때문에 안드로이드 설정만을 추가하였다.  setAndroidConfig 설정을 통하여 각 다바이스에 설정을 넣을수 있는데 이 부분의 설정은 테스트를 해보면서 적절값을 찾아야 한다. 
+
+발송할 푸시 설정이 끝나면 FirebaseMessaging.getInstance(newsFirebaseApp).sendMulticast(message)에 설정한 메세지를 넣으면 Firebase에서 메세지를 발송하고 결과를 반환 해준다.
+
+
+
+# 5. FCM 결과 반환 후처리
+
+FCM 결과 값은 몇가지 특이한 점이 있다. 
+  * 발송한 디바이스 토큰 정보를 포함하고 있지 않다.
+  * FCM의 결과는 서버 처리 결과이다. 디바이스에 도달하였다는 것을 보장하지 않는다.
+
+따라서 FCM의 발송결과 만 완전히 믿을수는 없다. 아래 코드는 반환된 FCM 결과를 저장하는 예시이다.  
+
+
+~~~
+	private static void saveSendResponse(BatchResponse response) {
+		List<SendResponse> responses = response.getResponses();
+
+		for(SendResponse sendResponse : responses){
+			DataMap item = new DataMap();
+			item.put("status", 200);
+			if (!sendResponse.isSuccessful()) {
+				item.put("status", 500);
+				item.put("reason", "unknown");
+
+				FirebaseMessagingException messagingException = sendResponse.getException();
+				if (messagingException != null) {
+					MessagingErrorCode errorCode = messagingException.getMessagingErrorCode();
+					if (errorCode != null) {
+						switch (errorCode) {
+							case UNREGISTERED:
+								//토큰이 만료된 경우
+								item.put("status", 404);
+								item.put("reason", "not registered");
+								break;
+							case INVALID_ARGUMENT:
+								item.put("status", 400);
+								item.put("reason", "invalid");
+								break;
+							case SENDER_ID_MISMATCH:
+								item.put("status", 403);
+								item.put("reason", errorCode.name());
+								break;
+							default:
+								item.put("status", 408);
+								item.put("reason", errorCode.name());
+								break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+~~~
