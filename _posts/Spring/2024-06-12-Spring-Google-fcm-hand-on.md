@@ -207,7 +207,6 @@ FCM 결과 값은 몇가지 특이한 점이 있다.
 
 따라서 FCM의 발송결과 만 완전히 믿을수는 없다. 아래 코드는 반환된 FCM 결과를 저장하는 예시이다.  
 
-
 ~~~
 	private static void saveSendResponse(BatchResponse response) {
 		List<SendResponse> responses = response.getResponses();
@@ -247,6 +246,9 @@ FCM 결과 값은 몇가지 특이한 점이 있다.
 			}
 		}
 	}
-
-
 ~~~
+
+코드 자체가 복잡한 점은 없다. FCM 결과값은 발송 토큰은 반환하지 않지만 발송한 순서데로 결과를 반환한다고 명시되어 있다. 만약 개별 토큰 별로 결과를 저장하고 싶다면 발송한 토큰 순서를 따라 가면서 매칭해주면 비슷한 결과를 나오게 할수 있다. 
+
+SendResponse의 결과값은 @nullable 이다. 따라서 결과값이 안오는 경우도 생각하고 처리하여야 한다.
+이때 재발송 을 시도할수는 있지만 FCM에서는 추천하지 않는다고 한다. (메세지 수명에 따라 FCM에 저장되어 있을수 있기 때문) 
