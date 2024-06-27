@@ -20,7 +20,7 @@ GCM/FCM type의 API가 2024년 6월 20일부로 서비스가 종료 된다는 �
 제목에는 전환이라고 했지만 GCM을 FCM으로 마이그레이션 할수 있을 것 같이 되어 있지만 사실 전환은 불가능하다. 
 이유는 푸시발송을 위한 디바이스 토큰이 서로 호환 되지 않기 때문에 GCM에서 FCM으로 전환 하게 되면 디바이스 토큰을 전부 재발급해야 하는 이슈가 발생한다. 우리팀은 기존에 있던 디바이스 토큰을 전부 지우고(!) 앱에 강제 업데이트를 거는 방법으로 새로운 디바이스 토큰을 생성하도록 유도하였다.
 
-FCM 디바이스 토큰에 유효기간은 없지만 [FCM 가이드](https://firebase.google.com/docs/cloud-messaging/manage-tokens?hl=ko&_gl=1*e4ts92*_up*MQ..*_ga*MTE5MjQ3NjA5Ny4xNzE4MTc5Njgw*_ga_CW55HF8NVT*MTcxODE3OTY4MS4xLjAuMTcxODE3OTY4MS4wLjAuMA..#update-tokens-on-a-regular-basis) 에서도 토큰은 정기적으로 갱신하는 것을 추천한다. 
+FCM 디바이스 토큰에 유효기간은 없지만 [FCM 가이드](https://firebase.google.com/docs/cloud-messaging/manage-tokens?hl=ko&_gl=1*e4ts92*_up*MQ..*_ga*MTE5MjQ3NjA5Ny4xNzE4MTc5Njgw*_ga_CW55HF8NVT*MTcxODE3OTY4MS4xLjAuMTcxODE3OTY4MS4wLjAuMA..#update-tokens-on-a-regular-basis) 에서도 토큰은 정기적으로 갱신하는 것을 추천한다. (FCM에서 정확한 날짜를 지정하지는 않았지만 대략 2달정도 되면 토큰이 삭제 되는 것 같다)
 
 
 # 2. FCM 프로젝트 등록(키생성) 및 라이브러리 추가
@@ -205,7 +205,7 @@ FCM 결과 값은 몇가지 특이한 점이 있다.
   * 발송한 디바이스 토큰 정보를 포함하고 있지 않다.
   * FCM의 결과는 서버 처리 결과이다. 디바이스에 도달하였다는 것을 보장하지 않는다.
 
-따라서 FCM의 발송결과 만 완전히 믿을수는 없다. 아래 코드는 반환된 FCM 결과를 저장하는 예시이다.  
+따라서 FCM의 발송결과만 완전히 믿을수는 없다. 진짜 푸시가 수신되었는지는 앱에서 확인을 해야하고, 앱의 상황(무음모드, 비활성화 된앱, 최대 절전모드 등)에 따라 수신이 아예 안될 수 있다. 아래 코드는 반환된 FCM 결과를 저장하는 예시이다.  
 
 ~~~
 	private static void saveSendResponse(BatchResponse response) {
@@ -251,4 +251,5 @@ FCM 결과 값은 몇가지 특이한 점이 있다.
 코드 자체가 복잡한 점은 없다. FCM 결과값은 발송 토큰은 반환하지 않지만 발송한 순서데로 결과를 반환한다고 명시되어 있다. 만약 개별 토큰 별로 결과를 저장하고 싶다면 발송한 토큰 순서를 따라 가면서 매칭해주면 비슷한 결과를 나오게 할수 있다. 
 
 SendResponse의 결과값은 @nullable 이다. 따라서 결과값이 안오는 경우도 생각하고 처리하여야 한다.
-이때 재발송 을 시도할수는 있지만 FCM에서는 추천하지 않는다고 한다. (메세지 수명에 따라 FCM에 저장되어 있을수 있기 때문) 
+이때 재발송을 시도할수는 있지만 FCM에서는 추천하지 않는다고 한다. (메세지 수명에 따라 FCM에 저장되어 있을수 있기 때문) 
+FCM의 메세지는 발송시 바로 전송되지 않을수 있다. 푸시 발송시 지정한 Ttl(timeToLive) 기간중에 발송가능한 시기에 FCM에서 발송하는 방식이기 떄문에 발송이 실패 했다고 해서 재발송을 해버리면 앱에 푸시가 중복으로 발송되는 경우도 있다. 
