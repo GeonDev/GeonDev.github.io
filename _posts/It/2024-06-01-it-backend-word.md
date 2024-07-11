@@ -417,7 +417,23 @@ toc: true
     * **Mediator(중재자 패턴)** : 객체 간의 상호 작용을 캡슐화하여, 객체 간의 직접적인 통신을 방지하는 패턴
     * **Template Method(템플릿 메서드 패턴)** : 알고리즘의 구조를 정의하면서 하위 클래스에서 각 단계의 구현을 제공하는 디자인 패턴
     * **Iterator(이터레이터 패턴)** : 컬렉션 내의 요소들에 접근하는 방법을 표준화하여 컬렉션의 내부 구조에 독립적으로 접근할 수 있는 패턴
+<br>
 
+* **REST(Representational State Transfer Application Programming Interface) API**
+네트워크 기반 애플리케이션의 통신을 위해 설계된 아키텍처 스타일, REST는 웹의 기존 기술과 프로토콜을 활용하여 클라이언트와 서버 간의 상호 작용을 간편하고 효율적으로 만든다. RESTful API는 주로 HTTP 프로토콜을 사용하며, 자원을 URI로 식별하고, 자원에 대한 상태 변화를 HTTP 메서드로 처리한다.
+ HTTP 프로토콜을 기반으로 하므로, 기존 웹 기술과 쉽게 통합 할수 있고 클라이언트/ 서버를 분리 개발하여 확장성이 좋지만 HTTP 헤더와 같은 추가 메타데이터가 포함되어야 하므로, 네트워크 오버헤드가 발생할수 있고 REST는 아키텍처 스타일이지 표준이 아니므로, 구현 방식에 따라 다를 수 있다. 
+ <br>
 
+* **REST API의 주요 개념**
+  * **자원(Resource)** : 모든 자원은 고유한 URI(Uniform Resource Identifier)로 식별됨, 
+  * **HTTP 메서드** : REST API는 HTTP 메서드를 사용하여 자원에 대한 작업을 수행한다.
+    * **GET** : 서버에서 자원을 조회 (GET /users/1) 
+    * **POST** : 서버에 새로운 자원을 생성 (POST /users) 
+    * **PUT** :  서버에서 자원의 전체를 업데이트하거나 새로운 자원을 생성 (PUT /users/1)
+    * **DELETE** : 서버에서 자원을 삭제 DELETE (/users/1)
+    * **PATCH** : 자원의 부분 업데이트를 수행 (PATCH /users/1)
+  * **표현(Representation)** : 클라이언트와 서버는 자원의 표현을 주고받습니다. 표현은 일반적으로 JSON, XML, HTML 등의 형태로 전송된다.
+  * **상태 전이(State Transfer)** 클라이언트가 서버의 자원 상태를 변경하는 행위, 클라이언트와 서버는 상태를 주고받으며, 클라이언트는 서버의 자원을 조작하거나 조회하여 상태를 전이한다.
+  * **HATEOAS(Hypermedia As The Engine Of Application State)** : REST 아키텍처 스타일의 원칙 중 하나로, 클라이언트가 서버에서 받은 응답에 포함된 링크를 통해 다른 자원에 접근할 수 있게 한다.
 
   
