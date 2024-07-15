@@ -182,10 +182,8 @@ toc: true
   * **와일드카드** : 와일드카드는 ? 문자를 사용하여 불특정 타입을 나타낼 때 사용되며 주로 메서드 파라미터에 적용한다.
     * **무제한 와일드카드** : 어떤 타입이라도 허용
      (List<?> list)
-    * **상한 경계 와일드카드 (Upper Bounded Wildcard)** : 특정 타입의 하위 클래스만 허용
-     (List<? extends Number> list)
-    * **하한 경계 와일드카드 (Lower Bounded Wildcard)** : 특정 타입의 상위 클래스만 허용
-     (List<? super Integer> list)
+    * **상한 경계 와일드카드 (Upper Bounded Wildcard)** : 특정 타입의 하위 클래스만 허용 (List<? extends Number> list)
+    * **하한 경계 와일드카드 (Lower Bounded Wildcard)** : 특정 타입의 상위 클래스만 허용 (List<? super Integer> list)
 <br>
 
 * **리플렉션(Reflection)** : 런타임 시에 자바 클래스의 메타데이터(metadata)를 검사하고 조작할 수 있게 해주는 기능, 이를 통해 클래스, 인터페이스, 필드, 메서드 등의 정보를 얻고, 해당 객체의 메서드를 호출하거나 필드 값을 수정할 수 있다. 
