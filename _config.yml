@@ -18,7 +18,7 @@ navigation:
   - name: TAG
     url: /tags
 
-paginate: 8
+paginate: 20
 
 footer-links:
   weibo: #frommidworld #请输入你的微博个性域名 https://www.weibo.com/<thispart>
