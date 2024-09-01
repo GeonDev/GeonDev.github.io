@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 앱 푸시 GCM -> FCM 적용하기 (FCM ADMIN)
+title: 앱 푸시 GCM -> FCM 적용하기 (FCM ADMIN) 버전 업데이트
 date: 2024-06-12
 Author: Geon Son
 categories: Spring
@@ -15,6 +15,18 @@ toc: true
 GCM/FCM type의 API가 2024년 6월 20일부로 서비스가 종료 된다는 소식을 들었다. 
 당장 앱 푸시를 전송하기 위해서는 라이브러리를 교체 해야 한다. 심지어 기존에 사용하던 GCM 라이브러리는 Maven에서 다운로드 조차 되지 않는 상황이였다. 갑작스럽지만 일단 앱 푸시 시스템의 Sender를 변경하기로 하였다. 
 
+-----
+구글 FCM 메세지에 24년 8월 7일 에러가 발생하였다.( [에러 리포트](https://status.firebase.google.com/incidents/PVuFPhjjgCiQhjzFRjZQ))  이번 에러 이후 구글에서는 이전에 deprecate 하기로 하였던 전송 메소드의 기능을 중지시켰고 이전에 발생하지 않던 에러를 리턴으로 포함하여 전송하였다.
+
+결국 메세지 전송을 위해서는 라이브러리 버전 업데이트가 강제 되었는데 이때 전송 메소드가 sendMulticast 에서 sendEachForMulticast 로 변경되었다. 
+
+이 메서드는 기존 메소드보다 성능이 좋지 않고 공식문서에서 1회 **벌크 전송시 전달 할수 있는 메서지 건은 500건이라고 하지만 실제 발송 테스트를 하게 되면 500건 발송시 발송 결과 리턴이 되지 않는 문제**가 발생하였다.
+
+내가 관리하는 운영서비스도 동일한 에러를 경험하였고 라이브러리 버전을 9.3.0으로 올린 후 운영 서버스에서 메세지 **발송 횟수를 500건에서 30건으로 줄어 발송**하자 정상적으로 푸시가 발송되었다.
+비슷한 문제로 시스템 에러를 처리해아 하는 사람들을 위해 기록을 남겨둔다.
+
+
+-----
 
 # 1. GCM -> FCM
 제목에는 전환이라고 했지만 GCM을 FCM으로 마이그레이션 할수 있을 것 같이 되어 있지만 사실 전환은 불가능하다. 
@@ -48,7 +60,7 @@ FCM ADMIN의 의존성은 하나만 추가 하면 된다. 당연히 maven으로 
     <dependency>
         <groupId>com.google.firebase</groupId>
         <artifactId>firebase-admin</artifactId>
-        <version>8.1.0</version>
+        <version>9.3.0</version>
     </dependency>
 
    //firebase admin
@@ -161,7 +173,7 @@ FirebaseApp.initializeApp()을 활용하여 초기화된 데이터를 반환 받
 						.build())
 				.build();
 
-				return FirebaseMessaging.getInstance(newsFirebaseApp).sendMulticast(message);		
+				return FirebaseMessaging.getInstance(newsFirebaseApp).sendEachForMulticast(message);		
 	}
 ~~~
 
@@ -193,9 +205,9 @@ public class Notification {
 Notification 없이 메세지를 전송할수도 있다. 다만 데이터를 파싱하는 과정에서 Notification이 없는 경우 일부 앱에서 FCM 푸시를 정상적으로 읽어들이지 못하는 경우가 발생 할수도 있어 포멧을 맞추어 주는 것을 추천한다.
 
 공식 문서를 찾아 보면 상세하게 나와 있지만 각각의 디바이스 타입별로 설정을 추가할수 있다. 
-나 같은 경우는 안드로이드만을 대상으로 하기 때문에 안드로이드 설정만을 추가하였다.  setAndroidConfig 설정을 통하여 각 다바이스에 설정을 넣을수 있는데 이 부분의 설정은 테스트를 해보면서 적절값을 찾아야 한다. 
+나 같은 경우는 안드로이드만을 대상으로 하기 때문에 안드로이드 설정만을 추가하였다. setAndroidConfig 설정을 통하여 각 다바이스에 설정을 넣을수 있는데 이 부분의 설정은 테스트를 해보면서 적절값을 찾아야 한다. 
 
-발송할 푸시 설정이 끝나면 FirebaseMessaging.getInstance(newsFirebaseApp).sendMulticast(message)에 설정한 메세지를 넣으면 Firebase에서 메세지를 발송하고 결과를 반환 해준다.
+발송할 푸시 설정이 끝나면 FirebaseMessaging.getInstance(newsFirebaseApp).sendEachForMulticast(message)에 설정한 메세지를 넣으면 Firebase에서 메세지를 발송하고 결과를 반환 해준다.
 
 
 
