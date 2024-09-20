@@ -26,6 +26,9 @@ toc: true
 결국에 조금더 세밀하게 트랜젝션을 관리하기 위하여 TransactionManager 인터페이스를 사용하기로 하였다.
 
 # 1. PlatformTransactionManager 
+
+![](/images/spring/172029548-4c14-b5e8-2241d4b1fe34.png){: .align-center}
+
 스프링은 JDBC, JPA 등 다양한 방식의 DB 접근 방식이 존재 하는데 사용하는 방식마다 transaction을 구성하는 방식이 조금씩 다르게 되어 있다. 이러한 문제를 객체지향적(?)인 방법으로 해결하는 것이 TransactionManager 이다. 
 
 개발자가 각각의 방식으로 Transaction을 구현하는 것이 아니라 각각의 기술에 맞는 TransactionManager가 이미 있고 이를 주입 받아 사용하면 된다. 다만 모든 기술에 따라 TransactionManager가 구현되어 있다고 해도 실제 사용할때는 스펙이 상이 할수 있기 때문에 
@@ -122,3 +125,5 @@ TransactionTemplate에 Bean으로 설정한 PlatformTransactionManager를 인자
 나 같은 경우는 기존 소스들이 배치 void 형식이였기 떄문에 TransactionCallbackWithoutResult을 사용하였다. 
 
 
+# 3. 결론 
+처음 설계 단계에서 선언적 트랜젝션이 잘 동작하도록 설계를 했다면 이런 설정이 필요 없을수도 있다. 다만 트랜젝션의 단계마다 특정한 로직을 수행하거나 기존 로직에서 일부만 트랜젝션을 적용하는 등 여러 가지 상황에서 프로그래밍적 트랜젝션은 유용하게 사용 할수 있을 것 같다. 
