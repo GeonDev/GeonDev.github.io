@@ -1,13 +1,15 @@
 ---
 layout: post
 title: 로컬 개발 환경에 HTTPS 세팅 방법 (apache)
-date: 2024-07-32
+date: 2024-07-25
 Author: Geon Son
 categories: IT
 tags: [IT]
 comments: true
 toc: true
 ---
+
+## <span style="background-color:#fff5b1; color:red ">이 문서는 정상 작동되지 않을 수 있습니다. </span>
 
 
 >[인증서 구조](https://brunch.co.kr/@sangjinkang/47)
