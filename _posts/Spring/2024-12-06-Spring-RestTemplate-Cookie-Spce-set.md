@@ -1,6 +1,6 @@
 ---
 layout: post
-title: RestTemplate 설정으로 인한 쿠키 경고 메세지 수정 (ResponseProcessCookies  : Invalid cookie)
+title: RestTemplate 설정으로 인한 쿠키 경고 메세지 수정 (ResponseProcessCookies &#58; Invalid cookie)
 date: 2024-12-06
 Author: Geon Son
 categories: Spring
