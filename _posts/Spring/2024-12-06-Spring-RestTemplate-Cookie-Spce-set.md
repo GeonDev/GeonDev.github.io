@@ -116,4 +116,127 @@ STANDARD 규격의 엄격한 버전입니다. 이 규격은 쿠키 처리에 대
 2024-12-06 10:20:36.504 DEBUG 618058 --- [atalina-exec-56] o.s.web.client.RestTemplate              : Setting request Accept header to [text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, text/plain, application/xml, text/xml, application/json, application/*+xml, application/*+json, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*, */*]
 ~~~
 
-양으로 보면 더 많아진 로그가 출력되지만 운영 에서는 DEBUG 레벨의 로그를 사용하지 않기 때문에 적절히 처리되었다고 판단 하였다.
+이 이슈는 쿠키 스팩과는 무관한 이슈 이고 RestTemplate pool을 사용하는 부분에서 발생한 이슈 였다. 
+
+# 2. 오류 발생 상황
+
+소스코드를 변경한 후 RestTemplete을 호출하는 부분에서 서버 기동후에는 정상적으로 동작하다가 일정 시간이 지나면 API를 호출하지 못하는 문제가 발생하였다.
+로컬 테스트를 할때나 개발기에는 발견되지 않았었는데 발견되지 않은 이유는  **오류가 생길정도로 충분한 restTemplete 사용**이 이루어지지 않아서 였다.
+
+
+## 2.1 Resttemplete 사용 위치
+
+~~~
+    public JSONObject getJsonData(String url, String key) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        headers.setAccept(Arrays.asList(new MediaType[]{MediaType.APPLICATION_JSON}));
+
+        //뉴스 API용 restTemplate 별도 세팅
+        RestTemplate rest = new RestTemplateBuilder()
+                .setConnectTimeout(3000)
+                .setReadTimeout(2000)
+                .build();
+
+        rest.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+        ResponseEntity<String> result = null;
+        try {
+            result = rest.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+
+            if (!result.getStatusCode().is2xxSuccessful()) {
+                LOGGER.error("GET 요청 실패. StatusCode:{}, Body:{}", result.getStatusCodeValue(), result.getBody());
+                return null;
+            }
+        }catch (Exception exception){
+            exception.printStackTrace();
+        }
+
+        return null;
+    }
+~~~
+
+기존에 RestTemplate을 사용할때는 대략 이런 식으로 호출 할때마다 RestTemplateBuilder()를 사용하여 호출 하였다. 
+이걸 쿠키 스팩을 적용하면서 RestTemplate pool을 사용하는 형태로 변경 하였다. 
+
+~~~
+@Component
+public class RestApiProcessor {
+
+    private final RestTemplate restNewsTemplate;
+
+
+    public RestApiProcessor() {
+        restNewsTemplate = new RestTemplate(clientHttpNewsRequestFactory());
+    }
+
+    private HttpComponentsClientHttpRequestFactory clientHttpNewsRequestFactory() {
+        return new HttpComponentsClientHttpRequestFactory(httpNewsApiClient());
+    }
+
+    private CloseableHttpClient httpNewsApiClient() {
+        return HttpClientBuilder.create()
+                .setDefaultRequestConfig(requestNewsConfig())
+                .setMaxConnTotal(MAX_CONNECTIONS)
+                .setMaxConnPerRoute(MAX_CONNECTIONS_PER_ROUTE)
+                .build();
+    }
+
+
+    private RequestConfig requestNewsConfig() {
+        return RequestConfig.custom()
+                .setConnectTimeout(CONNECTION_TIMEOUT_NEWS)
+                .setSocketTimeout(SOCKET_TIMEOUT)
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
+    }
+
+    public JSONObject getJsonData(String url, String key) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        headers.setAccept(Arrays.asList(new MediaType[]{MediaType.APPLICATION_JSON}));
+
+        // 클래스 필드로 선언한 restNewsTemplate 으로 변경   
+        restNewsTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+        ResponseEntity<String> result = null;
+        try {
+            result = restNewsTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+
+            if (!result.getStatusCode().is2xxSuccessful()) {
+                LOGGER.error("GET 요청 실패. StatusCode:{}, Body:{}", result.getStatusCodeValue(), result.getBody());
+                return null;
+            }
+        }catch (Exception exception){
+            exception.printStackTrace();
+        }
+
+        return null;
+    }
+}
+~~~
+ 코드를 보면  **restNewsTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));** 부분이 있는데 여기서 문제가 발생하였다.
+getJsonData() 를 호출 할때마다 스프링 빈이 된 restNewsTemplate 객체에 동일한 설정이 쌓이는 문제가 발생하였고 일정 수가 넘어가게되면 길이를 초과하여 통신 불능 상태가 되었다.
+
+GPT에게 물어보면 이런 답변이 온다.
+
+---
+RestTemplate에서 StringHttpMessageConverter 추가 방식 수정
+현재 코드에서 StringHttpMessageConverter를 직접 추가하는 방식은 RestTemplate을 초기화할 때 설정하는 것이 더 바람직합니다. 이렇게 함으로써 코드의 일관성을 높일 수 있습니다.
+
+**해결책: RestTemplate 초기화 시 MessageConverters 설정을 변경하는 방식으로 개선합니다.**
+
+--- 
+
+~~~
+public RestApiProcessor() {
+    restNewsTemplate = new RestTemplate(clientHttpNewsRequestFactory());
+
+    //초기화시 1번만 실행되도록 수정
+    restNewsTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+}
+~~~
+
+생성자에서 MessageConverters를 추가하여 이슈를 수정하였고 더이상 로그가 발생하지 않게 되었다.
