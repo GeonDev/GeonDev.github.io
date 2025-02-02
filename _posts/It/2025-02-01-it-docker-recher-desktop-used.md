@@ -41,6 +41,8 @@ sudo chown $USER /usr/local/bin
 > 이슈 https://github.com/rancher-sandbox/rancher-desktop/issues?q=M3
 
 m1 초기에도 호환성 이슈가 있었는데 Rancher Desktop에서 도커의 실행 기반이 되는 QEMU가 애플 실리콘과 여러 이슈가 있는 상태이다. 다행히 VZ로 변경하면 사용이 가능하다.
+**참고로 해당 이슈는 M3에서만 발생하고 오히려 M1에 적용을 하면 에러가 발생한다.**  
+
 GUI에서 변경해도 되지만 간혹 동작하지 않는 경우가 있어 명령어 수정을 권장한다.
 
 * 설정 초기화 
@@ -90,12 +92,28 @@ service docker start
 
 colima도 docker desktop의 유료화를 대체 하기 위한 소프트워어 이기 때문에 도커만 실행 시키려고 했다면 오히려 Rancher Desktop은 필요 없을 수 있다. 다만 GUI를 사용하기 위한 더 좋은 대안이 없기 때문에 중복이지만 추가로 colima를 설치하였다.  
 
+### 3.1.1 colima 설치
+
 ~~~
 brew install colima
 ~~~
 
-colima 설치후 데몬으로 실행 옵션을 추가하면 이후 재부팅시 자동으로 백그라운드에서 도커 데몬이 실행된다
+colima 는 Homebrew로 간단하게 설치 가능하다. 실행 및 상태 확인도 간단한 명령어로 실행 할수 있다.
 
 ~~~
-colima start --daemon
+#colima 구동
+colima start
+
+#colima 구동시 CPU , 메모리, 디스크 용량 지정 (없어도 됨)
+colima start --cpu 2 --memory 4 --disk 10
+
+#colima 구동시 arm 기반 실행 옵션 추가
+colima start --arch aarch64 --vm-type=vz --vz-rosetta
+
+
+#colima 상태 확인
+colima status
+
+#docker가 colima로 구동되고 있는지 확인
+docker context ls
 ~~~
