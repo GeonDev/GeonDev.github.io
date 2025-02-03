@@ -37,11 +37,30 @@ sudo mkdir -p /usr/local/bin
 sudo chown $USER /usr/local/bin
 ~~~
 
-## 2.1. Apple M3 호환성 이슈(1.17.1 버전)
+
+
+## 2.1. Rancher Desktop 설정
+이 설정은 일단 도커를 구동하는데 초점을 두고 있기 때문에 쿠버네티스는 설정하지 않았고 PC를 재부팅 할 경우 자동으로 도커를 관리하는데 초점이 맞추어저 있다.
+
+![](/images/it/asdfwfw-1.png){: .align-center}
+어드민 접근 허용
+
+![](/images/it/asdfwfw-2.png){: .align-center}
+재시작시 자동 실행 (백그라운드)
+
+![](/images/it/asdfwfw-3.png){: .align-center}
+컨테이너 엔진은 dockerd로 사용
+
+![](/images/it/asdfwfw-4.png){: .align-center}
+쿠버네티스는 활성화 안함
+
+
+
+## 2.2. Apple M3 호환성 이슈(1.17.1 버전)
 > 이슈 https://github.com/rancher-sandbox/rancher-desktop/issues?q=M3
 
 m1 초기에도 호환성 이슈가 있었는데 Rancher Desktop에서 도커의 실행 기반이 되는 QEMU가 애플 실리콘과 여러 이슈가 있는 상태이다. 다행히 VZ로 변경하면 사용이 가능하다.
-**참고로 해당 이슈는 M3에서만 발생하고 오히려 M1에 적용을 하면 에러가 발생한다.**  
+**참고로 해당 이슈는 M3에서만 발생하고 M1은 해결이 되엇다고 하는데 정확하지 않다.**  
 
 GUI에서 변경해도 되지만 간혹 동작하지 않는 경우가 있어 명령어 수정을 권장한다.
 
@@ -72,9 +91,14 @@ docker run hello-world
 
 ![](/images/it/sag893hqqwfqe34h3-1.png){: .align-center}
 
+
 도커가 정상적으로 실행되면 Rancher Desktop에서 도커 컨테이너가 실행되는 것을 확인할 수 있다. 
+한번 컨테이너가 생성되었다면 컨테이너는 삭제를 할때 까지 남아있고 추후에 시작 종료를 GUI를 통하여 다시 실행 시키거나 종료 할수 있다.
+
+다만 Rancher Desktop에서는 컨테이너의 최초 실행 기능은 없고 터미널에서 최초 구동은 시켜줘야 하는 것으로 보인다.
 
 ![](/images/it/asdfawf89341-1.png){: .align-center}
+
 
 ## 3.1 도커 데몬 이슈
 터미널에 'docker run hello-world'를 압력했지만  도커가 실행되지 않을수 있다. 아래 메세지는 도커 서비스가 미실행 일 경우 도커 데몬이 작동되고 있지 않다는 메시지가 출력된다. 
@@ -88,9 +112,14 @@ systemctl start docker
 service docker start
 ~~~
 
-위에 명령어는 리눅스 환경에서 도커 데몬을 실행시키는 명령어로 맥OS에서는 해당 커멘드가 없다는 메세지를 확인할수 있다. 위에 명령어 외에 dockerd라고 하는 도커를 포그라운드(foreground) 상태로 실행시키는 명령어가 있지만 이 명령어를 사용하는 것 또한 docker Desktop 설치가 필요하다. 그래서 도커를 실행시키는 colima SDK를 설치하여 도커를 실행시켰다. 
+위에 명령어는 리눅스 환경에서 도커 데몬을 실행시키는 명령어로 맥OS에서는 해당 커멘드가 없다는 메세지를 확인할수 있다. 위에 명령어 외에 dockerd 라고 하는 도커를 포그라운드(foreground) 상태로 실행시키는 명령어가 있지만 이 명령어를 사용하는 것 또한 docker Desktop 설치가 필요하다. 
 
-colima도 docker desktop의 유료화를 대체 하기 위한 소프트워어 이기 때문에 도커만 실행 시키려고 했다면 오히려 Rancher Desktop은 필요 없을 수 있다. 다만 GUI를 사용하기 위한 더 좋은 대안이 없기 때문에 중복이지만 추가로 colima를 설치하였다.  
+그래서 도커 데몬을 실행시키기 위하여 colima SDK를 설치하고 도커를 실행시켰다. 
+
+colima도 docker desktop의 유료화를 대체 하기 위한 소프트워어 이기 때문에 도커만 실행 시키려고 했다면 오히려 Rancher Desktop은 필요 없을 수 있다. 
+
+다만 GUI를 사용하기 위한 더 좋은 대안이 없기 때문에 중복이지만 추가로 colima를 설치하였다.  
+(rancher-desktop 만 사용한다면 추후 colima는 삭제해도 될것으로 보인다.)
 
 ### 3.1.1 colima 설치
 
@@ -114,6 +143,20 @@ colima start --arch aarch64 --vm-type=vz --vz-rosetta
 #colima 상태 확인
 colima status
 
-#docker가 colima로 구동되고 있는지 확인
+#docker가 colima로 구동되고 있는지 확인 *이 찍힌것이 현재 구동
 docker context ls
+jnote@Jnote-MacBookPro-3 ~ % docker context ls
+NAME                DESCRIPTION                               DOCKER ENDPOINT                       ERROR
+default             Current DOCKER_HOST based configuration   unix:///var/run/docker.sock
+colima *   colima              unix:///Users/jnote/.rd/docker.sock
+
+~~~
+
+재부팅후 도커 동작을 확인했을때 rancher-desktop으로 구동 된다면 성공이다.
+
+~~~
+jnote@Jnote-MacBookPro-3 ~ % docker context ls
+NAME                DESCRIPTION                               DOCKER ENDPOINT                       ERROR
+default             Current DOCKER_HOST based configuration   unix:///var/run/docker.sock
+rancher-desktop *   Rancher Desktop moby context              unix:///Users/jnote/.rd/docker.sock
 ~~~
