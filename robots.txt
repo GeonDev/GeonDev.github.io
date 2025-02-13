@@ -3,5 +3,9 @@ Disallow: /assets/*
 Disallow: /*.css$
 Disallow: /*.jpg$
 Disallow: /*.png$
+Disallow: /tags
+Disallow: /archive
+Disallow: /404
+Disallow: /page*
 
 Sitemap: https://geondev.github.io/sitemap.xml
