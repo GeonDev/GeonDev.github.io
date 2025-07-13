@@ -66,7 +66,6 @@ JWT 토큰을 생성하기 위해선 우선 아래 dependency를 추가 하여�
 dependency를 추가 하였으면 JWT 토큰을 생성하는 함수를 만들어 준다.
 
 ~~~
-
     /**
     * JWT 토큰을 생성하는 메소드
     * @param keyId 키 정보
