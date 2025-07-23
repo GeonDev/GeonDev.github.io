@@ -20,7 +20,7 @@ toc: true
 
 # 1. 프로젝트 구성
 
-![](/assets/images/spring/asdfjqwefqw-wefqwef-gsdfasdfasdf.png){: .align-center}
+![](/images/spring/asdfjqwefqw-wefqwef-gsdfasdfasdf.png){: .align-center}
 
 인스턴스 입장으로만 보면 이 프로젝트는 4개의 VM에 각각 3개의 인스턴스를 상시 실행하는 구조로 되어 있다.   
 다행히 VM은 모두 같은 IDC에 있어서 사설 IP로 통신이 가능한 형태 이다.  
