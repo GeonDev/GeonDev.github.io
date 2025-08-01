@@ -8,7 +8,9 @@ tags: [IT]
 comments: true
 toc: true
 ---
->[Microsoft Cloud & AI 부트캠프](https://www.microsoft.com/ko-kr/cloudandaibootcamp/#msdynttrid=CUsVx4Dt4YF31VnX8uALGXqdzx3fKybnajeHF1wVDjk)
+>[Microsoft Cloud & AI 부트캠프](https://www.microsoft.com/ko-kr/cloudandaibootcamp/#msdynttrid=CUsVx4Dt4YF31VnX8uALGXqdzx3fKybnajeHF1wVDjk)  
+>[전체 영상](https://info.microsoft.com/AA-InnAI-VDEO-FY26-07Jul-24-AZBCTalksforFutureDevelopersTheskillsandmindsetthatnextgenerationAIdevelopersneed_SREVM72517_LP02-Thank-You---Standard-Hero.html#msdynttrid=fIeT7ilokIxfRDMXdvuzJBRnwF1juEPyy9BZh8VNu3w)
+
 
 # Microsoft 클라우드 부트캠프 요약본
 
