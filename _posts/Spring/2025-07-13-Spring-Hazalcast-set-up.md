@@ -230,6 +230,7 @@ public class HazelcastAdminController {
         return ResponseEntity.ok(entries);
     }
 
+    //비어 있는 캐시맵을 초기화 -> hazelcast는 맵을 조회만 해도 새로운 캐시맵을 생성함
     @GetMapping("/cache/empty/delete")
     public ResponseEntity<Set<String>> deleteEmptyCaches() {
         // 삭제한 Map 이름 목록 저장용
@@ -250,24 +251,31 @@ public class HazelcastAdminController {
     @GetMapping("/cache/{cacheMap}/delete")
     public ResponseEntity<String> clearCache(HttpServletRequest request, @PathVariable String cacheMap) {
         if(!HazelcastConstants.ACCESS_IP.contains(RequestHelper.getRequestRemoteIp(request))){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return null;
+        }
+        IMap<Object, Object> map = hazelcastInstance.getMap(cacheMap);
+        int size = map.size();
+        map.clear();
+
+        //남아 있는 데이터가 있을 경우 map 강제 제거
+        if(map.size() > 0){
+            map.destroy();
         }
 
-        try {
-            //Spring cache 추상화 데이터 삭제
-            Cache cache = cacheManager.getCache(cacheMap);
-            if (cache != null){
-                cache.clear();
-            }
+        //캐시 매니저의 전체 값 삭제 (@CacheEvict와 동일 기능)
+        cacheManager.getCache(cacheMap).clear();
 
-            //Hazelcast 인스턴스 캐시 초기화
-            IMap<Object, Object> map = hazelcastInstance.getMap(cacheMap);
-            map.clear();
+        return ResponseEntity.ok(cacheMap + "( size : "+ size +" ) cleared successfully.");
+    }
 
-            return ResponseEntity.ok("Cache " + cacheMap + " cleared successfully.");
-        }catch (Exception e){
-            return ResponseEntity.ok("Cache " + cacheMap + " cleared fail.");
+    //특정 캐시의 key, value 삭제
+    @GetMapping("/cache/{cacheName}/{key}/evict")
+    public ResponseEntity<String> evictCache(HttpServletRequest request, @PathVariable String cacheName, @PathVariable String key) {
+        if(!HazelcastConstants.ACCESS_IP.contains(RequestHelper.getRequestRemoteIp(request))){
+            return null;
         }
+        cacheManager.getCache(cacheName).evict(key);
+        return ResponseEntity.ok("Cache " + cacheName + "-" + key + " evict successfully.");
     }
 }
 ~~~
