@@ -305,3 +305,169 @@ userId가 누락된 요청을 보냈을 때, 400 Bad Request와 함께 올바른
 ~~~
 
 Rest Assured를 사용하면 마치 Postman을 코드로 자동화하는 것처럼, 실제 네트워크 통신을 포함한 통합 테스트를 수행할 수 있다.
+
+## 단위 테스트
+단위 테스트(Unit Test)란, 애플리케이션을 구성하는 가장 작은 단위(주로 메서드 또는 클래스)가 의도한 대로 정확히 동작하는지를 독립적으로 검증하는 테스트
+### 핵심 원칙: 고립(Isolation)
+
+- 단위 테스트는 다른 컴포넌트나 외부 시스템(데이터베이스, 네트워크 등)에 의존하지 않고 오직 테스트 대상 코드만 고립시켜 검증
+- 외부 의존성은 '가짜 객체(Mock Object)'를 사용하여 대체한다.
+  UserRepository에 의존하는 UserService를 테스트할 때, 실제 DB에 연결하는 대신 특정 값을 반환하도록 프로그래밍된  가짜 UserRepository를 사용한다.
+
+## 단위 테스트의 이점
+### 버그 조기 발견
+개발 과정에서 버그를 가장 빠르게 발견할 수 있다. 작은 단위로 검증하기 때문에 문제의 원인을 즉시 파악하고 수정할 수 있어 디버깅 시간이 줄어든다.
+### 자신감 있는 리팩토링
+잘 작성된 단위 테스트 스위트는 코드의 동작을 보증하는 '안전망' 역할을 합니다. 내부 구조를 개선하는 리팩토링을 하더라도, 테스트가 통과한다면 기존 기능이 깨지지 않았다는 자신감을 가질 수 있습니다.
+(테스트 스위트 : 여러 개의 테스트 케이스들을 논리적으로 그룹화한 집합)
+### 살아있는 문서 역할
+test_whenUserIsVip_thenApply10PercentDiscount() 와 같은 테스트 케이스는 그 자체로 "VIP 유저에게는 10% 할인이 적용되어야 한다"는 비즈니스 요구사항을 명확하게 보여주는 살아있는 문서가 된다.
+
+## JUnit 단위 테스트
+누가 읽어도 테스트의 의도를 명확히 파악할 수 있고, 유지보수하기 좋은 테스트를 작성하는 것은 매우 중요하다.
+AAA와 GWT는 테스트 코드에 '구조'를 부여하여 이러한 목표를 달성하게 도와주는 검증된 패턴이다.
+
+### JUnit 테스트의 기본 구조
+#### 테스트 클래스와 @Test 어노테이션
+JUnit으로 테스트를 작성하려면, 먼저 테스트 코드를 담을 클래스를 생성한다. 그리고 JUnit에게 어떤 메서드를 테스트로 실행해야 할지 알려주기 위해, 각 테스트 메서드 위에 **`@Test`** 어노테이션을 붙여야 한다.
+
+- **`@Test`**: 이 어노테이션이 붙은 메서드는 JUnit이 실행해야 할 독립적인 테스트 케이스임을 나타냄.
+
+#### 테스트 메서드 네이밍 규칙
+테스트 메서드의 이름은 그 자체로 하나의 요구사항 명세서 역할을 해야 한다. '어떤 조건에서, 무엇을 테스트하며, 어떤 결과를 기대하는지'가 이름에 명확히 드러나는 것이 좋다.
+- **좋은 네이밍 컨벤션 예시**:
+    - `메서드명_should_기대행위_when_조건`
+        - `calculateTotalPrice_should_returnSum_when_givenTwoItems`
+    - `given_전제조건_when_행위_then_기대결과` (GWT 패턴과 일치)
+        - `givenValidPrice_whenCalculateDiscount_thenCorrectValueIsReturned` 
+
+
+## Arrange-Act-Assert (AAA) 패턴: "준비, 실행, 검증"
+테스트를 준비(Arrange), 실행(Act), 검증(Assert)이라는 3개의 논리적인 단계로 명확하게 구분하여 작성하는 방식으로
+절차적이고 직관적이어서 개발자들이 선호 하는 방식이다.
+- **`Arrange` (준비)**: 테스트에 필요한 모든 객체와 데이터를 준비하고 설정하는 단계로 테스트 대상 객체, Mock 객체, 입력값 등을 모두 만든다
+- **`Act` (실행)**: 준비된 데이터를 가지고, 테스트하고자 하는 **핵심 메서드를 단 한 번 호출**하는 단계
+- **`Assert` (검증)**: `Act` 단계의 실행 결과가 우리가 **기대하는 값과 일치하는지** 확인하는 단계로 `assertEquals`, `assertTrue` 등의 검증 메서드를 사용한다.
+
+### 코드 예제: 할인 금액 계산 테스트
+~~~
+  @Test
+  @DisplayName("재고가 충분한 상품을 구매하면 재고가 감소하고 구매가 성공한다")
+  void process_should_decreaseStockAndSucceed_when_productInStock_aaa() {
+    // Arrange
+    PurchaseProductRequest purchaseItem = new PurchaseProductRequest();
+    ReflectionTestUtils.setField(purchaseItem, "productId", 1L);
+    ReflectionTestUtils.setField(purchaseItem, "quantity", 2);
+
+    List<PurchaseProductRequest> purchaseItems = List.of(purchaseItem);
+
+    when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
+    when(purchaseRepository.save(any(Purchase.class))).thenReturn(testPurchase);
+    when(purchaseProductRepository.saveAll(anyList())).thenReturn(Collections.emptyList());
+
+    // Act
+    Purchase result = purchaseProcessService.process(testUser, purchaseItems);
+
+    // Assert
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalPrice()).isEqualTo(new BigDecimal("2000000")); // 1,000,000 * 2
+    assertThat(testProduct.getStock()).isEqualTo(8); // 10 - 2
+
+    verify(productRepository).findById(1L);
+    verify(purchaseRepository).save(any(Purchase.class));
+    verify(purchaseProductRepository).saveAll(anyList());
+  }
+~~~
+
+## Given-When-Then (GWT) 패턴: "스토리텔링 테스트"
+GWT 패턴은 행위 주도 개발(BDD)에서 유래했으며, 
+테스트 코드를 마치 하나의 '시나리오'나 '이야기'처럼 자연스럽게 읽히도록 작성하는 방식
+
+- **`Given` (주어진 상황)**: 테스트가 진행될 전제 조건과 환경을 설정한다. "이러한 상황이 주어졌을 때"를 의미하며, `Arrange` 단계와 역할이 같다.
+- **`When` (어떤 행동을 하면)**: 테스트할 실제 동작을 실행한다. "사용자가 어떤 행동을 하면"을 의미하며, `Act` 단계와 역할이 같다.
+- **`Then` (이런 결과가 나와야 한다)**: 행동의 결과를 검증한다. "이런 결과가 보장되어야 한다"를 의미하며, `Assert` 단계와 역할이 같다.
+
+### 코드 예제: 구매 생성 시 재고 감소 테스트
+~~~
+  @Test
+  @DisplayName("재고가 충분한 상품을 구매하면 재고가 감소하고 구매가 성공한다")
+  void process_should_decreaseStockAndSucceed_when_productInStock_gwt() {
+    // Given
+    PurchaseProductRequest purchaseItem = new PurchaseProductRequest();
+    ReflectionTestUtils.setField(purchaseItem, "productId", 1L);
+    ReflectionTestUtils.setField(purchaseItem, "quantity", 2);
+
+    List<PurchaseProductRequest> purchaseItems = List.of(purchaseItem);
+
+    when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
+    when(purchaseRepository.save(any(Purchase.class))).thenReturn(testPurchase);
+    when(purchaseProductRepository.saveAll(anyList())).thenReturn(Collections.emptyList());
+
+    // When
+    Purchase result = purchaseProcessService.process(testUser, purchaseItems);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalPrice()).isEqualTo(new BigDecimal("2000000")); // 1,000,000 * 2
+    assertThat(testProduct.getStock()).isEqualTo(8); // 10 - 2
+
+    verify(productRepository).findById(1L);
+    verify(purchaseRepository).save(any(Purchase.class));
+    verify(purchaseProductRepository).saveAll(anyList());
+  }
+~~~
+
+## Mockito로 단위 테스트하기
+단위 테스트의 핵심은 **'고립(Isolation)'** 테스트 대상 코드를 다른 의존성으로부터 완벽하게 분리하여
+오직 해당 코드의 로직만을 검증해야 하지만 대부분의 서비스 객체는 다른 Repository나 Service에 의존하고 있다.
+이때 Mockito는 '가짜 객체(Mock Object)'를 만들어 실제 의존성을 대체함으로써 완벽한 고립 테스트를 가능하게 해준다.
+
+### 의존성 추가
+Spring Boot의 spring-boot-starter-test 의존성은 기본적으로 mockito-core 라이브러리를 포함하고 있다.
+여기에 JUnit 5와의 완전한 통합을 위해 mockito-junit-jupiter를 추가해주는 것이 좋다.
+~~~
+dependencies {
+    // spring-boot-starter-test가 mockito-core를 포함
+    testImplementation 'org.springframework.boot:spring-boot-starter-test' 
+
+    // JUnit 5와 Mockito를 통합해주는 라이브러리 (권장)
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.12.0' // 최신 버전 사용 권장
+}
+~~~
+
+### 테스트 클래스 기본 설정: 어노테이션 활용
+~~~
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)  // @SpringBootTest 대신 사용
+class PurchaseProcessServiceTest {
+
+  @InjectMocks
+  private PurchaseProcessService purchaseProcessService;
+
+  @Mock
+  private PurchaseRepository purchaseRepository;
+
+  @Mock
+  private ProductRepository productRepository;
+
+  @Mock
+  private PurchaseProductRepository purchaseProductRepository;
+
+    // ... 테스트 메서드 작성
+}
+~~~
+
+- **`@ExtendWith(MockitoExtension.class)`**: JUnit 5에게 Mockito 관련 기능을 사용하겠다고 알려준다.
+- **`@Mock`**: 해당 필드를 가짜(Mock) 객체로 만든다.
+- **`@InjectMocks`**: `@Mock` 어노테이션이 붙은 객체들을 감지하여, 테스트 대상 객체(`refundService`)에 자동으로 주입해준다.
+
+## Mockito 기본 사용법: given-when-then과 함께하기
+
+1. **`given` (준비)**: 테스트에 필요한 Mock 객체들을 생성하고, `when(...).thenReturn(...)`을 통해 이들의 행동(Stub)을 미리 정의한다
+2. **`when` (실행)**: 테스트할 실제 메서드를 호출한다.
+3. **`then` (검증)**: 결과를 단정문(`Assertions`)으로 검증하거나, Mock 객체의 특정 메서드가 **예상대로 호출되었는지 `verify()`를 통해 확인**한다.
+
