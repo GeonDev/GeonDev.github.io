@@ -465,9 +465,176 @@ class PurchaseProcessServiceTest {
 - **`@Mock`**: 해당 필드를 가짜(Mock) 객체로 만든다.
 - **`@InjectMocks`**: `@Mock` 어노테이션이 붙은 객체들을 감지하여, 테스트 대상 객체(`refundService`)에 자동으로 주입해준다.
 
-## Mockito 기본 사용법: given-when-then과 함께하기
-
+## Mockito 기본 사용법: given-when-then
 1. **`given` (준비)**: 테스트에 필요한 Mock 객체들을 생성하고, `when(...).thenReturn(...)`을 통해 이들의 행동(Stub)을 미리 정의한다
 2. **`when` (실행)**: 테스트할 실제 메서드를 호출한다.
 3. **`then` (검증)**: 결과를 단정문(`Assertions`)으로 검증하거나, Mock 객체의 특정 메서드가 **예상대로 호출되었는지 `verify()`를 통해 확인**한다.
 
+### PurchaseProcessService 단위 테스트 예시
+~~~
+@Service
+@RequiredArgsConstructor
+public class PurchaseProcessService {
+
+  private final PurchaseRepository purchaseRepository;
+  private final ProductRepository productRepository;
+  private final PurchaseProductRepository purchaseProductRepository;
+  private final UserRepository userRepository;
+
+  @Transactional
+  public Purchase process(User user, List<PurchaseProductRequest> purchaseItems) {
+    // 이제 purchase 메서드는 "무엇을 하는지" 명확히 보여준다.
+    Purchase purchase = createAndSavePurchase(user);
+    List<PurchaseProduct> purchaseProducts = createAndProcessPurchaseProducts(purchaseItems,
+        purchase);
+    BigDecimal totalPrice = calculateTotalPrice(purchaseProducts);
+
+    purchase.setTotalPrice(totalPrice);
+    return purchase;
+  }
+  
+//...  
+
+}
+~~~
+- 테스트 케이스 초기 설정
+~~~
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.sparta.bootcamp.java_2_example.common.enums.PurchaseStatus;
+import com.sparta.bootcamp.java_2_example.common.exception.ServiceException;
+import com.sparta.bootcamp.java_2_example.domain.product.entity.Product;
+import com.sparta.bootcamp.java_2_example.domain.product.repository.ProductRepository;
+import com.sparta.bootcamp.java_2_example.domain.purchase.dto.PurchaseProductRequest;
+import com.sparta.bootcamp.java_2_example.domain.purchase.entity.Purchase;
+import com.sparta.bootcamp.java_2_example.domain.purchase.repository.PurchaseProductRepository;
+import com.sparta.bootcamp.java_2_example.domain.purchase.repository.PurchaseRepository;
+import com.sparta.bootcamp.java_2_example.domain.user.entity.User;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+@ExtendWith(MockitoExtension.class)  // @SpringBootTest 대신 사용
+class PurchaseProcessServiceTest {
+
+  @InjectMocks
+  private PurchaseProcessService purchaseProcessService;
+
+  @Mock
+  private PurchaseRepository purchaseRepository;
+
+  @Mock
+  private ProductRepository productRepository;
+
+  @Mock
+  private PurchaseProductRepository purchaseProductRepository;
+
+  private User testUser;
+  private Product testProduct;
+  private Purchase testPurchase;
+
+  @BeforeEach
+  void setUp() {
+    testUser = User.builder()
+        .name("테스트사용자")
+        .email("test@example.com")
+        .passwordHash("hashedPassword")
+        .build();
+
+    ReflectionTestUtils.setField(testUser, "id", 1L);
+
+    testProduct = Product.builder()
+        .name("노트북")
+        .price(new BigDecimal("1000000"))
+        .stock(10)
+        .build();
+
+    ReflectionTestUtils.setField(testProduct, "id", 1L);
+
+    testPurchase = Purchase.builder()
+        .user(testUser)
+        .totalPrice(BigDecimal.ZERO)
+        .status(PurchaseStatus.PENDING)
+        .build();
+
+    ReflectionTestUtils.setField(testPurchase, "id", 1L);
+  }
+}
+~~~
+**테스트 1: 재고가 충분한 상품을 구매하면 재고가 감소하고 구매가 성공한다**
+
+- **검증 목표**: 이 테스트는 `purchaseProcessService`의 `process` 메서드가 호출되었을 때, **재고가 충분한 상품에 대한 구매가 성공적으로 이루어지는지**를 검증합니다. 구체적으로는 다음을 확인합니다:
+    - 상품의 재고가 구매 수량만큼 **정확히 감소하는지**.
+    - 총 구매 금액이 **올바르게 계산되는지**.
+    - `productRepository`, `purchaseRepository`, `purchaseProductRepository`의 관련 메서드들이 **예상대로 호출되는지**.
+
+
+- **테스트 코드 (`PurchaseProcessServiceTest.java`)**
+~~~
+  @Test
+  @DisplayName("재고가 충분한 상품을 구매하면 재고가 감소하고 구매가 성공한다")
+  void process_should_decreaseStockAndSucceed_when_productInStock_gwt() {
+    // Given
+    PurchaseProductRequest purchaseItem = new PurchaseProductRequest();
+    ReflectionTestUtils.setField(purchaseItem, "productId", 1L);
+    ReflectionTestUtils.setField(purchaseItem, "quantity", 2);
+
+    List<PurchaseProductRequest> purchaseItems = List.of(purchaseItem);
+
+    when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
+    when(purchaseRepository.save(any(Purchase.class))).thenReturn(testPurchase);
+    when(purchaseProductRepository.saveAll(anyList())).thenReturn(Collections.emptyList());
+
+    // When
+    Purchase result = purchaseProcessService.process(testUser, purchaseItems);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalPrice()).isEqualTo(new BigDecimal("2000000")); // 1,000,000 * 2
+    assertThat(testProduct.getStock()).isEqualTo(8); // 10 - 2
+
+    verify(productRepository).findById(1L);
+    verify(purchaseRepository).save(any(Purchase.class));
+    verify(purchaseProductRepository).saveAll(anyList());
+  }
+~~~
+
+## 좋은 단위 테스트 작성 패턴: 네이밍과 경계값 테스트
+### 테스트 케이스 네이밍 규칙
+- **추천 네이밍 형식: `메서드명_should_기대행위_when_조건`**
+    - **`[메서드명]`**: 테스트하려는 대상 메서드의 이름입니다. (예: `process`)
+    - **`should_[기대행위]`**: 해당 조건에서 메서드가 어떻게 동작해야 하는지 서술합니다. (예: `thenStockIsDecreased`, `thenThrowsNoSuchElementException`)
+    - **`when_[조건]`**: 테스트가 진행되는 특정 조건이나 상황을 서술합니다. (예: `givenProductInStock`, `givenNonExistentProduct`)
+  
+
+- **네이밍 예시**
+    - **`process_should_stockIsDecreased_when_productInStock`**
+      (재고가 충분한 상품이 주어졌을 때, `process`는 재고를 감소시켜야 한다)
+    - **`process_should_throwsNoSuchElementException_when_nonExistentProduct`**
+      (존재하지 않는 상품이 주어졌을 때, `process`는 `NoSuchElementException`을 발생시켜야 한다)
+    - **`process_should_stockBecomesZero_when_exactStockQuantity`**
+      (정확히 재고만큼의 수량이 주어졌을 때, `process`는 재고를 0으로 만들어야 한다)
+    - **`process_should_throwsOutOfStockException_when_zeroStock`**
+      (재고가 0인 상품이 주어졌을 때, `process`는 `OUT_OF_STOCK_PRODUCT` 예외를 발생시켜야 한다)
+  
+## 테스트 커버리지 높이기: 경계값과 예외 상황
+대부분의 버그는 일반적인 '성공 케이스'가 아닌, 예상치 못한 경계값이나 예외적인 상황에서 발생합니다.
+견고한 코드를 만들기 위해서는 이러한 엣지 케이스(Edge Case)를 집요하게 테스트해야 합니다.
