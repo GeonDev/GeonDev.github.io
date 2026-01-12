@@ -1,10 +1,10 @@
 ---
 layout: post
-title: Git Hook과 Gemini AI를 활용한 자동 코드 리뷰 시스템 구축
-date: 2025-01-12
+title: Git Hook과 Gemini를 활용한 자동 코드 리뷰 시스템 구축
+date: 2026-01-12
 Author: Geon Son
 categories: IT
-tags: [IT, Git, AI, Spring, DevOps]
+tags: [IT]
 comments: true
 toc: true
 ---
