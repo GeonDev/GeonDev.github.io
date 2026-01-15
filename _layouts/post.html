@@ -25,6 +25,25 @@ layout: default
     {{ content }}
   </div>
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "{{ page.title }}",
+    "author": {
+      "@type": "Person",
+      "name": "{{ site.name }}"
+    },
+    "datePublished": "{{ page.date | date_to_xmlschema }}",
+    "description": "{{ page.excerpt | strip_html }}",
+    "image": "{{ site.url }}{{ site.avatar }}",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "{{ site.url }}{{ page.url }}"
+    }
+  }
+  </script>
+
   {% include disqus.html %}
 </article>
 
