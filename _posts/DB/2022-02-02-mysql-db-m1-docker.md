@@ -12,6 +12,8 @@ toc: true
 > [Doker 설치](https://geondev.github.io/mongo-db-basic-1/)
 > [참고 블로그](https://junghyungil.tistory.com/201/)
 
+> [주의] 이 포스트는 2022년 초에 작성되었습니다. 당시 MySQL 공식 Docker 이미지는 ARM64를 지원하지 않아 `linux/amd64` 플랫폼을 명시해야 했습니다. 현재는 공식 이미지에서 ARM64를 지원하므로 이 옵션 없이도 M1/M2 Mac에서 바로 실행할 수 있습니다.
+
 평상시(?)에 mysql을 잘 사용하지는 않지만(보통은 mariaDB를 쓴다.) 예제 프로그램에서 mysql을 사용해서 도커에 설치해 보려고 했다.
 간단한게 docker pull mysql을 입력하면 당연히 실패 한다. 왜 이러는 건지 알아보다가 m1 칩을 지원하지 않는다는 것을 알게 되었다.
 (이 상황은 mysql ARM 버전을 설치하더라도 동일하다. 설치는 되지만 권한 문제, 버전 문제 등으로 서비스 실행이 되지 않는다.)

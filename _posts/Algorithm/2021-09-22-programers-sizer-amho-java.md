@@ -13,15 +13,12 @@ toc: true
 
 
 
-아주 간단한 문제 인데 구현이 잘 안되서 기록한다.
-아스키문자로 A-Z 는 65-90 a-z는 97-122 인 것을 참고해서 글자를 밀어주면 된다.
+아주 간단한 문제인데, 문자의 순환 처리 구현이 헷갈려 기록한다.
+핵심은 각 문자가 대문자인지 소문자인지 확인하고, 알파벳의 시작점('a' 또는 'A')을 기준으로 얼마나 떨어져 있는지 계산하는 것이다.
 
-특이점으로 해당 문자가 대문자 인지 소문자 인지 확인하고 시작점을 정한다음
-이동할 만큼 거리를 계산한다. 알파벳은 26글자 임으로 %26으로 나누면 루프를 돌게 할수 있다.
+여기에 이동할 거리 `n`을 더한 후, 전체 알파벳 개수인 26으로 나눈 나머지 연산(`% 26`)을 하면 순환 이동을 구현할 수 있다. 마지막으로 다시 알파벳 시작점을 더해 원래의 문자 코드로 변환한다.
 
-간단한 내용인데 생각이 잘 안났다.
-
-Character.isUpperCase(문자) 를 이용하면 해당 글자가 대문자인지 소문자 인지 알수 있다.
+Character.isLowerCase()와 Character.isUpperCase()를 사용하면 ASCII 코드 값 없이 명확하게 대소문자를 구분할 수 있다.
 
 ```
 public class Solution {
@@ -30,14 +27,11 @@ public class Solution {
 
         for(int i =0; i<s.length(); i++) {
         	char temp =s.charAt(i);
-        	if(temp != ' ') {
-        		if(temp >90) {
-        			temp = (char)('a' + (temp+n-'A')%26);
-
-        		}else {
-        			temp = (char)('a' + (temp+n-'a')%26);
-        		}        		
-        	}
+        	if(Character.isLowerCase(temp)) {
+                temp = (char) ((temp - 'a' + n) % 26 + 'a');
+            } else if (Character.isUpperCase(temp)) {
+                temp = (char) ((temp - 'A' + n) % 26 + 'A');
+            }
         	answer += temp;
         }
 

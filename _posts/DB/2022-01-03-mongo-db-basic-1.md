@@ -12,6 +12,8 @@ toc: true
 > [Doker 설치](https://codewagon.tistory.com/2)
 > [MongoDB 설치](https://poiemaweb.com/docker-mongodb)
 
+> [주의] 이 포스트는 2022년 초에 작성되었으며, 당시에는 M1 Mac에서 MongoDB를 네이티브로 지원하지 않아 Docker를 사용하는 방법이 일반적이었습니다. 현재는 MongoDB가 ARM64(Apple Silicon)를 공식적으로 지원하므로 네이티브 설치도 가능합니다. 하지만 Docker를 이용한 환경 격리는 여전히 유용한 방식입니다.
+
 지금까지 업무적인 이유로 몽고DB를 사용해볼 일이 없었다.
 최근에 로그 시스템을 인수인계 받으면서 내부 시스템에서 몽고 DB를 이용하여 데이터를 수집하고 있다는 것을 알게 되었다.
 차후에는 이전될 시스템이기 때문에 아주 깊게 학습할 필요는 없어 보이지만 그래도 알아두면 손해 볼건 없기 때문에

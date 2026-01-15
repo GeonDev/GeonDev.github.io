@@ -22,22 +22,20 @@ comments: true
 private static void combination(List<Character> list,  int r, int start, String result, List<String> temp) {
 	if (r == 0) {
 		temp.add(result);
-	} else {
+		return;
+	}
 
-		for (int i = start; i < list.size(); i++) {
-                 	//임시로 이전 결과를 저장하고
-			String t = result;
-			combination(list, r - 1, i + 1, result + list.get(i), temp);
-                       //조합이후에 다시 원래 결과로 되돌린다.
-			result = t;
-		}
-
+	for (int i = start; i < list.size(); i++) {
+		// 재귀 호출을 통해 다음 문자를 포함하는 새로운 조합을 만든다.
+		// result + list.get(i)는 새로운 문자열을 생성하여 전달하므로, 현재 함수의 result 변수에는 영향을 주지 않는다.
+		combination(list, r - 1, i + 1, result + list.get(i), temp);
 	}
 }
 ```
 
-DFS와 비슷한 형태 백트래킹 이라고 하던데.. 보통 인터넷에 조합 알고리즘은
-따로 프린트를 두거나 결과를 저장하는 경우가 많아 조금 수정하였다. 매일 까먹으니 기록한다.
+재귀 호출을 이용한 조합(Combination) 알고리즘입니다. DFS(깊이 우선 탐색)와 백트래킹을 이용하여 가능한 모든 문자 조합을 생성합니다.
+
+`start` 파라미터를 이용해 한번 사용한 요소는 다시 사용하지 않도록 하여 중복 조합을 방지합니다. 예를 들어, 'A'를 사용했다면 다음 요소는 'A' 이후의 문자부터 탐색을 시작합니다.
 
 이후에 특별한 문제는 없는데 소팅을 여러번 요구한다는 점과 메뉴가 주문되었는지를 확인할 때
 순서에 상관없이 해당 메뉴 묶음이 모두 포함되어 있다면 주문되었다고 한다는 점이 특이하다.
@@ -124,14 +122,11 @@ public class Solution {
 	private static void combination(List<Character> list,  int r, int start, String result, List<String> temp) {
 		if (r == 0) {
 			temp.add(result);
-		} else {
+			return;
+		}
 
-			for (int i = start; i < list.size(); i++) {
-				String t = result;
-				combination(list, r - 1, i + 1, result + list.get(i), temp);
-				result = t;
-			}
-
+		for (int i = start; i < list.size(); i++) {
+			combination(list, r - 1, i + 1, result + list.get(i), temp);
 		}
 	}
 

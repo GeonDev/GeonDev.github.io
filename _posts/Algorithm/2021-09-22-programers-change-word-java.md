@@ -58,9 +58,9 @@ class Solution {
     		if(change[i] != true) {
 
     			if(comString(begin, words[i]) ) {        			
-        			temp[i] = true;  
-        			checkWord(words[i], target, words, temp, count);
-                    temp[i] = false;
+        			change[i] = true;  
+        			checkWord(words[i], target, words, change, count);
+                    change[i] = false;
     			}
     		}
     	}
