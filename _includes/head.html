@@ -1,5 +1,6 @@
 <head>
   <title>{% if page.title %}{{ page.title }} | {{ site.name }}{% else %}{{ site.name }}{% endif %}</title>
+  <link rel="canonical" href="{{ site.url }}{{ page.url | replace:'index.html','' }}">
 
   {% include meta.html %}
   {% include fonts.html %}

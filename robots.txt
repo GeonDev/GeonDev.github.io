@@ -1,20 +1,10 @@
 User-agent: *
-Allow: /assets/
-Allow: /_includes/
-Allow: /_layouts/
-Allow: /_sass/
-Allow: /about/
-Allow: /archive/
-Allow: /tags/
+Allow: /
 Disallow: /_posts/
-Disallow: /_boot/
+Disallow: /_includes/
+Disallow: /_layouts/
+Disallow: /_sass/
 Disallow: /_plugins/
 Disallow: /_bin/
-Disallow: /db/
-Disallow: /it/
-Disallow: /linux/
-Disallow: /project/
-Disallow: /spring/
-Disallow: /vue/
 
 Sitemap: https://geondev.github.io/sitemap.xml
