@@ -11,6 +11,8 @@ toc: true
 
 # QA Agent Server: AI 기반 웹 테스트 자동화
 
+> 프로젝트 레파지토리 https://github.com/GeonDev/auto-tester-with-ai
+
 ## 프로젝트 개요
 
 ### 핵심 가치
