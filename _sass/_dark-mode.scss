@@ -1,0 +1,266 @@
+//
+// DARK MODE
+//
+
+// 다크 모드 색상 변수
+$dark-bg: #1a1a1a;
+$dark-bg-secondary: #2d2d2d;
+$dark-text: #e4e4e4;
+$dark-text-secondary: #b0b0b0;
+$dark-link: $oc-teal-4;
+$dark-border: #404040;
+$dark-code-bg: #2d2d2d;
+
+// 다크 모드 스타일
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: $dark-bg;
+    color: $dark-text;
+  }
+
+  .wrapper-sidebar {
+    background-color: $dark-bg-secondary;
+    border-right: 1px solid $dark-border;
+  }
+
+  .site-name a {
+    color: $dark-text;
+  }
+
+  .site-description {
+    color: $dark-text-secondary;
+  }
+
+  nav a {
+    color: $dark-text-secondary;
+    
+    &:hover {
+      color: $dark-link;
+    }
+  }
+
+  a {
+    color: $dark-link;
+    
+    &:hover {
+      color: lighten($dark-link, 10%);
+    }
+  }
+
+  .posts .post {
+    border-bottom: 1px solid $dark-border;
+  }
+
+  .post {
+    h1, h2, h3, h4, h5, h6 {
+      color: $dark-text;
+    }
+  }
+
+  code {
+    background-color: $dark-code-bg;
+    color: $dark-text;
+    border: 1px solid $dark-border;
+  }
+
+  pre {
+    background-color: $dark-code-bg;
+    border: 1px solid $dark-border;
+  }
+
+  blockquote {
+    color: $dark-text-secondary;
+    border-left: 2px solid $dark-border;
+  }
+
+  table {
+    border: 1px solid $dark-border;
+    
+    th {
+      background-color: $dark-bg-secondary;
+      border: 1px solid $dark-border;
+    }
+    
+    td {
+      border: 1px solid $dark-border;
+    }
+  }
+
+  .tag {
+    li a {
+      background-color: $dark-bg-secondary;
+      color: $dark-text-secondary;
+      border: 1px solid $dark-border;
+      
+      &:hover {
+        background-color: $dark-border;
+        color: $dark-text;
+      }
+    }
+  }
+
+  .footer {
+    border-top: 1px solid $dark-border;
+    background-color: $dark-bg-secondary;
+  }
+
+  .svg-icon {
+    fill: $dark-text-secondary;
+    
+    &:hover {
+      fill: $dark-text;
+    }
+  }
+
+  .pagination {
+    a {
+      color: $dark-text-secondary;
+      
+      &:hover {
+        color: $dark-link;
+      }
+    }
+  }
+
+  // 검색 및 입력 필드
+  input, textarea {
+    background-color: $dark-bg-secondary;
+    color: $dark-text;
+    border: 1px solid $dark-border;
+  }
+
+  // 이미지 밝기 조정 (선택사항)
+  img {
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+// 수동 다크 모드 토글 (JavaScript로 제어)
+body.dark-mode {
+  background-color: $dark-bg;
+  color: $dark-text;
+
+  .wrapper-sidebar {
+    background-color: $dark-bg-secondary;
+    border-right: 1px solid $dark-border;
+  }
+
+  .site-name a {
+    color: $dark-text;
+  }
+
+  .site-description {
+    color: $dark-text-secondary;
+  }
+
+  nav a {
+    color: $dark-text-secondary;
+    
+    &:hover {
+      color: $dark-link;
+    }
+  }
+
+  a {
+    color: $dark-link;
+    
+    &:hover {
+      color: lighten($dark-link, 10%);
+    }
+  }
+
+  .posts .post {
+    border-bottom: 1px solid $dark-border;
+  }
+
+  .post {
+    h1, h2, h3, h4, h5, h6 {
+      color: $dark-text;
+    }
+  }
+
+  code {
+    background-color: $dark-code-bg;
+    color: $dark-text;
+    border: 1px solid $dark-border;
+  }
+
+  pre {
+    background-color: $dark-code-bg;
+    border: 1px solid $dark-border;
+  }
+
+  blockquote {
+    color: $dark-text-secondary;
+    border-left: 2px solid $dark-border;
+  }
+
+  table {
+    border: 1px solid $dark-border;
+    
+    th {
+      background-color: $dark-bg-secondary;
+      border: 1px solid $dark-border;
+    }
+    
+    td {
+      border: 1px solid $dark-border;
+    }
+  }
+
+  .tag {
+    li a {
+      background-color: $dark-bg-secondary;
+      color: $dark-text-secondary;
+      border: 1px solid $dark-border;
+      
+      &:hover {
+        background-color: $dark-border;
+        color: $dark-text;
+      }
+    }
+  }
+
+  .footer {
+    border-top: 1px solid $dark-border;
+    background-color: $dark-bg-secondary;
+  }
+
+  .svg-icon {
+    fill: $dark-text-secondary;
+    
+    &:hover {
+      fill: $dark-text;
+    }
+  }
+
+  .pagination {
+    a {
+      color: $dark-text-secondary;
+      
+      &:hover {
+        color: $dark-link;
+      }
+    }
+  }
+
+  input, textarea {
+    background-color: $dark-bg-secondary;
+    color: $dark-text;
+    border: 1px solid $dark-border;
+  }
+
+  img {
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

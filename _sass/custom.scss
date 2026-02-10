@@ -2,3 +2,43 @@ body {
   font-size: 18px;
   line-height: 1.6;
 }
+
+
+// 다크 모드 토글 버튼 스타일
+.dark-mode-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5em;
+  padding: 8px;
+  margin-left: 10px;
+  transition: transform 0.3s ease;
+  display: inline-block;
+  vertical-align: middle;
+  
+  &:hover {
+    transform: scale(1.2);
+  }
+  
+  &:focus {
+    outline: 2px solid $link-color;
+    outline-offset: 2px;
+  }
+  
+  span {
+    display: inline-block;
+  }
+}
+
+// 다크 모드 전환 애니메이션
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a, .site-name a, nav a {
+  transition: color 0.3s ease;
+}
+
+.wrapper-sidebar {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
