@@ -1,0 +1,203 @@
+// 코드 하이라이팅 개선 스타일
+
+// 코드 블록 wrapper
+.code-block-wrapper {
+  position: relative;
+  margin: 1.5em 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: $oc-gray-0;
+  border: 1px solid $oc-gray-3;
+  
+  // 다크모드 스타일
+  body.dark-mode & {
+    background-color: #2d2d2d;
+    border-color: #404040;
+  }
+}
+
+// 코드 블록 헤더
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: $oc-gray-1;
+  border-bottom: 1px solid $oc-gray-3;
+  
+  body.dark-mode & {
+    background-color: #1a1a1a;
+    border-bottom-color: #404040;
+  }
+}
+
+// 언어 라벨
+.code-language {
+  font-size: 12px;
+  font-weight: 600;
+  color: $oc-gray-7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: $code-font;
+  
+  body.dark-mode & {
+    color: #b0b0b0;
+  }
+}
+
+// 복사 버튼
+.code-copy-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $oc-gray-7;
+  background-color: transparent;
+  border: 1px solid $oc-gray-4;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: $base-font;
+  
+  &:hover {
+    background-color: $oc-gray-2;
+    border-color: $oc-teal-5;
+    color: $oc-teal-8;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  &:focus {
+    outline: 2px solid $oc-teal-5;
+    outline-offset: 2px;
+  }
+  
+  .copy-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+  
+  .copy-text {
+    line-height: 1;
+  }
+  
+  // 복사 성공 상태
+  &.copied {
+    background-color: $oc-teal-1;
+    border-color: $oc-teal-5;
+    color: $oc-teal-8;
+  }
+  
+  // 다크모드
+  body.dark-mode & {
+    color: #b0b0b0;
+    border-color: #404040;
+    
+    &:hover {
+      background-color: #404040;
+      border-color: #38d9a9;
+      color: #38d9a9;
+    }
+    
+    &.copied {
+      background-color: rgba(56, 217, 169, 0.1);
+      border-color: #38d9a9;
+      color: #38d9a9;
+    }
+  }
+}
+
+// 코드 블록 자체 스타일 개선
+.code-block-wrapper pre.highlight {
+  margin: 0;
+  border: none;
+  border-radius: 0 0 6px 6px;
+  padding: 16px;
+  overflow-x: auto;
+  
+  // 스크롤바 스타일
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $oc-gray-1;
+    border-radius: 4px;
+    
+    body.dark-mode & {
+      background: #1a1a1a;
+    }
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $oc-gray-4;
+    border-radius: 4px;
+    
+    &:hover {
+      background: $oc-gray-5;
+    }
+    
+    body.dark-mode & {
+      background: #404040;
+      
+      &:hover {
+        background: #505050;
+      }
+    }
+  }
+}
+
+// 인라인 코드 스타일 개선
+code.highlighter-rouge {
+  font-size: 90%;
+  color: $oc-indigo-9;
+  background-color: $oc-gray-1;
+  padding: .2em .4em;
+  border-radius: 3px;
+  font-weight: 500;
+  
+  body.dark-mode & {
+    color: #38d9a9;
+    background-color: #2d2d2d;
+  }
+}
+
+// 줄 번호 스타일 (Rouge의 linenos 옵션 사용 시)
+.highlight .lineno {
+  color: $oc-gray-5;
+  padding-right: 1em;
+  user-select: none;
+  
+  body.dark-mode & {
+    color: #606060;
+  }
+}
+
+// 모바일 반응형
+@media (max-width: 768px) {
+  .code-block-header {
+    padding: 6px 10px;
+  }
+  
+  .code-language {
+    font-size: 11px;
+  }
+  
+  .code-copy-button {
+    padding: 3px 8px;
+    font-size: 12px;
+    
+    .copy-text {
+      display: none; // 모바일에서는 아이콘만 표시
+    }
+  }
+  
+  .code-block-wrapper pre.highlight {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
