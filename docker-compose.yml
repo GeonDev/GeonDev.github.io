@@ -1,0 +1,11 @@
+services:
+  jekyll:
+    image: ruby:3.1
+    command: bash -c "bundle install && bundle exec jekyll serve --host 0.0.0.0 --config _config.yml,_config_dev.yml"
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/srv/jekyll
+    working_dir: /srv/jekyll
+    environment:
+      - JEKYLL_ENV=development

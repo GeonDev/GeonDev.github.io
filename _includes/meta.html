@@ -2,6 +2,7 @@
 <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
+<meta name="theme-color" content="#ffffff">
 
 {% if page.excerpt %}
 <meta name="description" content="{{ page.excerpt| strip_html }}" />
@@ -36,6 +37,25 @@
 {% endif %}
 
 <meta name="twitter:card" content="summary_large_image" />
+{% if site.twitter_username %}
 <meta name="twitter:site" content="@{{ site.twitter_username }}" />
 <meta name="twitter:creator" content="@{{ site.twitter_username }}" />
+{% endif %}
+
+<!-- 추가 SEO 메타 태그 -->
+<meta name="robots" content="index, follow" />
+<meta name="googlebot" content="index, follow" />
+{% if page.tags %}
+<meta name="keywords" content="{{ page.tags | join: ', ' }}" />
+{% endif %}
+
+<!-- Open Graph 추가 속성 -->
+{% if page.categories %}
+<meta property="article:section" content="{{ page.categories | first }}" />
+{% endif %}
+{% if page.tags %}
+  {% for tag in page.tags %}
+<meta property="article:tag" content="{{ tag }}" />
+  {% endfor %}
+{% endif %}
 

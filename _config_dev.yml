@@ -1,0 +1,3 @@
+# 로컬 개발용 설정 (baseurl 오버라이드)
+baseurl: ""
+url: "http://localhost:4000"

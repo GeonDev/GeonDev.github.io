@@ -2,6 +2,8 @@
 *~
 *.sw[p_]
 
+*.log
+
 # Sublime Text
 *.sublime-project
 *.sublime-workspace
@@ -20,6 +22,9 @@ codekit-config.json
 
 # macOS
 .DS_Store
+
+# kiro
+.kiro/
 
 # Jekyll generated files
 .jekyll-cache
