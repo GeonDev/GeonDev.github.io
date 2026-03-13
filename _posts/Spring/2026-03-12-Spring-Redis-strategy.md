@@ -9,8 +9,6 @@ comments: true
 toc: true    
 ---
 
-# Redis 캐싱 적용 가이드
-
 ## 개요
 
 본 문서는 Spring Boot 프로젝트에 Redis 캐싱을 적용하면서 발생한 이슈와 해결 방법을 정리한 가이드입니다.
@@ -20,7 +18,96 @@ toc: true
 
 Redis 캐싱을 고려한 프로젝트는 처음부터 다음 원칙을 따라 설계해야 합니다.
 
-### 1. 레이어별 객체 분리
+### 1. ObjectMapper 설정
+
+Redis 직렬화를 위한 ObjectMapper는 별도로 설정합니다.
+
+```java
+@Configuration
+public class RedisConfig {
+    @Bean("redisObjectMapper")
+    public ObjectMapper redisObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule()); // 날짜/시간 타입 지원
+        mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+        mapper.activateDefaultTyping(
+            BasicPolymorphicTypeValidator.builder()
+                .allowIfBaseType(Object.class).build(), 
+            ObjectMapper.DefaultTyping.NON_FINAL
+        );
+        return mapper;
+    }
+
+    @Bean
+    RedisCacheConfiguration defaultRedisCacheConfiguration(
+            @Qualifier("redisObjectMapper") ObjectMapper redisObjectMapper) {
+        return RedisCacheConfiguration.defaultCacheConfig()
+            .serializeValuesWith(RedisSerializationContext.SerializationPair
+                .fromSerializer(new GenericJackson2JsonRedisSerializer(redisObjectMapper)))
+            .disableCachingNullValues()
+            .entryTtl(Duration.ofMinutes(1));
+    }
+}
+```
+
+**핵심 설정**
+- **JavaTimeModule**: `LocalDateTime` 등 날짜/시간 타입 직렬화
+- **activateDefaultTyping**: 타입 정보 포함 (다형성 지원)
+- **disableCachingNullValues**: null 값 캐싱 방지
+
+**중요: Redis 전용 ObjectMapper를 별도로 만들어야 하는 이유**
+
+Redis 직렬화 설정과 REST API 응답 설정은 요구사항이 다릅니다:
+
+| 구분 | Redis ObjectMapper | API ObjectMapper |
+| :--- | :--- | :--- |
+| **타입 정보 포함** | 필요 (역직렬화를 위해) | 불필요 (클라이언트에 노출 안 함) |
+| **null 처리** | 캐싱 안 함 | 응답에 포함 가능 |
+| **날짜 형식** | 타임스탬프 가능 | ISO-8601 형식 선호 |
+
+만약 전역 ObjectMapper를 Redis에 사용하면:
+1. `activateDefaultTyping` 설정이 API 응답에도 적용되어 불필요한 타입 정보가 클라이언트에 노출됨
+2. Redis 전용 설정이 API 응답 형식을 변경할 수 있음
+
+```java
+// 잘못된 예시: 전역 ObjectMapper 사용
+@Bean
+public ObjectMapper objectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.activateDefaultTyping(...); // API 응답에도 타입 정보 포함됨
+    return mapper;
+}
+
+// API 응답 예시 (타입 정보 노출)
+{
+  "@class": "com.example.UserDto",  // 불필요한 정보
+  "id": 1,
+  "name": "홍길동"
+}
+
+// 올바른 예시: Redis 전용 ObjectMapper
+@Bean("redisObjectMapper")
+public ObjectMapper redisObjectMapper() {
+    // Redis 직렬화에만 사용
+}
+
+@Bean
+public ObjectMapper objectMapper() {
+    // API 응답에만 사용
+}
+
+// API 응답 예시 (깔끔함)
+{
+  "id": 1,
+  "name": "홍길동"
+}
+```
+
+따라서 `@Qualifier("redisObjectMapper")`를 사용하여 Redis 설정에만 주입합니다.
+
+### 2. 레이어별 객체 분리
 
 **Controller 계층**
 - HTTP 요청/응답 처리 전담
@@ -69,7 +156,7 @@ public ResponseEntity<DataDto> getData() {
 - Entity 반환
 - 비즈니스 로직 포함 금지
 
-### 2. Entity를 직접 반환하지 않기
+### 3. Entity를 직접 반환하지 않기
 
 **문제점**
 
@@ -118,7 +205,7 @@ public class UserDto implements Serializable {
 }
 ```
 
-### 3. 직렬화 가능한 DTO 설계
+### 4. 직렬화 가능한 DTO 설계
 
 **필수 요구사항**
 
@@ -201,7 +288,7 @@ public class DataDto implements Serializable {
 }
 ```
 
-### 4. Wrapper 클래스 사용 시 주의사항
+### 5. Wrapper 클래스 사용 시 주의사항
 
 **문제 상황**
 
@@ -238,7 +325,7 @@ public class ResponseFactory {
 }
 ```
 
-### 5. 컬렉션 타입 처리
+### 6. 컬렉션 타입 처리
 
 **문제 상황**
 
@@ -286,7 +373,7 @@ public DataListResponse getData() {
 }
 ```
 
-### 6. 페이징 처리
+### 7. 페이징 처리
 
 **문제 상황**
 
@@ -335,7 +422,7 @@ public PageResponse<DataDto> getPage(int page, int size) {
 }
 ```
 
-### 7. 예외 처리
+### 8. 예외 처리
 
 **캐싱 대상에서 제외해야 할 경우**
 
@@ -357,7 +444,7 @@ public DataDto getData(Long id) {
 }
 ```
 
-### 8. 날짜/시간 타입 처리
+### 9. 날짜/시간 타입 처리
 
 **문제 상황**
 
@@ -404,6 +491,7 @@ public class DataDto implements Serializable {
     private LocalDateTime createdAt;
 }
 ```
+
 
 ## 발생한 주요 이슈
 
