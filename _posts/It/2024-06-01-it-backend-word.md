@@ -19,7 +19,7 @@ toc: true
 * **트랜잭션** : 하나의 논리적 기능을 수행하기 위한 작업 단위, 쪼갤수 없는 업무의 최소단위
 * **트랜잭션 격리수준(Isolation Level)**: 동시에 여러 트랜잭션이 실행될 때, 트랜잭션 끼리 서로 얼마나 고립 되어 있는지를 확인하는 것, 격리수준이 내려갈수록 성능이 좋아지지만 오류가 발생할 가능성이 커진다.
   * **SERIALIZABLE**: 가장 강력한 격리수준으로 읽기 작업에도 잠금을 발생시켜 다른 트랜잭션이 레코드를 변경할 수 없도록 한다. 동시처리 능력이 떨어지고 성능이 저하된다.
-  * **REPEATABLE READ**: 트랜잭션이 시작되기 전에 COMMIT된 내용에 대해서만 조회할 수 있는 격리 수준이다. Phantom Read가 발생할수 있다. 
+  * **REPEATABLE READ**: 트랜잭션이 시작되기 전에 COMMIT된 내용에 대해서만 조회할 수 있는 격리 수준이다. 일반적인 RDBMS에서는 Phantom Read가 발생할 수 있으나, **MySQL InnoDB에서는 Next-Key Lock을 통해 Phantom Read를 방지**한다.
   * **READ COMMITTED**: 어떤 트랜잭션의 변경내용이 COMMIT되어야만 다른 트랜잭션에서 조회할 수 있다. Non-Repeatable Read가 발생한다.
   * **READ UNCOMMITTED**: 어떤 트랙잭션의 변경내용이 COMMIT이나 ROLLBACK에 상관없이 모두 노출된다. Dirty Read가 발생 할수 있다. 
 <br>
@@ -102,6 +102,33 @@ toc: true
   * **Runtime Data Areas**: 프로그램 실행 중에 사용되는 다양한 영역
   * **JNI(Java Native Interface)**: 자바 애플리케이션에서 C, C++, 어셈블리어로 작성된 함수를 사용할 수 있는 방법을 제공, Native 키워드를 사용하여 메서드를 호출 (대표적인 메서드는 Thread의 currentThread())
   * **Native Method Library**: C, C++로 작성된 라이브러리    
+
+```mermaid
+graph TD
+    subgraph JVM
+        subgraph "Runtime Data Areas"
+            MethodArea[Method Area]
+            Heap[Heap Area]
+            Stack[Stack Area]
+            PC[PC Register]
+            NativeStack[Native Method Stack]
+        end
+        
+        ClassLoader[Class Loader] --> ExecutionEngine[Execution Engine]
+        ExecutionEngine --> RuntimeDataAreas[Runtime Data Areas]
+        
+        subgraph "Execution Engine"
+            Interpreter[Interpreter]
+            JIT[JIT Compiler]
+            GC[Garbage Collector]
+        end
+    end
+    
+    JavaSource[.java] --> Javac[javac]
+    Javac --> ByteCode[.class]
+    ByteCode --> ClassLoader
+```
+<br>     
 <br>     
 
 * **Java의 실행방식**
@@ -114,9 +141,9 @@ toc: true
 * **JAVA 버전별 특징**
   * **JAVA 8** : Lambda, stream, Optional 추가 / 새로운 날짜 API(LocalDateTime) 추가
   * **JAVA 11** : OracleJDK & OpenJdk 통합, OracleJDK 유료화,  G1 GC 적용 , javac 컴파일 없이 실행 가능
-  * **JAVA 17** : Sealed Classes(봉인 클래스) 추가,  RandomGenerator 추가 , Pattern Matching for switch
-    * Sealed Classes : 허용된 클래스 외 상속을 막는다. 
-    * Pattern Matching for switch : 타입 매칭 추가, Null 처리 추가, 
+    * **Pattern Matching for switch** : 타입 매칭 추가, Null 처리 추가
+  * **JAVA 21** : **Virtual Threads (Project Loom)** 추가 (처리량 위주의 비동기 프로그래밍 모델 변화), Sequenced Collections 추가
+    * **Virtual Threads** : 운영체제 스레드와 1:1 매칭되지 않는 경량 스레드로, 수백만 개의 스레드를 생성하여 I/O 블로킹 상황에서 효율적인 리소스 사용 가능
 <br>
 
 * **GC(Garbage Collector)** :Heap 영역에서 동적으로 할당했던 메모리 중 필요 없게 된 메모리 객체(garbage)를 모아 주기적으로 제거한다. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
@@ -163,8 +190,8 @@ toc: true
 <br>
 
 * **동일성(identity)와 동등성(equality)**
-  * **동일성(identity)** : 객체의 주소를 비교 ,equals() 사용하고 오버라이드 가능
-  * **동등성(equality)** : 객체가 같음을 비교 , == 사용
+  * **동일성(identity)** : 객체의 주소를 비교 , `==` 연산자 사용
+  * **동등성(equality)** : 객체의 내부 값이 같음을 비교, `equals()` 메소드를 오버라이드하여 구현
 <br>
 
 * **오버라이딩과 오버로딩**
@@ -451,5 +478,52 @@ toc: true
   * **표현(Representation)** : 클라이언트와 서버는 자원의 표현을 주고받습니다. 표현은 일반적으로 JSON, XML, HTML 등의 형태로 전송된다.
   * **상태 전이(State Transfer)** 클라이언트가 서버의 자원 상태를 변경하는 행위, 클라이언트와 서버는 상태를 주고받으며, 클라이언트는 서버의 자원을 조작하거나 조회하여 상태를 전이한다.
   * **HATEOAS(Hypermedia As The Engine Of Application State)** : REST 아키텍처 스타일의 원칙 중 하나로, 클라이언트가 서버에서 받은 응답에 포함된 링크를 통해 다른 자원에 접근할 수 있게 한다.
+
+<br>
+
+# 용어정리 – 아키텍처 및 분산 시스템 (Senior)
+
+* **MSA (Microservices Architecture)** : 애플리케이션을 작은 독립적인 서비스 단위로 나누어 개발하고 배포하는 아키텍처. 서비스 간 독립성, 확장성, 배포 속도 면에서 유리하지만 분산 시스템의 복잡성(데이터 일관성, 네트워크 지연 등)이 증가한다.
+* **CAP 이론** : 분산 시스템에서 **Consistency(일관성), Availability(가용성), Partition Tolerance(분할 내성)** 세 가지를 모두 만족할 수 없다는 이론. 보통 CP(일관성 중시)와 AP(가용성 중시) 시스템으로 나뉜다.
+* **PACELC 이론** : CAP 이론의 확장으로, 장애가 없을 때(Else) 지연 시간(Latency)과 일관성(Consistency) 사이의 트레이드오프를 설명한다.
+* **Saga 패턴** : MSA 환경에서 여러 서비스에 걸친 분산 트랜잭션을 관리하는 패턴. 각 서비스의 로컬 트랜잭션을 순차적으로 실행하며, 실패 시 **보상 트랜잭션(Compensating Transaction)**을 통해 데이터 일관성을 맞춘다. (Choreography vs Orchestration)
+
+```mermaid
+sequenceDiagram
+    participant O as Order Service
+    participant P as Payment Service
+    participant S as Stock Service
+    
+    Note over O, S: Choreography Saga Example
+    O->>P: Create Order (Event)
+    P->>P: Process Payment
+    P->>S: Payment Completed (Event)
+    S->>S: Update Stock
+    S-->>O: Order Finalized (Event)
+    
+    Note over O, S: Failure Case (Compensation)
+    S-->>P: Stock Failed (Event)
+    P->>P: Refund Payment (Compensate)
+    P-->>O: Order Cancelled (Event)
+```
+* **Transactional Outbox 패턴** : 메시지 발행과 DB 업데이트를 하나의 로컬 트랜잭션으로 묶어 메시지 유실을 방지하는 패턴. 별도의 릴레이 프로세스가 Outbox 테이블을 읽어 메시지 브로커로 전달한다.
+* **CQRS (Command Query Responsibility Segregation)** : 명령(CUD)과 조회(Read)의 모델을 분리하는 패턴. 조회 성능 극대화를 위해 별도의 데이터 저장소나 뷰 모델을 유지하기도 한다.
+* **헥사고날 아키텍처 (Ports and Adapters)** : 비즈니스 로직을 외부 환경(DB, UI, 외부 API)으로부터 독립시키기 위해 인터페이스(Port)와 구현체(Adapter)를 사용하는 아키텍처. 테스트 용이성과 기술 스택 교체에 유연하다.
+
+<br>
+
+# 용어정리 – 성능 및 운영 (Senior)
+
+* **Redis 캐싱 전략**
+  * **Cache Aside (Look Aside)** : 앱이 캐시를 먼저 확인하고 없으면 DB에서 조회 후 캐시에 저장. 가장 일반적인 방식.
+  * **Write Back** : 데이터를 캐시에 먼저 저장하고 일정 시간 후 DB에 배치 저장. 쓰기 성능은 좋으나 유실 위험이 있다.
+  * **Write Through** : 캐시와 DB에 동시에 데이터를 저장. 일관성은 좋으나 쓰기 속도가 느리다.
+* **JVM 튜닝 및 장애 대응**
+  * **Heap Dump** : 특정 시점의 JVM 메모리 상태를 기록한 파일. 메모리 누수(Memory Leak) 분석 시 사용.
+  * **Thread Dump** : 특정 시점의 모든 스레드 상태를 기록한 파일. 데드락(Deadlock)이나 CPU 점유율 이상 분석 시 사용.
+* **Observability (관측 가능성)**
+  * **Logging** : 발생한 이벤트 기록 (ELK 스택 등)
+  * **Metrics** : 수치화된 데이터 기록 (Prometheus, Grafana)
+  * **Tracing** : 분산 환경에서 요청의 흐름 추적 (Micrometer Tracing, Jaeger, Zipkin)
 
   
