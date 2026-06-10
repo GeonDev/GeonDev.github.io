@@ -116,3 +116,134 @@ sudo vi /etc/Hosts
 위와 같이 도메인을 추가하고 재부팅 또는 **dscacheutil -flushcache** 를 입력한다.
 추가로 아파치를 재시작 명령어 **sudo apachectl start** 를 입력하면
 아파치를 재시작하면서 웹브라우저에 local.abc.com만 입력해서 로컬 서버에 접속할수 있게 된다.
+
+---
+
+# Docker를 이용한 방법
+
+위에서 설명한 맥 내장 아파치를 사용하는 방법은 한 가지 불편한 점이 있다.  
+**macOS 업데이트를 하면 `/etc/apache2/` 설정이 초기화**되어 매번 처음부터 다시 설정해야 하는 문제가 생긴다.  
+Docker를 사용하면 설정 파일을 프로젝트 디렉토리에서 관리할 수 있어 업데이트 이후에도 그대로 유지된다.
+
+## 디렉토리 구조
+
+~~~
+docker-apache/
+├── Dockerfile
+├── docker-compose.yml
+└── conf/
+    ├── httpd.conf
+    └── extra/
+        └── httpd-vhosts.conf   ← vhost/proxy 설정은 여기만 수정
+~~~
+
+## Dockerfile
+
+~~~dockerfile
+FROM httpd:2.4
+COPY conf/httpd.conf /usr/local/apache2/conf/httpd.conf
+COPY conf/extra/httpd-vhosts.conf /usr/local/apache2/conf/extra/httpd-vhosts.conf
+~~~
+
+공식 `httpd:2.4` 이미지를 베이스로 사용하고, 로컬에서 작성한 설정 파일을 컨테이너 안으로 복사한다.
+
+## docker-compose.yml
+
+~~~yaml
+services:
+  apache:
+    build: .
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+~~~
+
+- `ports: "80:80"` : 호스트의 80 포트를 컨테이너 80 포트로 연결한다.
+- `restart: unless-stopped` : 맥 재부팅 시 Docker가 자동으로 컨테이너를 재시작한다.
+- `extra_hosts` : 컨테이너 안에서 `host.docker.internal` 이름으로 호스트 Mac에 접근할 수 있게 한다.
+
+## httpd-vhosts.conf (Docker 버전)
+
+내장 아파치 방식과 비교했을 때 **ProxyPass 주소가 `127.0.0.1` 대신 `host.docker.internal`** 로 바뀐다.  
+컨테이너 안에서 `127.0.0.1`은 컨테이너 자신을 가리키기 때문에 호스트 Mac의 WAS에 접근하려면 반드시 `host.docker.internal`을 사용해야 한다.
+
+~~~apache
+<VirtualHost *:80>
+    ServerName local.abc.com
+    ServerAlias tv.local.abc.com vod.local.abc.com onair.local.abc.com
+    ProxyRequests Off
+    ProxyPreserveHost On
+    ProxyPass / http://host.docker.internal:8180/
+    ProxyPassReverse / http://host.docker.internal:8180/
+</VirtualHost>
+~~~
+
+로컬 호스트 파일(`/etc/hosts`) 설정은 내장 아파치 방식과 동일하게 진행하면 된다.
+
+## 내장 아파치 중지 후 Docker 아파치 시작
+
+포트 80을 Docker 컨테이너에서 점유해야 하므로 먼저 내장 아파치를 완전히 비활성화한다.
+
+~~~bash
+# 내장 아파치 중지 및 자동 실행 비활성화
+sudo apachectl stop
+sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+
+# Docker 아파치 시작
+cd ~/docker-apache
+docker compose up -d
+~~~
+
+## 일상적인 사용법
+
+~~~bash
+docker compose up -d      # 시작
+docker compose down       # 중지
+docker compose restart    # 재시작
+docker compose logs -f    # 로그 확인
+~~~
+
+## 설정 변경 방법
+
+`conf/extra/httpd-vhosts.conf`를 수정한 뒤 이미지를 다시 빌드하고 재시작하면 된다.
+
+~~~bash
+docker compose build && docker compose up -d
+~~~
+
+## macOS 업데이트 후 복구
+
+macOS 업데이트 후 내장 아파치가 다시 활성화되어 포트 80 충돌이 발생할 수 있다.
+
+~~~bash
+# 내장 아파치 재중지
+sudo apachectl stop
+sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+
+# Docker 아파치 재시작 (restart: unless-stopped 설정으로 대부분 자동 복구됨)
+docker compose up -d
+~~~
+
+`/etc/hosts` 도메인 매핑은 macOS 업데이트로 초기화되지 않으므로 별도 조치가 필요 없다.
+
+## 문제 해결
+
+**포트 80 충돌**
+
+~~~bash
+# 80 포트를 점유한 프로세스 확인
+sudo lsof -i :80
+
+# 내장 아파치가 살아있으면 중지
+sudo apachectl stop
+~~~
+
+**502 Bad Gateway**
+
+WAS(Tomcat 등)가 실행 중인지 먼저 확인한다. `host.docker.internal` 연결 문제일 경우 컨테이너 내부에서 직접 테스트해볼 수 있다.
+
+~~~bash
+docker compose exec apache curl -I http://host.docker.internal:8180/
+~~~
