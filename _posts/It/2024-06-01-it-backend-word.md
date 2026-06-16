@@ -15,33 +15,63 @@ toc: true
 업무만 하다보니 이론을 너무 까먹어서 정리하려고 한다. 
 
 
-# 용어정리 – 데이터 베이스
-* **트랜잭션** : 하나의 논리적 기능을 수행하기 위한 작업 단위, 쪼갤수 없는 업무의 최소단위
-* **트랜잭션 격리수준(Isolation Level)**: 동시에 여러 트랜잭션이 실행될 때, 트랜잭션 끼리 서로 얼마나 고립 되어 있는지를 확인하는 것, 격리수준이 내려갈수록 성능이 좋아지지만 오류가 발생할 가능성이 커진다.
-  * **SERIALIZABLE**: 가장 강력한 격리수준으로 읽기 작업에도 잠금을 발생시켜 다른 트랜잭션이 레코드를 변경할 수 없도록 한다. 동시처리 능력이 떨어지고 성능이 저하된다.
-  * **REPEATABLE READ**: 트랜잭션이 시작되기 전에 COMMIT된 내용에 대해서만 조회할 수 있는 격리 수준이다. 일반적인 RDBMS에서는 Phantom Read가 발생할 수 있으나, **MySQL InnoDB에서는 Next-Key Lock을 통해 Phantom Read를 방지**한다.
-  * **READ COMMITTED**: 어떤 트랜잭션의 변경내용이 COMMIT되어야만 다른 트랜잭션에서 조회할 수 있다. Non-Repeatable Read가 발생한다.
-  * **READ UNCOMMITTED**: 어떤 트랙잭션의 변경내용이 COMMIT이나 ROLLBACK에 상관없이 모두 노출된다. Dirty Read가 발생 할수 있다. 
-<br>
+# 용어정리 – 데이터베이스
 
-* **트랜잭션 부정합 종류**:
-  * **Phantom Read(유령 읽기)** : 트랜잭션이 끝나기 전에 다른 트랜잭션에 의해 추가된 레코드가 조회됨
-  * **Non-Repeatable Read(반복 읽기 불가능)** : 서로 다른 트랜잭션이 동일한 행을 업데이트하고 커밋할 때 행을 다시 읽을 때 다른 값을 가져오는 경우
-  * **Dirty Read** : 트랜잭션의 작업이 완료되지 않았는데도 다른 트랜잭션에서 해당 데이터를 읽는 현상
-<br>
+* **트랜잭션** : 하나의 논리적 기능을 수행하기 위한 작업 단위, 쪼갤수 없는 업무의 최소단위
+
 
 * **ACID 속성** : 트랜잭션이 안전하게 수행된다는 것을 보장하기 위한 성질
   * **Atomicity(원자성)**: 트랜잭션의 연산은 모든 연산이 완벽히 수행되어야 하며, 한 연산이라도 실패하면 트랜잭션 내의 모든 연산은 실패한다.
   * **Consistency(일관성)**: 트랜잭션은 유효한 상태로만 변경될 수 있습니다.
   * **Isolation(고립성)**: 트랜잭션은 동시에 실행될 경우 다른 트랜잭션에 의해 영향을 받지 않고 독립적으로 실행되어야 한다.
   * **Durability(내구성)**: 트랜잭션이 커밋된 이후에는 시스템 오류가 발생하더라도 커밋된 상태로 유지되는 것을 보장해야 한다.
-<br>
 
-* **데이터베이스 파티셔닝**: 기존에 사용하던 DB시스템의 용량의 한계와 성능저하를 가지고 오게 되어 TABLE을 파티션(Partion)이라는 작은 단위로 나누어 관리하는 기법, 가용성, 관리용이성, 성능 등 이점이 있지만 JOIN 비용이 늘어난다.
-<br>
+
+* **트랜잭션 격리수준(Isolation Level)**: 동시에 여러 트랜잭션이 실행될 때, 트랜잭션 끼리 서로 얼마나 고립 되어 있는지를 확인하는 것, 격리수준이 내려갈수록 성능이 좋아지지만 오류가 발생할 가능성이 커진다.
+  * **SERIALIZABLE**: 가장 강력한 격리수준으로 읽기 작업에도 잠금을 발생시켜 다른 트랜잭션이 레코드를 변경할 수 없도록 한다. 동시처리 능력이 떨어지고 성능이 저하된다.
+  * **REPEATABLE READ**: 트랜잭션이 시작되기 전에 COMMIT된 내용에 대해서만 조회할 수 있는 격리 수준이다. 일반적인 RDBMS에서는 Phantom Read가 발생할 수 있으나, **MySQL InnoDB에서는 Next-Key Lock을 통해 Phantom Read를 방지**한다.
+  * **READ COMMITTED**: 어떤 트랜잭션의 변경내용이 COMMIT되어야만 다른 트랜잭션에서 조회할 수 있다. Non-Repeatable Read가 발생한다.
+  * **READ UNCOMMITTED**: 어떤 트랜잭션의 변경내용이 COMMIT이나 ROLLBACK에 상관없이 모두 노출된다. Dirty Read가 발생 할수 있다.
+
+
+* **트랜잭션 부정합 종류**:
+  * **Phantom Read(유령 읽기)** : 트랜잭션이 끝나기 전에 다른 트랜잭션에 의해 추가된 레코드가 조회됨
+  * **Non-Repeatable Read(반복 읽기 불가능)** : 서로 다른 트랜잭션이 동일한 행을 업데이트하고 커밋할 때 행을 다시 읽을 때 다른 값을 가져오는 경우
+  * **Dirty Read** : 트랜잭션의 작업이 완료되지 않았는데도 다른 트랜잭션에서 해당 데이터를 읽는 현상
+
+
+* **인덱스(Index)** : 데이터베이스 테이블의 검색 속도를 향상시키기 위해 사용되는 데이터 구조로 인덱스는 책의 색인처럼 특정 열(또는 여러 열)에 대한 빠른 검색을 가능하게 한다. 인덱스를 사용하면 테이블의 전체 행을 스캔하지 않고도 원하는 데이터를 빠르게 찾을 수 있다.
+
+
+* **B-Tree / B+Tree 인덱스 구조** : 대부분의 RDBMS 인덱스는 B+Tree로 구현된다. 루트-브랜치-리프로 이어지는 균형 트리(Balanced Tree)이며, 어떤 데이터를 찾든 루트에서 리프까지의 탐색 깊이가 동일해 O(log n)의 일정한 검색 성능을 보장한다. 풀 스캔(O(n))에 비해 정렬된 트리를 타고 내려가므로 빠르다.
+  * **리프 노드 연결 리스트** : B+Tree는 실제 데이터(또는 PK)를 리프 노드에만 저장하고, 리프 노드끼리 연결 리스트(Linked List)로 이어져 있다. 덕분에 한 지점을 찾은 뒤 옆으로 순차 이동하며 읽을 수 있어 **범위 검색(BETWEEN, 부등호)과 정렬(ORDER BY)에 매우 유리**하다.
+  * **왜 빠른가** : 정렬된 상태로 유지되므로 이진 탐색처럼 범위를 좁혀가며 찾고, 디스크 I/O 횟수(트리 깊이)가 적기 때문이다.
+
+
+* **인덱스가 동작하지 않는 경우 / 주의점** : 인덱스를 걸어도 옵티마이저가 사용하지 않거나 효율이 떨어지는 대표 케이스
+  * **선두 컬럼 미사용** : 복합 인덱스 (A, B)에서 선두 컬럼 A가 조건절에 없으면 인덱스를 제대로 타기 어렵다.
+  * **인덱스 컬럼에 함수/연산 사용** : `WHERE SUBSTR(col,1,3)='abc'`, `WHERE col+1 = 10`처럼 컬럼을 가공하면 인덱스를 타지 못한다. (함수 기반 인덱스를 따로 만들면 가능)
+  * **LIKE '%xx'** : 와일드카드가 앞에 오는 중간/후방 일치는 인덱스를 사용하지 못한다. `LIKE 'xx%'`(전방 일치)는 사용 가능.
+  * **형변환(묵시적 타입 캐스팅)** : 컬럼 타입과 조건 값 타입이 달라 묵시적 형변환이 일어나면 인덱스를 타지 못할 수 있다.
+  * **카디널리티가 낮은 컬럼** : 성별처럼 값의 종류가 적으면 인덱스 효과가 작다. NULL이 많은 컬럼이나 부정 조건(`!=`, `NOT IN`)도 비효율적이다.
+
+
+* **복합 인덱스와 커버링 인덱스**
+  * **복합 인덱스(Composite Index)** : 여러 컬럼을 묶어 만든 인덱스. 컬럼 순서가 중요하며, **선두 컬럼부터 차례로 조건에 사용**되어야 효율적이다. 등치(=) 조건 컬럼을 앞에, 범위 조건 컬럼을 뒤에 두는 것이 유리하다.
+  * **커버링 인덱스(Covering Index)** : 쿼리가 필요로 하는 컬럼을 인덱스가 모두 포함하는 경우. 실제 테이블(데이터 블록) 접근 없이 인덱스만 읽어 결과를 반환하므로 매우 빠르다.
+
+
+* **락(Lock)** : 동시 접근으로부터 데이터 정합성을 보호하기 위한 잠금 메커니즘
+  * **공유 락(Shared Lock, S Lock, 읽기 락)** : 여러 트랜잭션이 동시에 읽을 수 있으나, 쓰기는 막는다. 공유 락끼리는 호환된다.
+  * **배타 락(Exclusive Lock, X Lock, 쓰기 락)** : 한 트랜잭션이 독점하며 다른 트랜잭션의 읽기/쓰기를 모두 막는다.
+  * **비관적 락(Pessimistic Lock)** : 충돌이 자주 발생한다고 가정하고, 데이터를 읽는 시점에 미리 DB 락(`SELECT ... FOR UPDATE`)을 건다. 충돌이 잦은 환경에 적합하나 동시성이 떨어지고 데드락 위험이 있다.
+  * **낙관적 락(Optimistic Lock)** : 충돌이 드물다고 가정하고 락을 걸지 않으며, 보통 **버전(version) 컬럼**으로 갱신 시점에 충돌 여부를 검사한다. 변경 전후 버전이 다르면 예외를 던져 재시도한다. 동시성은 좋으나 충돌이 잦으면 재시도 비용이 크다.
+
+
+* **MVCC(Multi-Version Concurrency Control, 다중 버전 동시성 제어)** : 데이터를 변경할 때 이전 버전(스냅샷)을 함께 보관해, **읽기 작업이 쓰기 락을 기다리지 않도록** 하는 동시성 제어 기법. 읽는 트랜잭션은 자신의 시점에 맞는 스냅샷을 보고, 쓰는 트랜잭션은 새로운 버전을 만든다. 이로써 읽기-쓰기 간 블로킹을 줄여 동시성을 높인다. (MySQL InnoDB, PostgreSQL, Oracle 등이 사용)
+
 
 * **정규화**: 데이터베이스 설계 시 데이터의 중복을 줄이고, 데이터 무결성을 향상시키며, 데이터베이스의 성능을 최적화하기 위해 데이터를 체계적으로 정리하는 과정, 하나의 릴레이션에 여러 앤티티의 애트리뷰트들을 혼합하게 되면 정보가 중복 저장되며, 저장공간이 낭비되고 이상이 발생한다. (삽입이상, 삭제이상, 갱신이상 등)
-
   * **제 1 정규형 (1NF: First Normal Form)** : 각 필드는 하나의 값만 가져야 합니다
   * **제 2 정규형 (2NF: Second Normal Form)** : 기본 키의 부분 집합에 종속된 모든 속성이 없어야 한다.
   * **제 3 정규형 (3NF: Third Normal Form)** : 기본 키에 비이행적으로 종속된 모든 속성이 없어야 한다
@@ -49,94 +79,196 @@ toc: true
   * **제 4 정규형 (4NF: Fourth Normal Form)** : 다치 종속성(Multi-Valued Dependency)을 제거
   * **제 5 정규형 (5NF: Fifth Normal Form)** : 조인 종속성(Join Dependency)을 제거
 
-<br>
 
-* **클러스터**: 디스크로부터 데이터를 읽어오는 시간을 줄이기 위해 조인이나 자주 사용하는 테이블의 데이터를 디스크의 같은 위치에 저장시키는 것, 데이터 조회 속도는 향상시키지만 저장, 수정, 삭제 또는 한 테이블 전체 Scan의 성능은 감소한다. (주로 조회에 사용되고 컬럼안에 많은 중복데이터를 가지는 테이블, join을 자주 하는 테이블에 클러스터링을 한다.)
-<br>
+* **SQL vs NoSQL** : 데이터 모델과 일관성/확장 전략의 차이
+  * **SQL(관계형 DB)** : 정해진 스키마(테이블/행/열), 정규화, 강한 일관성(ACID), JOIN과 복잡한 쿼리에 강점. 수직 확장(Scale-up) 중심.
+  * **NoSQL** : 유연한 스키마(문서/키-값/컬럼/그래프), 수평 확장(Scale-out)과 대용량/고처리량에 강점, 보통 최종적 일관성(BASE)을 지향. (MongoDB, Cassandra, Redis, DynamoDB 등)
+  * **선택 기준** : 데이터 구조가 명확하고 트랜잭션·정합성·복잡한 조인이 중요하면 SQL, 스키마가 자주 변하거나 초대용량·고확장·고가용성이 중요하면 NoSQL이 유리하다.
 
-* **인덱스(Index)** : 데이터베이스 테이블의 검색 속도를 향상시키기 위해 사용되는 데이터 구조로 인덱스는 책의 색인처럼 특정 열(또는 여러 열)에 대한 빠른 검색을 가능하게 한다. 인덱스를 사용하면 테이블의 전체 행을 스캔하지 않고도 원하는 데이터를 빠르게 찾을 수 있다.
+
+* **옵티마이저와 실행계획(Execution Plan)** : 옵티마이저는 SQL을 어떤 순서로 어떤 방식(인덱스/풀스캔, 조인 방식 등)으로 처리할지 비용(Cost)을 계산해 가장 효율적인 실행 계획을 선택하는 DBMS 엔진이다.
+  * **실행계획(Execution Plan)** : 옵티마이저가 결정한 SQL 처리 경로. 인덱스 사용 여부, 조인 방식, 예상 처리 행 수 등을 보여준다.
+  * **EXPLAIN** : 실행계획을 미리 확인하는 명령. (MySQL: `EXPLAIN`, `EXPLAIN ANALYZE`) 쿼리 튜닝 시 인덱스를 타는지, 풀 스캔을 하는지, 예상 row 수가 얼마인지를 확인하는 1차 도구다.
+
+
+* **JOIN 기법 종류**
+  * **중첩 루프 조인 (Nested Loops Join)** : 한 쪽 Join의 입력이 작고(10 행 미만), 다른 한 쪽의 Join의 입력이 아주 크고 Join 열에 인덱스가 지정된 경우 가장 빠른 방법, 순차적으로 실행되고 선행 테이블의 처리 범위가 전체 일의 양을 결정하며 선행 테이블 열의 값을 가지고 후행 테이블의 인덱스 페이지를 액세스하기 때문에 후행 테이블의 인덱스 유무가 중요하다.(인덱스가 존재하는 테이블을 후행 테이블로 선택)
+  * **병합 조인 (Sort Merge Join)** : 두 Join 입력이 작지 않지만 Join 열을 (인덱스로부터 미리) 정렬된 상태로 가져올 수 있는 경우 가장 빠른 방법, 두 입력의 크기가 서로 비슷할 경우에는 Merge Join과 Hash Join 성능이 비슷하지만, 두 입력의 크기가 서로 많이 다를 경우 Hash Join 성능이 더 좋다. 정렬된 양쪽 결과를 스캔하는 방식이므로 인덱스 유무는 중요하지 않음, 조인 조건식이 등차(=)조건이 아니여도 가능
+  * **해시 조인 (Hash Match Join)** : Join 입력의 크기가 크고 정렬되지 않았으며 인덱싱되지 않은 입력을 효율적으로 처리하는 방법, 조인될 두 테이블 중 하나를 해시 테이블로 선정하여 조인될 테이블의 조인 키 값을 Hash 알고리즘으로 비교하여 매치되는 결과값을 얻는 방식, 조인 조건식이 등차(=)조건 일때만 가능
+    * **Build Input (outer table)** : 테이블 중 작은 테이블을 읽어 해시 테이블을 생성한다.
+    * **Probe Input (inner table)** : 큰 테이블을 읽으며 해시 테이블을 탐색하며 Join 한다.
+
+
+* **페이징 처리** : 대량 데이터를 나눠 조회하는 방법
+  * **OFFSET 기반 페이징** : `LIMIT n OFFSET m` 방식. 구현이 간단하지만 **뒤 페이지로 갈수록 느려진다.** OFFSET이 커지면 DB가 건너뛸 행까지 모두 읽고 버려야 하기 때문이다. 또한 페이징 중 데이터가 추가/삭제되면 행이 밀려 중복/누락이 발생할 수 있다.
+  * **커서 기반 페이징(Cursor / Keyset Pagination)** : 마지막으로 읽은 행의 키 값을 기준으로 다음 데이터를 조회(`WHERE id < lastId ORDER BY id DESC LIMIT n`)하는 방식. 인덱스를 그대로 타기 때문에 OFFSET과 달리 페이지가 깊어져도 성능이 일정하다. 무한 스크롤 등에 적합하나 임의 페이지 점프는 어렵다.
+
 
 * **Clustered Index와 Non Clustered Index**
   * **클러스터 인덱스(Clustered Index)**: 물리적으로 행을 재배열, 넌 클러스터 인덱스보다 작은 사이즈, 30%이내에서 사용해야 좋다. 테이블당 1개를 갖으며 Primary Key 설정 시 해당 칼럼은 자동적으로 클러스터 인덱스 생성
   * **논클러스터 인덱스(Non Clustered Index)**: 물리적으로 재배치하지 않음, 클러스터 인덱스 용량이 큼, 3% 이내에서 사용해야 좋은 선택도를 갖는다. 테이블당 249개를 갖으며 논클러스터 인덱스를 따로 명시해야 한다(인덱스 페이지를 따로 만듬)
 
+
 * **Index 설정 기준**
   * **카디널리티 (Cardinality) 높음** : 중복도가 낮은 칼럼
   * **선택도 (Selectivity) 낮음** : 한 칼럼으로 적은 ROW가 찾아진다
+
+
 * **INDEX SCAN 종류**
   * **INDEX RANGE SCAN** : B*Tree인덱스의 가장 일반적이고 정상적인 형태, 필요한 범위만 스캔
   * **INDEX FULL SCAN** : 처음부터 끝까지 수평적으로 탐색하는 방식, 최적의 인덱스가 없을 때 차선으로 선택
   * **INDEX UNIQUE SCAN** : 수직적 탐색만으로 데이터를 찾는 방식, 등치(=)조건으로 탐색하는 경우에 작동
   * **INDEX SKIP SCAN** : 인덱스 선두 컬럼이 조건절에 없어도 인덱스를 활용하는 방식, 조건절에 빠진 인덱스 선두 컬럼의 중복값이 많고 후행 컬럼의 중복값이 적을때 활용
-<br>
+
 
 * **인덱스(Index) 유형**
   * **Filtered Index** : 비 클러스터형 인덱스를 만들 때 WHERE 절을 사용해 거의 선택되지 않는 데이터를 제외하고 인덱스를 생성하는 방법, 필터 인덱스는 전체 테이블 인덱스에 비해 쿼리 성능을 개선하고 인덱스 유지관리 비용과 인덱스 저장소 비용을 줄일 수 있다는 장점이 있다. (SQL Server에서 사용가능)
   * **Unique Index** : Unique Index로 컬럼이 잡혀 있으면 해당 컬럼에는 중복된 데이터가 들어가지 않는다 Unique Index는 컬럼에 Null 값을 인정한다. (Primary Key와 차이점)
 
 
-<br>
-
-* **JOIN 기법 종류**
-  * **중첩 루프 조인 (Nested Loops Join)** : 한 쪽 Join의 입력이 작고(10 행 미만), 다른 한 쪽의 Join의 입력이 아주 크고 Join 열에 인덱스가 지정된 경우 가장 빠른 방법, 순차적으로 실행되고 선행 테이블의 처리 범위가 전체 일의 양을 결정하며 선행 테이블 열의 값을 가지고 후행 테이블의 인덱스 페이지를 액세스하기 때문에 후행 테이블의 인덱스 유무가 중요하다.(인덱스가 존재하는 테이블을 후행 테이블로 선택)
-  * **병합 조인 (Sort Merge Join)** : 두 Join 입력이 작지 않지만 Join 열을 (인덱스로부터 미리) 정렬된 상태로 가져올 수 있는 경우 가장 빠른 방법, 두 입력의 크기가 서로 비슷할 경우에는 Merge Join과 Hash Join 성능이 비슷하지만, 두 입력의 크기가 서로 많이 다를 경우 Hash Join 성능이 더 좋다. 정렬된 양쪽 결과를 스캔하는 방식이므로 인덱스 유무는 중요하지 않음, 조인 조건식이 등차(=)조건이 아니여도 가능
-  * **해시 조인 (Hash Match Join)** : Join 입력의 크기가 크고 정렬되지 않았으며 인덱싱되지 않은 입력을 효율적으로 처리하는 방법, 조인될 두 테이블 중 하나를 해시 테이블로 선정하여 조인될 테이블의 조인 키 값을 Hash 알고리즘으로 비교하여 매치되는 결과값을 얻는 방식, 조인 조건식이 등차(=)조건 일때만 가능
-    * **Build Input (outer table)** : 테이블 중 작은 테이블을 읽어 해시 테이블을 생성한다. 
-    * **Probe Input (inner table)** : 큰 테이블을 읽으며 헤시 테이블을 탐색하며 Join 한다. 
-
-<br>
-
 * **데이터 무결성**: 데이터의 정확성, 일관성, 유효성을 유지하는 것, RDBMS의 중요한 기능으로 주로 데이터에 적용하는 연산을 제한하여 무결성을 유지한다.
   * **개체 무결성(Entity integrity)**: 모든 테이블이 기본키로 선택된 필드를 가지고 있어야 한다. 기본키로 선택된 필드는 NULL을 허용하지 않는다.
   * **참조 무결성(Referential integrity)**: 참조관계에 있는 두 테이블의 데이터가 항상 일관된 값을 갖도록 유지하는 것
-<br> 
+
+
+* **데이터베이스 파티셔닝**: 기존에 사용하던 DB시스템의 용량의 한계와 성능저하를 가지고 오게 되어 TABLE을 파티션(Partition)이라는 작은 단위로 나누어 관리하는 기법, 가용성, 관리용이성, 성능 등 이점이 있지만 JOIN 비용이 늘어난다.
+
+
+* **클러스터**: 디스크로부터 데이터를 읽어오는 시간을 줄이기 위해 조인이나 자주 사용하는 테이블의 데이터를 디스크의 같은 위치에 저장시키는 것, 데이터 조회 속도는 향상시키지만 저장, 수정, 삭제 또는 한 테이블 전체 Scan의 성능은 감소한다. (주로 조회에 사용되고 컬럼안에 많은 중복데이터를 가지는 테이블, join을 자주 하는 테이블에 클러스터링을 한다.)
+
 
 # 용어정리 – JAVA
 
 * **JVM** : 자바 가상 머신의 약자를 따서 줄여 부르는 용어로 JVM의 역할은 자바 애플리케이션을 클래스 로더를 통해 읽어 자바 API와 함께 실행하고 메모리 관리(GC)을 수행하는 스택기반의 가상머신이다.
   * **Class Loader** : VM내로 클래스를 로드하고, 링크를 통해 배치하는 작업을 수행하는 모듈
   * **Execution engine(실행 엔진)** : 바이트 코드를 실행시키는 역할
-      * **Interpreter** : 바이트 코드를 한줄 씩 실행합니다.
-      * **JIT 컴파일러** : 인터프리터가 반복되는 코드를 발견하면 JIT 컴파일러가 반복되는 코드를 네이티브 코드로 바꿔줍니다. 그 다음부터 인터프리터는 네이티브 코드로 컴파일된 코드를 바로 사용합니다.
-      * **GC(Garbage Collector)** : 힙 영역에서 사용되지 않는 객체들을 제거하는 작업을 수행
+    * **Interpreter** : 바이트 코드를 한줄 씩 실행합니다.
+    * **JIT 컴파일러** : 인터프리터가 반복되는 코드를 발견하면 JIT 컴파일러가 반복되는 코드를 네이티브 코드로 바꿔줍니다. 그 다음부터 인터프리터는 네이티브 코드로 컴파일된 코드를 바로 사용합니다.
+    * **GC(Garbage Collector)** : 힙 영역에서 사용되지 않는 객체들을 제거하는 작업을 수행
   * **Runtime Data Areas**: 프로그램 실행 중에 사용되는 다양한 영역
   * **JNI(Java Native Interface)**: 자바 애플리케이션에서 C, C++, 어셈블리어로 작성된 함수를 사용할 수 있는 방법을 제공, Native 키워드를 사용하여 메서드를 호출 (대표적인 메서드는 Thread의 currentThread())
-  * **Native Method Library**: C, C++로 작성된 라이브러리    
+  * **Native Method Library**: C, C++로 작성된 라이브러리
 
-```mermaid
-graph TD
-    subgraph JVM
-        subgraph "Runtime Data Areas"
-            MethodArea[Method Area]
-            Heap[Heap Area]
-            Stack[Stack Area]
-            PC[PC Register]
-            NativeStack[Native Method Stack]
-        end
-        
-        ClassLoader[Class Loader] --> ExecutionEngine[Execution Engine]
-        ExecutionEngine --> RuntimeDataAreas[Runtime Data Areas]
-        
-        subgraph "Execution Engine"
-            Interpreter[Interpreter]
-            JIT[JIT Compiler]
-            GC[Garbage Collector]
-        end
-    end
-    
-    JavaSource[.java] --> Javac[javac]
-    Javac --> ByteCode[.class]
-    ByteCode --> ClassLoader
-```
-<br>     
-<br>     
+
+* **GC(Garbage Collector)** :Heap 영역에서 동적으로 할당했던 메모리 중 필요 없게 된 메모리 객체(garbage)를 모아 주기적으로 제거한다. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
+  * **Minor GC** : Young 영역은 Eden / Survivor 이라는 두 영역으로 나뉨, Eden 영역에서 참조가 남아있는 객체를 mark하고 survivor 영역으로 복사한다. 그리고 Eden 영역을 비운다. Survivor 영역도 가득차면 같은 방식으로 다른 Survivor 영역에 복사하고 비운다. 이를 반복하다 계속 해서 살아남는 객체는 old 영역으로 이동
+  * **Major GC(Full GC)** : Old 영역의 메모리가 부족해지면 발생, 삭제되어야 하는 객체를 mark한다. 그리고 제거(sweep)한다. 메모리는 단편화 된 상태이므로 이를 한 군데에 모아주는 것을 Compaction이라 하며 compact라고 한다.
+
+
+* **Mark & Sweep & Compact & Promotion**
+  * **Mark**: 접근 가능한 객체에 Mark하여 표시
+  * **Sweep**: Mark되지 않은 객체들을 제거하는 과정
+  * **Compact**: Sweep 과정에 의해 삭제되면 메모리 단편화가 발생하는데, Compact를 통해 빈자리들을 채워줌
+  * **Promotion** : Survivor 영역에서 계속해서 살아남은 객체들이 특정 age 값에 도달하면, Old Generation으로 이동하게 되는 과정
+
+
+* **GC(Garbage Collector) 알고리즘**
+  * **Serial GC** : 서버의 CPU 코어가 1개일 때 사용하기 위해 개발된 GC, Stop The World 시간이 길다, Mark & Sweep & Compact 알고리즘을 사용
+  * **Parallel GC** : Serial GC와 기본적인 알고리즘은 같지만, Young 영역의 Minor GC를 멀티 쓰레드로 수행
+  * **G1 GC (Garbage First)** : 기존의 GC 알고리즘에서는 Heap 영역을 물리적으로 고정된 Young/Old 영역으로 나누어 사용하였지만, G1 gc는 아예 이러한 개념을 뒤엎는 Region이라는 개념을 새로 도입하여 사용, 전체 Heap에 대해서 탐색하지 않고 부분적으로 Region 단위로 탐색하여, 각각의 Region에만 GC가 발생하기 떄문에 Stop The World 시간이 짧다 (Java 9+ 기본 GC)
+  * **ZGC / Shenandoah** : 대용량 Heap에서도 **Stop-The-World를 수 밀리초 이내로 최소화**하는 것을 목표로 하는 저지연(Low-Latency) GC. 대부분의 GC 작업(마킹, 재배치)을 애플리케이션 스레드와 동시에(Concurrent) 수행한다. ZGC는 수 TB 단위의 Heap까지 확장 가능한 것이 특징이다.
+
+
+* **자바의 메모리 영역**
+  * **Stack 영역** : 기본 자료형(원시 자료형, Primitive type), 지역변수, 매개변수가 저장되는 메모리 영역, Heap 영역에 생성된 데이터의 참조값이 할당됨, 메소드가 호출될 때 메모리에 할당, 메서드 종료시 메모리에서 삭제된다.
+  * **Heap 영역** : 인스턴스를 생성(new)할 때 사용되는 메모리 영역, 참조형 데이터 객체의 실제 데이터가 저장되는 공간 (Stack 영역에서 실제데이터가 존재하는 Heap 영역의 참조값을 가지고 있다.), GC가 관리한다.
+  * **Static 영역** : static 키워드를 통해 생성된 정적멤버들은 모든 객체가 공유하며 어디서든지 참조할 수 있다. 그러나, GC의 관리 영역 밖에 존재하기 때문에 프로그램 종료시까지 메모리가 할당된 채로 존재한다.
+  * **Metaspace** : 클래스 메타데이터(클래스 구조, 메서드 정보 등)가 저장되는 영역. **Java 8부터 기존의 PermGen(Permanent Generation)을 대체**하며, Heap이 아닌 **네이티브 메모리(OS 메모리)에 할당**된다. 따라서 고정 크기였던 PermGen과 달리 필요에 따라 동적으로 크기가 늘어나 `OutOfMemoryError: PermGen space` 같은 문제를 줄였다.
+
+
+* **동일성(identity)와 동등성(equality)**
+  * **동일성(identity)** : 객체의 주소를 비교 , `==` 연산자 사용
+  * **동등성(equality)** : 객체의 내부 값이 같음을 비교, `equals()` 메소드를 오버라이드하여 구현
+
+
+* **equals()와 hashCode() 규약** : 두 메서드는 반드시 **함께 오버라이드**해야 한다.
+  * **규약** : `equals()`로 같다고 판단되는 두 객체는 반드시 같은 `hashCode()`를 반환해야 한다. (역은 성립하지 않아도 됨 — hashCode가 같아도 equals는 다를 수 있다)
+  * **왜 함께 오버라이드해야 하나(HashMap과의 연관)** : `HashMap`, `HashSet` 등 해시 기반 컬렉션은 먼저 `hashCode()`로 버킷을 찾고, 같은 버킷 안에서 `equals()`로 최종 일치를 판단한다. `equals()`만 재정의하고 `hashCode()`를 재정의하지 않으면, 논리적으로 같은 객체라도 서로 다른 버킷에 저장되어 **조회/중복 제거가 정상 동작하지 않는다.**
+
+
+* **String / StringBuilder / StringBuffer**
+  * **String** : **불변(Immutable)** 객체. 문자열을 더할 때마다 새로운 객체가 생성되므로, 반복적인 문자열 연결에는 비효율적이다. (String Constant Pool로 리터럴 재사용)
+  * **StringBuilder** : 가변(Mutable) 객체. 문자열을 변경해도 같은 객체를 수정한다. **동기화하지 않아(non-synchronized) 단일 스레드 환경에서 빠르다.**
+  * **StringBuffer** : StringBuilder와 동일하나 **메서드가 동기화(synchronized)되어 스레드 안전**하다. 대신 동기화 비용으로 단일 스레드에서는 StringBuilder보다 느리다.
+
+
+* **컬렉션 프레임워크(Collection Framework)**
+  * **List / Set / Map** : List는 순서가 있고 중복을 허용, Set은 순서가 없고(일부 구현 제외) 중복을 허용하지 않음, Map은 Key-Value 쌍으로 Key의 중복을 허용하지 않는다.
+  * **ArrayList vs LinkedList** : ArrayList는 내부 배열 기반이라 인덱스 조회(`get`)가 O(1)로 빠르지만 중간 삽입/삭제는 요소 이동이 필요해 느리다. LinkedList는 노드 연결 기반이라 앞뒤 삽입/삭제가 빠르지만 인덱스 조회가 O(n)으로 느리다.
+  * **HashMap 내부 동작** : Key의 `hashCode()`로 **버킷(bucket)** 위치를 정하고 그 안에 저장한다. 서로 다른 Key가 같은 버킷에 들어가는 **해시 충돌(Collision)** 시에는 같은 버킷을 연결 리스트(LinkedList)로 연결한다. **Java 8부터는 한 버킷의 충돌이 일정 개수(기본 8개)를 넘으면 연결 리스트를 레드-블랙 트리로 전환(Treeify)** 하여 최악의 조회 성능을 O(n)에서 O(log n)으로 개선했다.
+
+
+* **동시성 키워드: synchronized / volatile / atomic** : 멀티스레드 환경에서 가시성(Visibility)과 원자성(Atomicity)을 다룬다.
+  * **synchronized** : 임계 영역에 한 번에 하나의 스레드만 진입하도록 락(lock)을 거는 키워드. **원자성과 가시성을 모두 보장**하지만 락 경합으로 성능 비용이 있다.
+  * **volatile** : 변수를 메인 메모리에서 직접 읽고 쓰도록 강제해 **가시성만 보장**한다(스레드 간 변경 즉시 반영). 그러나 `count++`처럼 읽기-수정-쓰기 복합 연산의 **원자성은 보장하지 못한다.**
+  * **atomic (java.util.concurrent.atomic)** : `AtomicInteger` 등은 CAS(Compare-And-Swap) 연산을 이용해 **락 없이(lock-free) 원자성과 가시성을 모두 보장**한다. 단순 카운터 등에 적합하다.
+
+
+* **Error와 Exception**
+  * **Error** : 실행 중 일어날 수 있는 치명적 오류. 컴파일 시점에 체크할 수 없고, 오류가 발생하면 프로그램은 비정상 종료 한다.
+  * **Exception** : Error보다 비교적 경미한 오류이며, try-catch를 이용해 프로그램의 비정상 종료를 막을 수 있다.
+    * **Checked Exception과 Unchecked Exception**
+      * **Checked Exception** : RuntimeException을 상속하지 않고 반드시 에러 처리(try/catch or throw)를 해야한다. (대표적으로 FileNotFoundException)
+      * **UncheckedException** : RuntimeException을 상속하면 UncheckedException. 체크 예외와는 달리 에러 처리를 강제하지 않음 (대표적으로 NullPointerException)
+
+
+* **Stream API** : Collections Type의 데이터를 Stream 메소드로 내부 반복을 통해 정렬 혹은 필터링을 지원해주는 API, 원본데이터로부터 데이터를 읽기만 할 뿐, 원본데이터 자체를 변경하지 않는다(Immutable). parallel 메서드 제공을 통해 병렬처리가 가능하다.
+  * **Mutable 객체** : 생성된 이후 수정 가능, 이미 존재하는 객체에 재할당 할수 있다. 값을 변경할 수 있는 메소드 제공한다(setter).
+  * **Immutable 객체** : 생성된 이후 수정 불가능, 이미 존재하는 객체이더라도 새로운 객체를 생성하여 재할당, 값을 변경할 수 있는 메소드가 없다(setter 없음). Immutable 객체는 스레드 안전성을 보장하기 때문에 동시성 문제를 방지할 수 있다. 자바에서는 많은 기본 클래스들이 Immutable로 설계되어 있으며 대표적으로 String이 있다.
+
+
+* **함수형 인터페이스와 람다**
+  * **함수형 인터페이스(Functional Interface)** : **추상 메서드가 단 하나만 있는 인터페이스.** `@FunctionalInterface`로 명시할 수 있다. (대표적으로 `Runnable`, `Comparator`, `Function`, `Supplier`, `Consumer`, `Predicate`)
+  * **람다 표현식(Lambda)** : 함수형 인터페이스의 구현을 익명 함수 형태(`(x) -> x + 1`)로 간결하게 표현하는 문법.
+  * **메서드 레퍼런스(Method Reference)** : 람다가 단순히 기존 메서드를 호출하기만 할 때 더 간결하게 표현하는 문법. (`System.out::println`, `String::valueOf`, `User::getName`)
+
+
+* **제네릭(Generics)** : 클래스 내부에서 사용할 데이터 타입을 외부에서 지정하는 기법, 객체의 타입을 컴파일 시에 체크하기 때문에 객체의 타입 안정성을 높이고 형변환의 번거로움을 줄여주며 재사용성을 높힌다.
+제네릭은 참조 타입에서만 사용할 수 있으며 원시 타입에서 사용하고 싶다면 레퍼 클래스를 사용하여야 한다.
+  * **와일드카드** : 와일드카드는 ? 문자를 사용하여 불특정 타입을 나타낼 때 사용되며 주로 메서드 파라미터에 적용한다.
+    * **무제한 와일드카드** : 어떤 타입이라도 허용 (List<?> list)
+    * **상한 경계 와일드카드 (Upper Bounded Wildcard)** : 특정 타입의 하위 클래스만 허용 (List<? extends Number> list)
+    * **하한 경계 와일드카드 (Lower Bounded Wildcard)** : 특정 타입의 상위 클래스만 허용 (List<? super Integer> list)
+
+
+* **리플렉션(Reflection)** : 런타임 시에 자바 클래스의 메타데이터(metadata)를 검사하고 조작할 수 있게 해주는 기능, 이를 통해 클래스, 인터페이스, 필드, 메서드 등의 정보를 얻고, 해당 객체의 메서드를 호출하거나 필드 값을 수정할 수 있다.
+  * **클래스 로딩 및 인스턴스화** : 런타임 시에 클래스 이름을 통해 클래스를 로딩하고, 인스턴스를 생성
+  * **메타데이터 접근** : 클래스의 필드, 메서드, 생성자 등의 메타데이터에 접근
+  * **필드 및 메서드 조작:** : 객체의 필드 값을 읽거나 수정 또는 메서드를 호출
+  * **런타임 동적 바인딩** : 런타임에 동적으로 메서드나 필드를 바인딩하여 호출. (주로 플러그인 시스템, 의존성 주입, 프레임워크 개발 등에 사용)
+
+
+* **직렬화(Serialization)과 역직렬화(Deserialization)**
+  * **직렬화(Serialization)** : 객체들의 데이터를 연속적인 데이터(스트림)로 변형하여 전송 가능한 형태로 만드는 것 (객체 데이터를 JSON으로 바꾼다.)
+  * **역직렬화(Deserialization)** : 직렬화된 데이터를 다시 객체의 형태로 만드는 것 (JSON 데이터를 객체로 바꾼다)
+
+
+* **record / Optional 사용 의도**
+  * **record (Java 16+)** : 불변 데이터 전달용 객체(DTO/VO)를 간결하게 정의하기 위한 타입. 필드 선언만으로 생성자, getter, `equals()`/`hashCode()`/`toString()`이 자동 생성된다. **불변 데이터를 보일러플레이트 없이 표현**하려는 의도.
+  * **Optional** : 값이 없을 수 있음(null 가능성)을 타입으로 명시해 **NullPointerException을 예방**하려는 의도. 주로 메서드 반환 타입에 사용하며, 필드/파라미터로 남용하는 것은 권장되지 않는다.
+
+
+* **Final** : final 키워드는 변수(variable), 메서드(method), 또는 클래스(class)에 사용될 수 있으며 프로그램 실행 도중에 수정 할수 없다.
+  * **final 변수** : 한 번 초기화되면 그 이후에 변경할 수 없다.
+  * **final 메소드** : 오버라이딩을 금지한다.
+  * **final 클래스** : 다른 클래스에서 상속할 수 없다.
+
+
+* **static final** : 객체(인스턴스)가 아닌 클래스에 존재하는 단 하나의 상수 라는 의미. 클래스 상수는 클래스 선언과 동시에 초기화 하여야 한다.
+
+
+* **자바 원시타입** : boolean(1), char(unsigned 2), byte(1), short(2), int(4), long(8), float(4), double(8) / 단 JVM에 종속적임으로 대략적인 크기
+
+
+* **JDK와 JRE** : JDK는 Java Development KIT의 약자로 개발하는데 사용되는 도구이며 JRE를 포함하고 있으며 JRE는 Java Runtime Environment의 약자로 자바로 만들어진 프로그램을 실행시키는데 필요한 도구가 들어있는 차이가 있다.
+
 
 * **Java의 실행방식**
-  *  자바 컴파일러(javac)가 자바 소스코드(.java)를 읽어 자바 바이트코드(.class)로 변환
-  *  Class Loader를 통해 class 파일들을 JVM으로 로딩.
-  *  로딩된 class파일들은 Execution engine을 통해 해석
-  *  해석된 바이트코드는 Runtime Data Areas 에 배치되어 수행
-<br>  
+  * 자바 컴파일러(javac)가 자바 소스코드(.java)를 읽어 자바 바이트코드(.class)로 변환
+  * Class Loader를 통해 class 파일들을 JVM으로 로딩.
+  * 로딩된 class파일들은 Execution engine을 통해 해석
+  * 해석된 바이트코드는 Runtime Data Areas 에 배치되어 수행
+
 
 * **JAVA 버전별 특징**
   * **JAVA 8** : Lambda, stream, Optional 추가 / 새로운 날짜 API(LocalDateTime) 추가
@@ -144,176 +276,89 @@ graph TD
     * **Pattern Matching for switch** : 타입 매칭 추가, Null 처리 추가
   * **JAVA 21** : **Virtual Threads (Project Loom)** 추가 (처리량 위주의 비동기 프로그래밍 모델 변화), Sequenced Collections 추가
     * **Virtual Threads** : 운영체제 스레드와 1:1 매칭되지 않는 경량 스레드로, 수백만 개의 스레드를 생성하여 I/O 블로킹 상황에서 효율적인 리소스 사용 가능
-<br>
 
-* **GC(Garbage Collector)** :Heap 영역에서 동적으로 할당했던 메모리 중 필요 없게 된 메모리 객체(garbage)를 모아 주기적으로 제거한다. GC는 Minor GC, Major GC로 구분 되며, Minor GC는 young 영역에서, Major GC는 old 영역에서 일어난다. GC를 수행할 때는 GC를 수행하는 스레드 이외의 스레드는 모두 정지하며 이를 Stop-the-world라고 한다.
-   * **Minor GC** : Young 영역은 Eden / Survivor 이라는 두 영역으로 나뉨, Eden 영역에서 참조가 남아있는 객체를 mark하고 survivor 영역으로 복사한다. 그리고 Eden 영역을 비운다. Survivor 영역도 가득차면 같은 방식으로 다른 Survivor 영역에 복사하고 비운다. 이를 반복하다 계속 해서 살아남는 객체는 old 영역으로 이동
-   * **Major GC(Full GC)** : Old 영역의 메모리가 부족해지면 발생, 삭제되어야 하는 객체를 mark합니다. 그리고 지웁(sweep)니다. 메모리는 단편화 된 상태이므로 이를 한 군데에 모아주는 것을 Compaction이라 하며 compact라고 한다. 
-* **Mark & Sweep & Compact & Promotion**
-  * **Mark**: 접근 가능한 객체에 Mark하여 표시
-  * **Sweep**: Mark되지 않은 객체들을 제거하는 과정
-  * **Compact**: Sweep 과정에 의해 삭제되면 메모리 단편화가 발생하는데, Compact를 통해 빈자리들을 채워줌
-  * **Promotion** : Survivor 영역에서 계속해서 살아남은 객체들이 특정 age 값에 도달하면, Old Generation으로 이동하게 되는 과정
-<br>
-
-* **GC(Garbage Collector) 알고리즘**
-   * **Serial GC** : 서버의 CPU 코어가 1개일 때 사용하기 위해 개발된 GC, Stop The World 시간이 길다, Mark & Sweep & Compact 알고리즘을 사용
-   * **Parallel GC** : Serial GC와 기본적인 알고리즘은 같지만, Young 영역의 Minor GC를 멀티 쓰레드로 수행
-   * **G1 GC (Garbage First)** : 기존의 GC 알고리즘에서는 Heap 영역을 물리적으로 고정된 Young/Old 영역으로 나누어 사용하였지만, G1 gc는 아예 이러한 개념을 뒤엎는 Region이라는 개념을 새로 도입하여 사용, 전체 Heap에 대해서 탐색하지 않고 부분적으로 Region 단위로 탐색하여, 각각의 Region에만 GC가 발생하기 떄문에 Stop The World 시간이 짧다
-<br>  
-
-* **자바의 메모리 영역**
-  * **Stack 영역** : 기본 자료형(원시 자료형, Primitive type), 지역변수, 매개변수가 저장되는 메모리 영역, Heap 영역에 생성된 데이터의 참조값이 할당됨, 메소드가 호출될 때 메모리에 할당, 메서드 종료시 메모리에서 삭제된다.
-  * **Heap 영역** : 인스턴스를 생성(new)할 때 사용되는 메모리 영역, 참조형 데이터 객체의 실제 데이터가 저장되는 공간 (Stack 영역에서 실제데이터가 존재하는 Heap 영역의 참조값을 가지고 있다.), GC가 관리한다.
-  * **Static 영역** : static 키워드를 통해 생성된 정적멤버들은 모든 객체가 공유하며 어디서든지 참조할 수 있다. 그러나, GC의 관리 영역 밖에 존재하기 때문에 프로그램 종료시까지 메모리가 할당된 채로 존재한다.
-<br>
-
-* **자바 원시타입** : boolean(1), char(unsigned 2), byte(1), short(2), int(4), long(8), float(4), double(8) / 단 JVM에 종속적임으로 대략적인 크기
-<br>
-
-* **Final** : final 키워드는 변수(variable), 메서드(method), 또는 클래스(class)에 사용될 수 있으며 프로그램 실행 도중에 수정 할수 없다.
-  * **final 변수** : 한 번 초기화되면 그 이후에 변경할 수 없다.
-  * **final 메소드** : 오버라이딩을 금지한다.
-  * **final 클래스** : 다른 클래스에서 상속할 수 없다.
-* **static final** : 객체(인스턴스)가 아닌 클래스에 존재하는 단 하나의 상수 라는 의미. 클래스 상수는 클래스 선언과 동시에 초기화 하여야 한다.
-<br>
-
-* **JDK와 JRE** : JDK는 Java Development KIT의 약자로 개발하는데 사용되는 도구이며 JRE를 포함하고 있으며 JRE는 Java Runtime Environment의 약자로 자바로 만들어진 프로그램을 실행시키는데 필요한 도구가 들어있는 차이가 있다.
-<br>
-
-* **Error와 Exception**
-  * **Error** : 실행 중 일어날 수 있는 치명적 오류. 컴파일 시점에 체크할 수 없고, 오류가 발생하면 프로그램은 비정상 종료 한다.
-  * **Exception** : Error보다 비교적 경미한 오류이며, try-catch를 이용해 프로그램의 비정상 종료를 막을 수 있다. 
-    * **Checked Exception과 Unchecked Exception** 
-      * **Checked Exception** : RuntimeException을 상속하지 않고 반드시 에러 처리(try/catch or throw)를 해야한다. (대표적으로 FileNotFoundException)
-      * **UncheckedException** : RuntimeException을 상속하면 UncheckedException. 체크 예외와는 달리 에러 처리를 강제하지 않음 (대표적으로 NullPointerException)
-<br>
-
-* **동일성(identity)와 동등성(equality)**
-  * **동일성(identity)** : 객체의 주소를 비교 , `==` 연산자 사용
-  * **동등성(equality)** : 객체의 내부 값이 같음을 비교, `equals()` 메소드를 오버라이드하여 구현
-<br>
-
-* **오버라이딩과 오버로딩**
-  * **오버라이딩(Overriding)** : 상위 클래스의 메소드를 재정의 하는 것을 의미.
-  * **오버로딩(overloading)** : 같은 클래스 내에서 동일한 메소드 이름을 가지지만, 매개변수의 타입, 개수가 다르게 구현할 수 있는 것을 의미
-<br>
-
-* **인터페이스와 추상클래스의 차이**
-  * **추상클래스** : 객체의 추상적인 상위 개념으로 공통된 개념을 표현할 때 사용. 단일 상속만 가능. 추상클래스를 상속하는 집합간에는 연관관계가 있다. 기능을 구체적으로 정의할수 있다.
-  * **인터페이스** : 구현 객체가 같은 동작을 한다는 것을 보장하기 위해 사용. 다중 상속 가능. 인터페이스를 구현하는 집합간에는 관계가 없을 수 있다. 시그니처만 정의 가능
-<br>
-
-* **제네릭(Generics)** : 클래스 내부에서 사용할 데이터 타입을 외부에서 지정하는 기법, 객체의 타입을 컴파일 시에 체크하기 때문에 객체의 타입 안정성을 높이고 형변환의 번거로움을 줄여주며 재사용성을 높힌다.
-제네릭은 참조 타입에서만 사용할 수 있으며 원시 타입에서 사용하고 싶다면 레퍼 클래스를 사용하여야 한다.
-  * **와일드카드** : 와일드카드는 ? 문자를 사용하여 불특정 타입을 나타낼 때 사용되며 주로 메서드 파라미터에 적용한다.
-    * **무제한 와일드카드** : 어떤 타입이라도 허용
-     (List<?> list)
-    * **상한 경계 와일드카드 (Upper Bounded Wildcard)** : 특정 타입의 하위 클래스만 허용 (List<? extends Number> list)
-    * **하한 경계 와일드카드 (Lower Bounded Wildcard)** : 특정 타입의 상위 클래스만 허용 (List<? super Integer> list)
-<br>
-
-* **리플렉션(Reflection)** : 런타임 시에 자바 클래스의 메타데이터(metadata)를 검사하고 조작할 수 있게 해주는 기능, 이를 통해 클래스, 인터페이스, 필드, 메서드 등의 정보를 얻고, 해당 객체의 메서드를 호출하거나 필드 값을 수정할 수 있다. 
-  * **클래스 로딩 및 인스턴스화** : 런타임 시에 클래스 이름을 통해 클래스를 로딩하고, 인스턴스를 생성 
-  * **메타데이터 접근** : 클래스의 필드, 메서드, 생성자 등의 메타데이터에 접근
-  * **필드 및 메서드 조작:** : 객체의 필드 값을 읽거나 수정 또는 메서드를 호출
-  * **런타임 동적 바인딩** : 런타임에 동적으로 메서드나 필드를 바인딩하여 호출. (주로 플러그인 시스템, 의존성 주입, 프레임워크 개발 등에 사용)
-<br>
-
-* **Stram API** : Collections Type의 데이터를 Stream 메소드로 내부 반복을 통해 정렬 혹은 필터링을 지원해주는 API, 원본데이터로부터 데이터를 읽기만 할 뿐, 원본데이터 자체를 변경하지 않는다(Immutable). parallel 메서드 제공을 통해 병렬처리가 가능하다.
-  * **Mutable 객체** : 생성된 이후 수정 가능, 이미 존재하는 객체에 재할당 할수 있다. 값을 변경할 수 있는 메소드 제공한다(setter).
-  * **Immutable 객체** : 생성된 이후 수정 불가능, 이미 존재하는 객체이더라도 새로운 객체를 생성하여 재할당, 값을 변경할 수 있는 메소드가 없다(setter 없음). Immutable 객체는 스레드 안전성을 보장하기 때문에 동시성 문제를 방지할 수 있다. 자바에서는 많은 기본 클래스들이 Immutable로 설계되어 있으며 대표적으로 String이 있다.
-<br>
-
-* **직렬화(Serialization)과 역직렬화(Deserialization)**
-   * **직렬화(Serialization)** : 객체들의 데이터를 연속적인 데이터(스트림)로 변형하여 전송 가능한 형태로 만드는 것 (객체 데이터를 JSON으로 바꾼다.)
-   * **역직렬화(Deserialization)** : 직렬화된 데이터를 다시 객체의 형태로 만드는 것 (JSON 데이터를 객체로 바꾼다)
-<br>
 
 * **JWT(Json Web Token)** : JWT란 객체에 인증에 필요한 정보들을 담은 후 비밀키로 서명한 토큰, 토큰 자체에 사용자의 권한 정보나 서비스를 사용하기 위한 정보가 포함되어 있고 무상태(Stateless)인 환경에서 사용자 데이터를 주고받을 수 있다.
   * **Header(헤더)** : 서명 시 사용하는 키(kid), 사용할 타입(typ), 서명 암호화 알고리즘(alg)의 정보가 담겨 있다.
   * **Payload(페이로드)** : 토큰에서 사용할 정보의 조각들인 클레임(Claim)이 담겨 있다. 클레임(Claim)은 Key/Value 형태로 된 값을 갖는다.
-  * **Signature(서명)** : Header(헤더) 에서 정의한 알고리즘 방식(alg)을 활용하여 Header(헤더)+ 페이로드(Payload)와 서버가 갖고 있는 유일한 key 값을 합친 것을 헤더에서 정의한 알고리즘으로 암호화한다.  
+  * **Signature(서명)** : Header(헤더) 에서 정의한 알고리즘 방식(alg)을 활용하여 Header(헤더)+ 페이로드(Payload)와 서버가 갖고 있는 유일한 key 값을 합친 것을 헤더에서 정의한 알고리즘으로 암호화한다.
+
 
 * **JWT의 동작 방식**
   * **인증(Authentication)** : 사용자가 로그인을 하면 서버는 JWT를 생성하여 클라이언트에게 반환, 클라이언트는 이후 요청 시 JWT를 헤더에 포함시켜 서버에 전달한다.
   * **인가(Authorization)** : JWT에는 사용자의 권한 정보나 추가적인 메타데이터가 포함될 수 있어, 서버는 JWT를 통해 사용자의 권한을 확인할 수 있습니다.
+
 
 * **JWT의 장점**
   * **자가 포함(Self-contained)** : JWT는 필요한 모든 정보를 포함하고 있어 별도의 세션 상태를 관리할 필요가 없다.
   * **확장성** : 클레임을 통해 필요한 정보를 자유롭게 추가할 수 있다.
   * **분산 환경 용이성** : 여러 서비스 간에 JWT를 사용하여 정보를 공유하거나 인증할 수 있다.
 
-<br>
 
 # 용어정리 – SPRING
- * **Spring DI/IoC**
-   * **IoC(제어의 역전)** : 프로그램의 제어 흐름을 직접 제어하는 것이 아니라 외부에서 관리하는 것으로 코드의 최종호출은 개발자가 제어하는 것이 아닌 프레임워크의 내부에서 결정된 대로 이루어진다.
-   * **DI(의존관계 주입)** : Spring 프레임워크에서 지원하는 IoC의 형태로, 클래스 사이의 의존관계를 빈 설정 정보를 바탕으로 컨테이너가 자동으로 연결하는 것
-     * **생성자 주입** : 생성자 호출시점에 딱 1번만 호출되는 것을 보장하며 불변, 필수 의존관계에 사용한다. 불변 보장, 컴파일중 오류 확인 가능, 순환 참조 에러 방지 등 이점이 있어 스프링에서 권장한다. 
-     * **수정자(Setter) 주입** : 선택, 변경 가능성이 있는 의존관계에 사용되며 스프링빈을 선택적으로 등록한다.
-     * **필드 주입** : `@Autowired` 를 사용하는데 외부에서 변경이 불가능하여 테스트 하기 힘들다. DI 프레임워크 없이는 작동하기 힘들며, 주로 애플리케이션과 관계없는 테스트코드나 `@Configuration` 같은 스프링 설정 목적으로 사용
-<br>
+
+* **Spring DI/IoC**
+  * **IoC(제어의 역전)** : 프로그램의 제어 흐름을 직접 제어하는 것이 아니라 외부에서 관리하는 것으로 코드의 최종호출은 개발자가 제어하는 것이 아닌 프레임워크의 내부에서 결정된 대로 이루어진다.
+  * **DI(의존관계 주입)** : Spring 프레임워크에서 지원하는 IoC의 형태로, 클래스 사이의 의존관계를 빈 설정 정보를 바탕으로 컨테이너가 자동으로 연결하는 것
+    * **생성자 주입** : 생성자 호출시점에 딱 1번만 호출되는 것을 보장하며 불변, 필수 의존관계에 사용한다. 불변 보장, 컴파일중 오류 확인 가능, 순환 참조 에러 방지 등 이점이 있어 스프링에서 권장한다.
+    * **수정자(Setter) 주입** : 선택, 변경 가능성이 있는 의존관계에 사용되며 스프링빈을 선택적으로 등록한다.
+    * **필드 주입** : `@Autowired` 를 사용하는데 외부에서 변경이 불가능하여 테스트 하기 힘들다. DI 프레임워크 없이는 작동하기 힘들며, 주로 애플리케이션과 관계없는 테스트코드나 `@Configuration` 같은 스프링 설정 목적으로 사용
+
+
+* **Spring Framework의 핵심** : 자바 엔터프라이즈 개발을 위한 경량 프레임워크로, **IoC/DI, AOP, PSA**를 3대 핵심 기술(삼각형)로 한다. 이를 통해 개발자가 비즈니스 로직에 집중하도록 돕는다.
+  * **POJO(Plain Old Java Object)** : 특정 기술/프레임워크에 종속되지 않는 순수 자바 객체. 스프링은 POJO 기반 개발을 지향한다.
+  * **PSA(Portable Service Abstraction)** : 일관된 추상화를 제공해 구현 기술을 바꿔도 코드 변경을 최소
+  * 화하는 것. (예: `@Transactional`은 JPA/JDBC 등 어떤 기술이든 동일하게 동작, `PlatformTransactionManager` 추상화)
+
+
+* **Spring vs Spring Boot** : Spring Boot는 Spring을 더 쉽게 쓰기 위한 도구로, 복잡한 설정을 자동화한다.
+  * **자동 설정(Auto Configuration)** : `@EnableAutoConfiguration`(=`@SpringBootApplication`에 포함)이 classpath의 라이브러리를 감지해 필요한 빈을 자동 등록. `@Conditional` 기반으로 조건에 맞을 때만 설정이 적용된다.
+  * **내장 WAS(Embedded Tomcat)** : 별도 WAS 설치 없이 jar 하나로 실행 가능
+  * **Starter 의존성** : `spring-boot-starter-web` 처럼 관련 의존성을 묶어 버전 충돌 없이 관리
+  * **@SpringBootApplication** : `@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan`을 합친 어노테이션
+
 
 * **스프링 컨테이너(Spring Container)** : 스프링 컨테이너는 내부에 존재하는 빈의 생명주기를 관리(빈의 생성, 관리, 제거 등)하며, 생성된 빈을 의존성 주입(DI)을 통해 컴포넌트를 관리하고 서로 다른 빈을 연결하여 애플리케이션 빈을 연결하는 역할을 한다.
   * **BeanFactory** : 스프링 빈을 관리하고 조회하는 역할, Bean을 미리 생성하지 않고 호출 시점에 생성
   * **ApplicationContext** : BeanFactory를 상속받고 추가 기능(프로파일 처리, 리소스 읽기 등)을 포함, Application을 시작할때 미리 Bean 생성
-<br>
+
 
 * **Spring Bean** : 스프링 컨테이너에 의해 생성되고 관리되는 자바 객체를 뜻하며, 스프링 컨테이너는 하나 이상의 빈(Bean)을 관리한다.
-  * **Spring Bean 생명주기** : 스프링 빈 생성 → 의존관계 주입 → 초기화 콜백 메소드 호출 → 사용 → 제거 콜백 메소드 호출 → 스프링 종료 
-    * **Spring Bean 콜백(초기화 및 소멸)** :  
-      * **@PostConstruct** : 초기화 콜백 (의존관계 주입이 끝나면 호출) 
-      * **@PreDestory** : 제거 콜백 (메모리 반납, 연결 종료와 같은 과정)
-<br>
+  * **Spring Bean 생명주기** : 스프링 빈 생성 → 의존관계 주입 → 초기화 콜백 메소드 호출 → 사용 → 제거 콜백 메소드 호출 → 스프링 종료
+    * **Spring Bean 콜백(초기화 및 소멸)** :
+      * **@PostConstruct** : 초기화 콜백 (의존관계 주입이 끝나면 호출)
+      * **@PreDestroy** : 제거 콜백 (메모리 반납, 연결 종료와 같은 과정)
+
 
 * **Spring Bean 등록** : 스프링 빈을 등록할 때는 `@ComponentScan`을 이용하여 `@Component`로 설정된 클래스를 자동으로 등록하거나 `@Configuration`(클래스), `@Bean`(메소드) 을 사용하여 빈 설정파일에 직접 빈을 등록할 수 있다.
   * **Bean/Component 차이점**
     * **@Bean** : 개발자가 작성한 method를 기반으로 메서드에서 반환하는 인스턴스 객체 생성
     * **@Component** : 개발자가 작성한 class를 기반으로 실행시점에 인스턴스 객체를 생성.
     (`@Controller`, `@Service`, `@Repository` 는 모두 `@Component`)
-<br>
+
 
 * **Bean Scope** : 빈 스코프는 빈이 존재할 수 있는 범위를 뜻하며 싱글톤(singleton), 프로토타입(prototype), request, session, application 등이 있다.
   * **singleton Scope** : 스프링 빈 스코프의 기본값, 스프링 컨테이너의 시작과 종료까지 유지, 싱글톤 스코프의 빈을 조회하면, 스프링 컨테이너는 항상 같은 인스턴스를 반환한다.
-  * **prototype Scope** : 빈의 생성과 의존관계 주입까지만 관여하고 더는 관리하지 않는 매우 짧은 범위의 스코프, 항상 새로운 인스턴스를 생성해서 반환한다  
-<br>
+  * **prototype Scope** : 빈의 생성과 의존관계 주입까지만 관여하고 더는 관리하지 않는 매우 짧은 범위의 스코프, 항상 새로운 인스턴스를 생성해서 반환한다
 
-* **Servlet Filter** : 서블릿 실행 전, 후에 어떤 작업을 하고자 할때 사용한다. 이 필터가 있음으로써 WAS에서 설정을 변경하지 않고도 모든 서블릿에 영향을 준다.
-  * **Filter 에러 처리** : Filter는 DispatcherServlet 외부에 존재하기 때문에 예외가 발생했을 때 ErrorController에서 처리
 
-* **Spring Interceptor** : Spring에서 Handler를 실행하기 전후나, ViewResolver를 통해 컨트롤러에서 리턴한 View Name으로부터 렌더링을 담당할 View 오브젝트를 준비해 돌려준 후 실제 View를 렌더링한 후에 어떠한 처리를 담당.
-   * **Interceptor 에러 처리** : Interceptor는 DispatcherServlet 내부에 존재하기 때문에 전역처리 방법인 `@ControllerAdvice`를 적용해서 처리.
-<br>
+* **빈 충돌 해결** : 같은 타입의 빈이 여러 개일 때 주입 대상을 특정하는 방법
+  * **@Primary** : 여러 후보 중 우선적으로 주입될 빈을 지정
+  * **@Qualifier** : 주입 시 특정 이름의 빈을 명시적으로 선택
 
-* **Spring의 레이어드 아키텍처**
-하나의 레이어는 자신의 고유 역할을 수행하고, 인접한 다른 레이어에 무언가를 요청하거나 응답한다. 각 레이어는 다른 레이어를 신경 쓸 필요가 없기 때문에 자신의 역할에 충실할 수 있다. (특정한 레이어의 기능을 개선하거나 교체할 수 있기 때문에 재사용성과 유지 보수에 유리)
-  * **Persistence Layer** : 데이터 관련 처리를 담당하는 부분, repository
-  * **Application Layer** : 비즈니스 핵심 로직을 처리하는 부분, service
-  * **Presentation Layer** : view를 담당하는 부분, controller
-<br>
 
-* **AOP(Aspect Oriented Programming)** : 기능을 핵심 관심 사항(Core Concern)과 공통 관심 사항(Cross-Cutting Concern)으로 분리시키고 각각을 모듈화 하는 것을 의미, AOP는 부가 기능을 `@Aspect`로 정의하여, 핵심 기능에서 부가 기능을 분리함으로써 핵심 기능을 설계하고 구현할 때 객체지향적인 가치를 지킬 수 있게 도와주는 개념
+* **순환 참조(Circular Dependency)** : A 빈이 B를, B 빈이 A를 서로 주입받는 상황. **생성자 주입**을 사용하면 빈 생성 시점에 순환 참조를 감지해 애플리케이션 구동 자체가 실패하므로, 런타임 장애를 예방할 수 있다. (Spring Boot 2.6+는 기본적으로 순환 참조를 금지) → 설계를 분리해 해결하는 것이 정석.
 
-* **AOP 특징**
-  * 스프링 컨테이너가 객체(스프링 빈)를 생성할 때 프록시 객체를 자동으로 생성하고 타겟 객체(Target) 대신 프록시 빈으로 등록
-  * 생성된 프록시는 타겟 객체(Target)의 호출을 가로채고 Advice의 기능을 호출 후에 타겟 객체(Target)의 기능을 호출한다.
 
-* **AOP 주요 요소**
-  * **Target** : 부가기능을 부여할 대상 (핵심기능을 담고 있는 모듈)
-  * **Aspect** : 부가기능을 정의한 모듈 , Advice 와 PointCut을 갖고 있다. 
-  * **Advice** : 실질적으로 부가기능을 담은 구현체
-  * **PointCut** : 부가기능이 적용될 대상(Method)을 선정하는 방법
-  * **JoinPoint** : Advice가 적용될 수 있는 위치
-<br>
+* **@Transactional** : Spring AOP를 통해 구현되어 있다. @Transactional이 선언되면 해당 클래스에 트랜잭션이 적용된 프록시 객체 생성하고 예외가 없을 때는 Commit, 예외가 발생한 경우 Rollback 한다. (스프링 트랜잭션 추상화에서 rollback 대상은 UncheckedException)
 
-* **@Transactinal** : Spring AOP를 통해 구현되어 있다. @Transactional이 선언되면 해당 클래스에 트랜잭션이 적용된 프록시 객체 생성하고 예외가 없을 때는 Commit, 예외가 발생한 경우 Rollback 한다. (스프링 트랜잭션 추상화에서 rollback 대상은 UncheckedException)
 
-* **@Transactinal 특징**
+* **@Transactional 특징**
   * @Transactional은 우선순위를 가지고 있다. 클래스 메서드에 선언된 트랜잭션의 우선순위가 가장 높고, 인터페이스에 선언된 트랜잭션의 우선순위가 가장 낮다
   * @Transactional은 Proxy Mode가 Default로 설정되어 있어, `private 메서드에 적용 할 수 없다.`
 
-* **@Transactinal Propagation(트랜잭션 전파)** : 이미 트랜잭션이 진행중일 때 추가 트랜잭션 진행을 어떻게 할지 결정할수 있는 옵션
+
+* **@Transactional Propagation(트랜잭션 전파)** : 이미 트랜잭션이 진행중일 때 추가 트랜잭션 진행을 어떻게 할지 결정할수 있는 옵션
   * **REQUIRED** : 트랜잭션이 필요함(없으면 새로 만듬)
   * **SUPPORTS** : 트랜잭션이 있으면 지원함(트랜잭션이 없어도 됨)
   * **MANDATORY** : 트랜잭션이 의무임(트랜잭션이 반드시 필요함) / 없으면 IllegalTransactionStateException 예외 발생
@@ -321,14 +366,51 @@ graph TD
   * **NOT_SUPPORTED** : 트랜잭션이 없으면 진행하고/ 있다면 끝날때 까지 대기
   * **NEVER** : 트랜잭션을 사용하지 않음(기존 트랜잭션도 허용하지 않음)/ 트랜잭션이 있으면 IllegalTransactionStateException 예외 발생
   * **NESTED** : 중첩 트랜잭션을 생성함(부모, 자식 트랜잭션 분리) / 부모, 자식 작업이 영향을 받지 않음
-<br>
+
 
 * **물리 트랜잭션과 논리 트랜잭션** : DB의 트랜젝션을 사용하는 것을 물리 트랜잭션이라고 한다. 스프링은 성능을 위해 트랜잭션 매니저를 통해 트랜잭션을 처리하는데 이를 논리 트랜잭션이라고 한다. `모든 논리 트랜잭션이 커밋되어야 물리 트랜잭션이 커밋` 되고 하나의 하나의 논리 트랜잭션이라도 롤백되면 물리 트랜잭션은 롤백된다.
   * **물리 트랜잭션** : 실제 데이터베이스에 적용되는 트랜잭션으로, 커넥션을 통해 커밋/롤백하는 단위
   * **논리 트랜잭션** : 스프링이 트랜잭션 매니저를 통해 트랜잭션을 처리하는 단위
-<br>
 
-* **@Async** : Spring AOP를 통해 구현되어 있다. @Async가 선언되면 스프링이 프록시 겍체를 만들어 준다. 프록시 객체 이기 떄문에 private 메소드로 생성하면 작동하지 않는다. self-invocation(자가 호출)의 경우에는 프록시 객체를 거치지 않고 직접 Method A를 호출하기 때문에 Async가 동작하지 않는다.
+
+* **AOP(Aspect Oriented Programming)** : 기능을 핵심 관심 사항(Core Concern)과 공통 관심 사항(Cross-Cutting Concern)으로 분리시키고 각각을 모듈화 하는 것을 의미, AOP는 부가 기능을 `@Aspect`로 정의하여, 핵심 기능에서 부가 기능을 분리함으로써 핵심 기능을 설계하고 구현할 때 객체지향적인 가치를 지킬 수 있게 도와주는 개념
+
+
+* **AOP 특징**
+  * 스프링 컨테이너가 객체(스프링 빈)를 생성할 때 프록시 객체를 자동으로 생성하고 타겟 객체(Target) 대신 프록시 빈으로 등록
+  * 생성된 프록시는 타겟 객체(Target)의 호출을 가로채고 Advice의 기능을 호출 후에 타겟 객체(Target)의 기능을 호출한다.
+
+
+* **AOP 주요 요소**
+  * **Target** : 부가기능을 부여할 대상 (핵심기능을 담고 있는 모듈)
+  * **Aspect** : 부가기능을 정의한 모듈 , Advice 와 PointCut을 갖고 있다.
+  * **Advice** : 실질적으로 부가기능을 담은 구현체
+  * **PointCut** : 부가기능이 적용될 대상(Method)을 선정하는 방법
+  * **JoinPoint** : Advice가 적용될 수 있는 위치
+
+
+* **Spring MVC 요청 처리 흐름** : 클라이언트 요청 → **DispatcherServlet**(Front Controller)이 받음 → **HandlerMapping**으로 처리할 Controller 탐색 → **HandlerAdapter**가 Controller 실행 → Controller가 결과 반환 → **ViewResolver**가 View를 결정(또는 `@ResponseBody`/`@RestController`면 HttpMessageConverter가 JSON 직렬화) → 응답 반환
+  * **DispatcherServlet** : 모든 요청을 받아 적절한 핸들러로 분배하는 프론트 컨트롤러
+  * **@RestController** : `@Controller` + `@ResponseBody`. View가 아닌 데이터(JSON)를 반환
+
+
+* **Servlet Filter** : 서블릿 실행 전, 후에 어떤 작업을 하고자 할때 사용한다. 이 필터가 있음으로써 WAS에서 설정을 변경하지 않고도 모든 서블릿에 영향을 준다.
+  * **Filter 에러 처리** : Filter는 DispatcherServlet 외부에 존재하기 때문에 예외가 발생했을 때 ErrorController에서 처리
+
+
+* **Spring Interceptor** : Spring에서 Handler를 실행하기 전후나, ViewResolver를 통해 컨트롤러에서 리턴한 View Name으로부터 렌더링을 담당할 View 오브젝트를 준비해 돌려준 후 실제 View를 렌더링한 후에 어떠한 처리를 담당.
+  * **Interceptor 에러 처리** : Interceptor는 DispatcherServlet 내부에 존재하기 때문에 전역처리 방법인 `@ControllerAdvice`를 적용해서 처리.
+
+
+* **Spring의 레이어드 아키텍처**
+하나의 레이어는 자신의 고유 역할을 수행하고, 인접한 다른 레이어에 무언가를 요청하거나 응답한다. 각 레이어는 다른 레이어를 신경 쓸 필요가 없기 때문에 자신의 역할에 충실할 수 있다. (특정한 레이어의 기능을 개선하거나 교체할 수 있기 때문에 재사용성과 유지 보수에 유리)
+  * **Persistence Layer** : 데이터 관련 처리를 담당하는 부분, repository
+  * **Application Layer** : 비즈니스 핵심 로직을 처리하는 부분, service
+  * **Presentation Layer** : view를 담당하는 부분, controller
+
+
+* **@Async** : Spring AOP를 통해 구현되어 있다. @Async가 선언되면 스프링이 프록시 객체를 만들어 준다. 프록시 객체 이기 떄문에 private 메소드로 생성하면 작동하지 않는다. self-invocation(자가 호출)의 경우에는 프록시 객체를 거치지 않고 직접 Method A를 호출하기 때문에 Async가 동작하지 않는다.
+
 
 * **@Async의 Thread Pool**
   * **SimpleAsyncTaskExecutor** : 작업마다 새로운 스레드를 생성하고 비동기 방식으로 동작한다. 스레드 풀 방식이 아니므로, 스레드를 재사용하지 않는다.
@@ -337,97 +419,207 @@ graph TD
       * corePoolSize : 스레드 풀에 살아있는 최소 개수
       * maxPoolSize : 스레드 풀에 살아있는 최대 개수
       * keepAliveSeconds : 스레드풀 내 스레드 개수가 corePoolSize 초과인 상태에서, 대기 상태의 스레드가 종료되는 시간
-    * **ThreadPool 작동방식** 
+    * **ThreadPool 작동방식**
       * 스레드풀에 작업(task)를 등록하면, 스레드풀에 corePoolSize 만큼의 스레드가 존재하는지 확인한다.
-      * corePoolSize보다 적으면, 스레드풀에 새로운 스레드를 생성하고 작업을 할당한다. 
-      * 스레드풀의 스래드 개수가 corePoolSize보다 크면, 스레드풀의 대기 상태 스레드에게 작업을 할당한다.
+      * corePoolSize보다 적으면, 스레드풀에 새로운 스레드를 생성하고 작업을 할당한다.
+      * 스레드풀의 스레드 개수가 corePoolSize보다 크면, 스레드풀의 대기 상태 스레드에게 작업을 할당한다.
       * 스레드풀에 존재하는 모든 스레드가 작업중이면 BlockingQueue에 작업을 넣어 작업을 대기시킨다
       * 작업중인 스레드가 작업을 마치면, BlockingQueue에 대기중인 작업이 있는지 확인한다.
+
 
 * **@Async의 return** : Future, ListenableFuture, CompletableFuture 타입을 리턴 타입으로 사용할 수 있다. 비동기 메소드의 반환 형태를 new AsyncResult() 로 묶으면 된다.
   * **Future** : future.get() 은 블로킹을 통해 요청 결과가 올때까지 기다리는 역할을 한다. 그래서 비동기 블로킹 방식이 되어버려 성능이 좋지 않다.
   * **ListenableFuture** : 콜백을 통해 논블로킹 방식으로 작업을 처리할 수 있다. addCallback() 메소드의 첫 번째 파라미터는 작업 완료 콜백 메소드, 두 번째 파라미터는 작업 실패 콜백 메소드를 정의하면 된다.
-  * **CompletableFuture** : java 8에서 추가된 방식, 여러 연산을 결합할 수 있도록 연산이 완료되면 다음 단계의 작업을 수행하거나 값을 연산하는 비동기식 연산 단계를 제공하고 예외 등 다양한 메소드를 제공한다. 
-<br>      
+  * **CompletableFuture** : java 8에서 추가된 방식, 여러 연산을 결합할 수 있도록 연산이 완료되면 다음 단계의 작업을 수행하거나 값을 연산하는 비동기식 연산 단계를 제공하고 예외 등 다양한 메소드를 제공한다.
+
 
 * **Spring Security 인증 과정** : 사용자가 로그인 정보와 함께 인증 요청(HttpRequest)을 하면 AuthenticationFilter가 요청을 가로채고 가로챈 정보를 통해 UsernamePasswordAuthenticationToken(인증용 객체)를 만들고 이를 이용해 AuthenticationManager의 인증 메서드를 호출한다. 이후 UserDetailsService 구현체를 통해 DB에 저장된 정보와 비교해 일치하면 UserDetails 구현 객체를 반환해 SecurityContext에 저장한다.
 
+
+* **인증(Authentication)과 인가(Authorization)** : **인증**은 "누구인지"를 확인하는 것(로그인), **인가**는 "무엇을 할 수 있는지" 권한을 확인하는 것(접근 제어).
+
+
+* **Spring Security 구조**
+  * **SecurityFilterChain** : 여러 보안 필터(Filter)들의 모음. 요청은 이 필터 체인을 거쳐 인증/인가가 처리된다. (과거 `WebSecurityConfigurerAdapter`는 deprecated → 현재는 `SecurityFilterChain` 빈으로 설정)
+  * **SecurityContextHolder** : 인증된 사용자 정보(Authentication)를 보관하는 곳. 기본적으로 ThreadLocal에 저장된다.
+  * **PasswordEncoder** : 비밀번호를 단방향 해시로 암호화 (BCrypt 권장)
+
+
+* **세션 기반 인증 vs 토큰(JWT) 기반 인증**
+  * **세션 방식** : 서버가 세션을 저장(Stateful). 서버 확장(Scale-out) 시 세션 공유 문제가 있어 세션 클러스터링이나 Redis 세션 스토리지가 필요.
+  * **JWT 방식** : 서버가 상태를 저장하지 않음(Stateless). 확장에 유리하나 토큰 탈취/만료 관리가 과제 → Access Token + Refresh Token 조합으로 보완.
+
+
+* **OAuth 2.0** : 제3자 애플리케이션에 비밀번호를 노출하지 않고 자원 접근 권한을 위임하는 인가 프레임워크. (소셜 로그인의 기반) Resource Owner, Client, Authorization Server, Resource Server로 구성되며, 보통 **Authorization Code Grant** 방식을 사용한다. 사용자 인증 후 인증 코드를 받아 Access Token으로 교환한다.
+
+
+# 용어정리 – Spring AI
+
+* **Spring AI** : 스프링 진영에서 제공하는 AI 애플리케이션 개발 프레임워크. LLM(OpenAI, Anthropic Claude, Azure, Vertex AI 등) 연동을 **PSA(추상화)** 방식으로 일관되게 제공하여, 특정 벤더에 종속되지 않고(Portable) 모델을 교체할 수 있게 한다. (Python의 LangChain과 유사한 역할)
+
+
+* **Spring AI 핵심 개념**
+  * **ChatClient / ChatModel** : LLM과 대화(프롬프트 요청/응답)하기 위한 추상화 인터페이스. 모델 구현체만 바꿔 끼우면 된다.
+  * **Prompt / PromptTemplate** : 모델에 보내는 입력. 템플릿에 변수를 주입해 동적으로 프롬프트를 구성한다.
+  * **Structured Output** : LLM의 응답(텍스트)을 자바 객체(POJO)나 JSON 등 구조화된 형태로 변환해주는 기능. (OutputConverter)
+  * **Embedding** : 텍스트를 의미를 담은 벡터(숫자 배열)로 변환하는 것. 유사도 검색의 기반이 된다.
+  * **Vector Store(벡터 저장소)** : 임베딩된 벡터를 저장하고 유사도 기반으로 검색하는 저장소 (Redis, PGVector, Chroma 등)
+
+
+* **RAG (Retrieval-Augmented Generation, 검색 증강 생성)** : LLM이 학습하지 않은 최신/사내 데이터를 외부 저장소(Vector Store)에서 검색해 프롬프트에 함께 제공함으로써, 환각(Hallucination)을 줄이고 정확도를 높이는 기법. 문서를 임베딩해 저장 → 질문과 유사한 문서 검색 → 검색 결과를 컨텍스트로 LLM에 전달하는 흐름이다.
+
+
+* **Function Calling (Tool Calling)** : LLM이 직접 처리할 수 없는 작업(DB 조회, 외부 API 호출 등)을, 미리 등록한 함수(Tool)를 호출하도록 위임하는 기능. Spring AI에서는 빈으로 등록한 함수를 모델이 필요 시 호출하게 할 수 있다.
+
+
+* **MCP (Model Context Protocol)** : LLM 애플리케이션이 외부 데이터/도구와 표준화된 방식으로 연동하기 위한 프로토콜. Spring AI도 MCP 클라이언트/서버를 지원한다.
+
+
 # 용어정리 – JPA
- * **영속성 컨텍스트** : 엔티티를 영구 저장하는 환경. 애플리케이션과 데이터베이스 사이에서 객체를 보관하는 가상의 데이터베이스 같은 역할을 한다. 엔티티 매니저를 통해 엔티티를 저장하거나 조회하면 엔티티 매니저는 영속성 컨텍스트에 엔티티를 보관하고 관리한다.
-* **영속성 컨텍스트의 이점** 
+
+* **영속성 컨텍스트** : 엔티티를 영구 저장하는 환경. 애플리케이션과 데이터베이스 사이에서 객체를 보관하는 가상의 데이터베이스 같은 역할을 한다. 엔티티 매니저를 통해 엔티티를 저장하거나 조회하면 엔티티 매니저는 영속성 컨텍스트에 엔티티를 보관하고 관리한다.
+
+
+* **영속성 컨텍스트의 이점**
   * **1차 캐시** : 조회가 가능하며 1차 캐시에 없으면 DB에서 조회하여 1차 캐시에 올려 놓는다.
   * **동일성 보장** : 엔티티의 동일성을 보장, 동일성 비교(==)가 가능합니다.
   * **쓰기 지연** : 트랜잭션 커밋하기 전까지 SQL을 바로 보내지 않고 모아서 보낼 수 있다.
   * **변경 감지** : commit 되는 시점에 Entity와 스냅샷과 비교하여 update SQL을 생성합니다.
   * **지연 로딩** : 엔티티에서 해당 엔티티를 불러올 때 그 때 SQL을 날려 해당 데이터를 가져옵니다.
-<br>
 
-* **프록시(JPA)** : 엔티티를 조회할 때 연관관계를 맺고 있는 다른 엔티티도 같이 조회 해야 하지만 연관된 엔티티가 항상 필요하지 않은데 DB를 조회하면 불필요한 데이터 조회가 발생하게 되기 때문에, 실제 사용될 때까지 DB 조회를 지연시킬 수 있도록 실제 엔티티 대신할 가짜 객체가 필요한데 이를 프록시 객체라고 한다.
-<br>
 
 * **N + 1 문제** : 연관 관계가 설정된 엔티티를 조회할 경우에 조회된 데이터 갯수(n) 만큼 연관관계의 조회 쿼리가 추가로 발생하여 데이터를 읽어오게 되는것, 조회 시 1개의 쿼리를 생각하고 설계를 했으나 나오지 않아도 되는 조회의 쿼리가 N개가 더 발생하는 문제
   * **즉시 로딩에서 발생** : JPQL을 사용하는 경우 전체 조회를 했을 때, 영속성 컨텍스트가 아닌 데이터베이스에서 직접 데이터를 조회한 다음 즉시로딩 전략이 동작하기 때문.
   * **지연 로딩에서 발생** : 지연로딩 전략을 사용한 하위 엔티티를 로드할 때, JPA에서 프록시 엔티티를 unproxy 할 때 해당 엔티티를 조회하기 위한 추가적인 쿼리가 실행되어 발생.
+
 
 * **N + 1 해결**
   * **패치 조인(Fetch Join)** : 미리 두 테이블을 JOIN 하여 한 번에 모든 데이터를 가져올 수 있다면 애초에 N+1 문제가 발생하지 않음. 1:N 관계가 두 개 이상인 경우 사용 불가, 카테시안 곱(Cartesian Product)이 발생 하여 중복이 생길 수 있다
   * **배치 사이즈(Batch Size)** : @BatchSize 어노테이션을 사용하거나 default_batch_fetch_size 설정을 추가하여 한 번의 쿼리로 여러 개의 연관된 엔티티를 조회하는 방법, 엔티티를 지정한 개수 만큼 IN을 활용하여 호출하게 된다.
 
 
+* **페치 전략(Fetch Type)** : 연관된 엔티티를 언제 로딩할지 결정하는 전략
+  * **즉시 로딩(EAGER)** : 엔티티 조회 시 연관 엔티티도 즉시 함께 조회. 예측이 어렵고 N+1을 유발하기 쉽다. (`@ManyToOne`, `@OneToOne`의 기본값)
+  * **지연 로딩(LAZY)** : 연관 엔티티를 실제 사용하는 시점에 조회(프록시). **실무에서는 모든 연관관계를 LAZY로 설정하고 필요 시 Fetch Join으로 해결하는 것을 권장.** (`@OneToMany`, `@ManyToMany`의 기본값)
+
+
+* **변경 감지(Dirty Checking)** : 영속 상태의 엔티티 값을 변경하면, 트랜잭션 커밋 시점에 영속성 컨텍스트가 최초 스냅샷과 비교해 변경된 부분에 대한 UPDATE SQL을 자동 생성/실행한다. 별도의 `save()` 호출이 필요 없다.
+
+
+* **프록시(JPA)** : 엔티티를 조회할 때 연관관계를 맺고 있는 다른 엔티티도 같이 조회 해야 하지만 연관된 엔티티가 항상 필요하지 않은데 DB를 조회하면 불필요한 데이터 조회가 발생하게 되기 때문에, 실제 사용될 때까지 DB 조회를 지연시킬 수 있도록 실제 엔티티 대신할 가짜 객체가 필요한데 이를 프록시 객체라고 한다.
+
+
+* **엔티티 생명주기(Entity Lifecycle)**
+  * **비영속(Transient)** : 영속성 컨텍스트와 무관하게 객체만 생성된 상태 (`new`)
+  * **영속(Managed)** : 영속성 컨텍스트가 관리하는 상태 (`persist()`, 조회). 변경 감지(Dirty Checking) 대상.
+  * **준영속(Detached)** : 영속 상태였다가 분리된 상태 (`detach()`, `clear()`, 트랜잭션 종료). 변경 감지가 동작하지 않음.
+  * **삭제(Removed)** : 삭제 예정 상태 (`remove()`)
+
+
+* **JPA / Hibernate / Spring Data JPA** : **JPA**는 자바의 ORM 표준 명세(인터페이스), **Hibernate**는 JPA를 구현한 대표적인 구현체, **Spring Data JPA**는 JPA를 더 쉽게 쓰도록 Repository 인터페이스만 정의하면 구현체를 자동 생성해주는 스프링 모듈이다.
+  * **ORM(Object-Relational Mapping)** : 객체와 관계형 DB의 테이블을 매핑해, SQL을 직접 작성하지 않고 객체 중심으로 데이터를 다루게 해주는 기술. 객체-테이블 간 패러다임 불일치를 해결한다.
+
+
+* **flush** : 영속성 컨텍스트의 변경 내용을 DB에 반영(SQL 전송)하는 것. 영속성 컨텍스트를 비우는 것이 아니라 동기화하는 것. (커밋, JPQL 쿼리 실행 시 자동 호출)
+
+
+* **영속성 전이(Cascade)와 고아 객체(orphanRemoval)** : Cascade는 부모 엔티티의 영속성 상태 변화를 자식에게 전파하는 것(예: 부모 저장 시 자식도 저장), orphanRemoval은 부모와의 연관관계가 끊긴 자식 엔티티를 자동 삭제하는 옵션.
+
+
+* **JPQL과 QueryDSL** : 복잡한 조회 쿼리 작성 방법
+  * **JPQL** : 테이블이 아닌 엔티티 객체를 대상으로 하는 객체지향 쿼리. 문자열이라 컴파일 시점에 오류를 잡지 못한다.
+  * **QueryDSL** : 자바 코드로 타입 안전(Type-safe)하게 쿼리를 작성하는 라이브러리. 컴파일 시점에 문법 오류를 잡고 동적 쿼리 작성에 강점이 있다. (실무에서 널리 사용)
+
+
 # 용어정리 – 운영체제
 
- * **프로세스와 스레드** : 프로세스는 실행중인 프로그램을 의미, 스레드는 실행 제어만 분리한 것을 의미한다. 한 프로세스 안에 여러개의 스레드가 생성될 수 있다. 프로세스는 운영체제로부터 자원을 할당받지만, 스레드는 프로세스로부터 자원을 할당받고, 프로세스의 코드/데이터/힙영역을 공유하기 때문에 좀 더 효율적으로 통신할 수 있다. 또한 컨텍스트 스위칭도 캐시 메모리를 비우지 않아도 되는 스레드쪽이 빠르다. 그리고, 스레드는 자원 공유로 인해 문제가 발생할 수 있으니 이를 염두에 둔 프로그래밍을 해야한다.
- <br>
+* **프로세스와 스레드** : 프로세스는 실행중인 프로그램을 의미, 스레드는 실행 제어만 분리한 것을 의미한다. 한 프로세스 안에 여러개의 스레드가 생성될 수 있다. 프로세스는 운영체제로부터 자원을 할당받지만, 스레드는 프로세스로부터 자원을 할당받고, 프로세스의 코드/데이터/힙영역을 공유하기 때문에 좀 더 효율적으로 통신할 수 있다. 또한 컨텍스트 스위칭도 캐시 메모리를 비우지 않아도 되는 스레드쪽이 빠르다. 그리고, 스레드는 자원 공유로 인해 문제가 발생할 수 있으니 이를 염두에 둔 프로그래밍을 해야한다.
 
-* **세마포어와 뮤텍스** : 프로세스 간 메시지를 전송하거나, 공유메모리를 통해 공유된 자원에 여러 개의 프로세스가 동시에 접근하면 문제가 발생할 수 있다. 이를 해결하기 위해 데이터를 한 번에 하나의 프로세스만 접근할 수 있도록 제한을 두는 동기화 방식을 취해야 한다. 동기화 도구에는 대표적으로 뮤텍스(Mutex)와 세마포어(Semaphore)가 있다. 
+
+* **세마포어와 뮤텍스** : 프로세스 간 메시지를 전송하거나, 공유메모리를 통해 공유된 자원에 여러 개의 프로세스가 동시에 접근하면 문제가 발생할 수 있다. 이를 해결하기 위해 데이터를 한 번에 하나의 프로세스만 접근할 수 있도록 제한을 두는 동기화 방식을 취해야 한다. 동기화 도구에는 대표적으로 뮤텍스(Mutex)와 세마포어(Semaphore)가 있다.
   * **뮤텍스(Mutex)** : 공유된 자원의 데이터 혹은 임계영역(Critical Section) 등에 하나의 Process 혹은 Thread가 접근하는 것을 막음(동기화 대상이 하나), 임계구역(Critical Section)을 가진 스레드들의 실행시간(Running Time)이 서로 겹치지 않고 각각 단독으로 실행(상호배제_Mutual Exclusion)되도록 하는 기술
-  * **세마포어(Semaphore)** :  공유된 자원의 데이터 혹은 임계영역(Critical Section) 등에 여러 Process 혹은 Thread가 접근하는 것을 막아줌 (동기화 대상이 하나 이상) 
-<br>
-
- * **스레드 안전(Thread-Safety)** : 여러 스레드가 동시에 접근할 수 있는 자원이나 코드 블록이 안전하게 동작할 수 있도록 하는 개념입니다. 스레드 안전성을 확보하지 않으면, 데이터의 일관성이 깨지거나 예상치 못한 결과가 발생할 수 있다.
-   * **Critical Section (임계 구역)** : 여러 스레드가 동시에 접근하면 문제가 발생할 수 있는 코드 블록이나 자원, 이 부분에서는 스레드 간의 동기화가 필요
-   * **Race Condition (경쟁 상태)** : 두 개 이상의 스레드가 동시에 자원에 접근하려고 할 때, 결과가 스레드의 실행 순서에 따라 달라지는 상태, 이로 인해 예기치 않은 동작이 발생할 수 있습니다. 
-   * **Mutual Exclusion (상호 배제)** : 임계 구역에 동시에 여러 스레드가 접근하지 못하도록 하는 메커니즘, 이를 위해 주로 락(Lock)을 사용
-<br>
-
-* **Thread-Safety를 위한 주요 기법** 
-  * **Locks (락)** : 상호 배제를 구현하기 위한 가장 일반적인 방법. 자원에 접근할 때 락을 걸고, 작업이 끝나면 락을 해제(Mutex, Spinlock)
-  * **Atomic Operations (원자적 연산)** : 한 번에 하나의 스레드만이 접근할 수 있는 연산을 통해 상태를 변경합니다. CPU 수준에서 지원되는 경우가 많다. (AtomicInteger in Java)
-  * **Thread-Local Storage** : 스레드마다 별도의 저장 공간을 제공하여, 스레드 간의 자원 공유를 피함.(ThreadLocal in Java)
-  * **Immutable Objects (불변 객체)** : 객체의 상태를 변경할 수 없도록 설계하여, 여러 스레드가 동시에 읽기만 할 수 있게 하고 상태 변경이 필요한 경우 새로운 객체를 생성한다.
-  * **Concurrent Collections** : 동시성 문제를 해결하기 위해 설계된 컬렉션으로 내부적으로 필요한 동기화 메커니즘을 포함하고 있다. (ConcurrentHashMap in Java)
-<br>
+  * **세마포어(Semaphore)** : 공유된 자원의 데이터 혹은 임계영역(Critical Section) 등에 여러 Process 혹은 Thread가 접근하는 것을 막아줌 (동기화 대상이 하나 이상)
 
 
 * **교착상태(Deadlock)** : 둘 이상의 프로세스들이 자원을 점유한 상태에서 서로 다른 프로세스가 점유하고 있는 자원을 요구하며 무한정 기다리는 상황
-  * **교착상태(Deadlock) 조건**
+  * **교착상태(Deadlock) 발생 조건** : 아래 4가지가 모두 만족될 때 발생한다.
+    * 상호 배제(Mutual Exclusion) : 한 번에 한 프로세스만 공유 자원에 접근 가능하며, 접근 권한이 제한적일 경우.
+    * 점유 대기 (Hold & Wait) : 공유 자원에 대한 접근 권한을 가진 채로 다른 자원에 대한 접근 권한을 요구.
     * 비선점 (Nonpreemptive) : 다른 프로세스의 자원을 뺏을 수 없음.
     * 순환 대기 (Circular wait) : 두 개 이상의 프로세스가 자원 접근을 기다릴 때, 관계가 순환적 구조.
-    * 점유 대기 (Hold & Wait) : 공유 자원에 대한 접근 권한을 가진 채로 다른 자원에 대한 접근 권한을 요구.
-    * 상호 배제(Mutual Exclusion) : 한 번에 한 프로세스만 공유 자원에 접근 가능하며, 접근 권한이 제한적일 경우.
-<br>
+  * **교착상태 해결 방법** : 크게 4가지로 나뉜다.
+    * **예방(Prevention)** : 위 4가지 발생 조건 중 하나 이상을 원천적으로 차단. 자원 효율이 떨어진다.
+    * **회피(Avoidance)** : 교착이 발생하지 않는 안전 상태(Safe State)를 유지하며 자원을 할당. 대표적으로 **은행원 알고리즘(Banker's Algorithm)**이 있다. (자원 요청 시 할당 후에도 안전 상태가 유지되는지 미리 검사)
+    * **탐지(Detection)** : 교착을 허용하되 자원 할당 그래프 등으로 발생 여부를 주기적으로 검사.
+    * **회복(Recovery)** : 교착이 탐지되면 프로세스 강제 종료나 자원 선점(Preemption)으로 해소.
+
+
+* **컨텍스트 스위칭(Context Switching)** : CPU가 현재 실행 중인 프로세스/스레드를 잠시 멈추고 다른 것을 실행하기 위해 상태를 교체하는 작업.
+  * **과정** : 실행 중이던 작업의 상태(레지스터, 프로그램 카운터 등)를 PCB(Process Control Block)에 저장하고, 다음에 실행할 작업의 상태를 PCB에서 복원한다.
+  * **비용** : 상태 저장/복원 자체의 오버헤드에 더해, **프로세스 전환 시에는 캐시(특히 TLB)가 무효화**되어 캐시 미스가 늘어나는 비용이 크다. 같은 프로세스 내 스레드 전환은 메모리 공간(주소 공간)을 공유하므로 상대적으로 비용이 적다.
+
 
 * **선점 스케줄링** : 하나의 프로세스가 CPU를 차지하고 있을 때, 우선순위가 높은 다른 프로세스가 현재 프로세스를 중단시키고 CPU를 점유하는 스케줄링 방식
   * **라운드로빈(RR)**: 각 프로세스는 같은 크기의 CPU를 할당 받고 선입선출에 의해 실행된다. 할당시간이 너무 크면 선입선출처럼 동작하고 너무 짧으면 오버헤드가 발생
   * **SRT** : 짧은 시간동안 순서대로 프로세스를 수행한다. 남은 처리시간이 더 짧은 프로세스가 들어오면 해당 프로세스가 바로 선점된다.
   * **다단계 큐**: Ready큐를 여러 개 사용하는 기법, 각 큐는 자신의 스케줄링 알고리즘을 수행하며 큐와 큐 사이에도 우선순위가 있다.
 
+
 * **비선점 스케줄링** : 프로세스가 CPU를 할당 받으면 해당 프로세스가 완료될 때까지 CPU를 사용한다. 프로세스 응답 시간 예측이 용이하며, 일괄 처리 방식에 적합
   * **우선순위** : 각 프로세스 별로 우선순위가 주어지고, 우선순위에 따라 CPU를 할당
   * **FIFO** : 프로세스들은 Ready 큐에 도착한 순서데로 CPU를 할당 받는다. 작업완료 예측이 용이.
   * **SJF** : 큐 안에 있는 프로세스 중 수행시간이 짧은 것을 먼저수행, 평균 대기시간을 감소
   * **HRN** : 긴 작업 시간과 짧은 작업시간의 불평등을 어느정도 보장, 수행시간의 길이와 대기시간을 모두 고려하여 우선순위를 정함
-<br>
 
 
-# 용어정리 – 기타  
-* **SOLID(객체지향 5대원칙)** 
+* **가상 메모리(Virtual Memory)** : 실제 물리 메모리(RAM)보다 큰 메모리를 사용할 수 있도록, 각 프로세스에 독립적인 논리 주소 공간을 제공하는 기법. 당장 필요한 부분만 물리 메모리에 올리고 나머지는 디스크(Swap 영역)에 두어, 메모리를 효율적으로 활용하고 프로세스 간 메모리를 격리한다.
+  * **페이징(Paging)** : 논리 메모리를 고정 크기의 **페이지(Page)**, 물리 메모리를 같은 크기의 **프레임(Frame)**으로 나누어 매핑하는 방식. 외부 단편화가 없으나 내부 단편화가 발생할 수 있다. (주소 변환은 페이지 테이블, 가속은 TLB가 담당)
+  * **세그멘테이션(Segmentation)** : 메모리를 코드/데이터/스택 등 **논리적 의미 단위(가변 크기 세그먼트)**로 나누는 방식. 논리적 분할에 유리하나 외부 단편화가 발생한다.
+  * **페이지 폴트(Page Fault)** : 접근하려는 페이지가 물리 메모리에 없을 때 발생하는 인터럽트. 운영체제가 디스크(Swap)에서 해당 페이지를 메모리로 적재(Page-in)한 뒤 다시 실행한다. 페이지 폴트가 너무 잦아 디스크 I/O에만 시간을 쏟는 상황을 **스래싱(Thrashing)**이라 한다.
+
+
+* **동기/비동기, 블로킹/논블로킹** : 두 기준은 다른 관점이다. 동기/비동기는 **작업 완료(결과)를 누가 확인/처리하는가(관심사·순서)**, 블로킹/논블로킹은 **호출한 쪽이 제어권을 돌려받는가(대기 여부)** 를 따진다. 네 가지 조합이 가능하다.
+  * **동기 + 블로킹** : 호출 후 결과가 나올 때까지 대기하고, 결과를 직접 받아 처리한다. (일반적인 함수 호출, `Future.get()`)
+  * **동기 + 논블로킹** : 호출은 바로 반환되지만(제어권 회수), 호출한 쪽이 완료 여부를 계속 확인(polling)하며 결과를 직접 챙긴다.
+  * **비동기 + 블로킹** : 작업 처리는 다른 곳에 맡기지만 결과를 기다리며 대기. (잘 쓰이지 않는 비효율적 조합)
+  * **비동기 + 논블로킹** : 호출은 바로 반환되고, 작업이 끝나면 콜백/이벤트로 결과를 통지받는다. 가장 효율적인 조합. (CompletableFuture 콜백, Node.js, NIO 등)
+
+
+* **스레드 안전(Thread-Safety)** : 여러 스레드가 동시에 접근할 수 있는 자원이나 코드 블록이 안전하게 동작할 수 있도록 하는 개념입니다. 스레드 안전성을 확보하지 않으면, 데이터의 일관성이 깨지거나 예상치 못한 결과가 발생할 수 있다.
+  * **Critical Section (임계 구역)** : 여러 스레드가 동시에 접근하면 문제가 발생할 수 있는 코드 블록이나 자원, 이 부분에서는 스레드 간의 동기화가 필요
+  * **Race Condition (경쟁 상태)** : 두 개 이상의 스레드가 동시에 자원에 접근하려고 할 때, 결과가 스레드의 실행 순서에 따라 달라지는 상태, 이로 인해 예기치 않은 동작이 발생할 수 있습니다.
+  * **Mutual Exclusion (상호 배제)** : 임계 구역에 동시에 여러 스레드가 접근하지 못하도록 하는 메커니즘, 이를 위해 주로 락(Lock)을 사용
+
+
+* **Thread-Safety를 위한 주요 기법**
+  * **Locks (락)** : 상호 배제를 구현하기 위한 가장 일반적인 방법. 자원에 접근할 때 락을 걸고, 작업이 끝나면 락을 해제(Mutex, Spinlock)
+  * **Atomic Operations (원자적 연산)** : 한 번에 하나의 스레드만이 접근할 수 있는 연산을 통해 상태를 변경합니다. CPU 수준에서 지원되는 경우가 많다. (AtomicInteger in Java)
+  * **Thread-Local Storage** : 스레드마다 별도의 저장 공간을 제공하여, 스레드 간의 자원 공유를 피함.(ThreadLocal in Java)
+  * **Immutable Objects (불변 객체)** : 객체의 상태를 변경할 수 없도록 설계하여, 여러 스레드가 동시에 읽기만 할 수 있게 하고 상태 변경이 필요한 경우 새로운 객체를 생성한다.
+  * **Concurrent Collections** : 동시성 문제를 해결하기 위해 설계된 컬렉션으로 내부적으로 필요한 동기화 메커니즘을 포함하고 있다. (ConcurrentHashMap in Java)
+
+
+* **사용자 모드 vs 커널 모드, 시스템 콜**
+  * **사용자 모드(User Mode)** : 일반 응용 프로그램이 실행되는 모드. 하드웨어나 핵심 자원에 직접 접근할 수 없도록 권한이 제한된다.
+  * **커널 모드(Kernel Mode)** : 운영체제(커널)가 실행되는 모드. 모든 자원에 접근할 수 있는 특권 모드.
+  * **시스템 콜(System Call)** : 사용자 프로그램이 파일 입출력, 네트워크, 프로세스 생성 등 커널의 기능이 필요할 때 OS에 요청하는 인터페이스. 시스템 콜이 호출되면 사용자 모드 → 커널 모드로 전환(Mode Switch)되며, 이 전환 비용 때문에 잦은 시스템 콜은 성능에 영향을 준다.
+
+
+* **인터럽트(Interrupt)** : CPU가 현재 작업을 잠시 중단하고 특정 이벤트를 먼저 처리하도록 알리는 신호. 처리 후에는 원래 작업으로 복귀한다.
+  * **하드웨어 인터럽트** : 입출력 장치, 타이머 등 외부 하드웨어가 발생시키는 비동기 신호 (키보드 입력, 디스크 완료 등)
+  * **소프트웨어 인터럽트(트랩, Trap)** : 프로그램 실행 중 내부에서 발생 (시스템 콜, 0으로 나누기 같은 예외 등)
+  * **ISR(Interrupt Service Routine)** : 인터럽트가 발생했을 때 실행되는 처리 루틴(핸들러)
+
+
+# 용어정리 – 기타
+
+* **SOLID(객체지향 5대원칙)**
   * **SRP(단일책임원칙)** 모든 클래스는 하나의 책임을 갖는다. 클래스는 그 책임을 완전히 캡슐화해야 한다.
-  * **OCP(개방-폐쇄 원칙)** 확장에는 열려 있어야 하고, 수정에 대해서는 닫혀 있어야 한다. 
+  * **OCP(개방-폐쇄 원칙)** 확장에는 열려 있어야 하고, 수정에 대해서는 닫혀 있어야 한다.
   * **LSP(리스코프 치환 원칙)** 상위 타입의 객체를 하위 타입의 객체로 치환해도 상위 타입을 사용하는 프로그램은 정상적으로 동작해야 한다.
   * **ISP(인터페이스 분리 원칙)** 큰 덩어리의 인터페이스를 구체적으로 작은 단위로 분리시켜, 꼭 필요한 메소드만 사용하게 한다.
-  * **DIP(의존관계 역전 원칙)** 상위 모듈은 하위 모듈에 의존하지 않고, 상위 모듈과 하위 모듈 모두 추상화에 의존해야 한다.  
-  <br>
+  * **DIP(의존관계 역전 원칙)** 상위 모듈은 하위 모듈에 의존하지 않고, 상위 모듈과 하위 모듈 모두 추상화에 의존해야 한다.
+
 
 * **디자인 패턴**
   * **생성 패턴(Creational Pattern)**
@@ -435,8 +627,7 @@ graph TD
     * **Factory Method(팩토리 메서드 패턴)** : 객체를 생성하기 위한 인터페이스를 정의하고, 서브클래스에서 어떤 클래스의 인스턴스를 생성할지 결정하는 패턴
     * **Abstract Factory(추상 팩토리 패턴)** : 관련된 객체들의 집합을 생성하는 인터페이스를 제공하며, 구체적인 팩토리 클래스를 통해 객체 생성을 추상화하는 패턴
     * **Builder(빌더 패턴)** : 복잡한 객체의 생성 과정을 단순화하고, 객체를 단계적으로 생성하며 구성하는 패턴
-    * **Prototype(프로토타입 패턴)** : 체를 복제하여 새로운 객체를 생성하는 패턴으로, 기존 객체를 템플릿으로 사용하는 패턴
-<br>
+    * **Prototype(프로토타입 패턴)** : 객체를 복제하여 새로운 객체를 생성하는 패턴으로, 기존 객체를 템플릿으로 사용하는 패턴
 
   * **구조 패턴(Structural Pattern)**
     * **Adapter(어댑터 패턴)** : 인터페이스 호환성을 제공하지 않는 클래스를 사용하기 위해 래퍼(Wrapper)를 제공하는 패턴
@@ -446,7 +637,6 @@ graph TD
     * **Facade(퍼사드 패턴)** : 서브시스템을 더 쉽게 사용할 수 있도록 단순한 인터페이스를 제공하는 패턴
     * **Flyweight(플라이웨이트 패턴)** : 공유 가능한 객체를 통해 메모리 사용을 최적화하는 패턴
     * **Proxy(프록시 패턴)** : 다른 객체에 대한 대리자(Proxy)를 제공하여 접근 제어, 지연 로딩 등을 구현하는 패턴
-<br>
 
   * **행위 패턴(Behavioral Pattern)**
     * **Observer(옵저버 패턴)** : 객체 간의 일대다 종속 관계를 정의하여 한 객체의 상태 변경이 다른 객체들에게 알려지도록 한다.
@@ -460,70 +650,283 @@ graph TD
     * **Mediator(중재자 패턴)** : 객체 간의 상호 작용을 캡슐화하여, 객체 간의 직접적인 통신을 방지하는 패턴
     * **Template Method(템플릿 메서드 패턴)** : 알고리즘의 구조를 정의하면서 하위 클래스에서 각 단계의 구현을 제공하는 디자인 패턴
     * **Iterator(이터레이터 패턴)** : 컬렉션 내의 요소들에 접근하는 방법을 표준화하여 컬렉션의 내부 구조에 독립적으로 접근할 수 있는 패턴
-<br>
+
 
 * **REST(Representational State Transfer Application Programming Interface) API**
 네트워크 기반 애플리케이션의 통신을 위해 설계된 아키텍처 스타일, REST는 웹의 기존 기술과 프로토콜을 활용하여 클라이언트와 서버 간의 상호 작용을 간편하고 효율적으로 만든다. RESTful API는 주로 HTTP 프로토콜을 사용하며, 자원을 URI로 식별하고, 자원에 대한 상태 변화를 HTTP 메서드로 처리한다.
- HTTP 프로토콜을 기반으로 하므로, 기존 웹 기술과 쉽게 통합 할수 있고 클라이언트/ 서버를 분리 개발하여 확장성이 좋지만 HTTP 헤더와 같은 추가 메타데이터가 포함되어야 하므로, 네트워크 오버헤드가 발생할수 있고 REST는 아키텍처 스타일이지 표준이 아니므로, 구현 방식에 따라 다를 수 있다. 
- <br>
+HTTP 프로토콜을 기반으로 하므로, 기존 웹 기술과 쉽게 통합 할수 있고 클라이언트/ 서버를 분리 개발하여 확장성이 좋지만 HTTP 헤더와 같은 추가 메타데이터가 포함되어야 하므로, 네트워크 오버헤드가 발생할수 있고 REST는 아키텍처 스타일이지 표준이 아니므로, 구현 방식에 따라 다를 수 있다.
+
 
 * **REST API의 주요 개념**
-  * **자원(Resource)** : 모든 자원은 고유한 URI(Uniform Resource Identifier)로 식별됨, 
+  * **자원(Resource)** : 모든 자원은 고유한 URI(Uniform Resource Identifier)로 식별됨,
   * **HTTP 메서드** : REST API는 HTTP 메서드를 사용하여 자원에 대한 작업을 수행한다.
-    * **GET** : 서버에서 자원을 조회 (GET /users/1) 
-    * **POST** : 서버에 새로운 자원을 생성 (POST /users) 
-    * **PUT** :  서버에서 자원의 전체를 업데이트하거나 새로운 자원을 생성 (PUT /users/1)
-    * **DELETE** : 서버에서 자원을 삭제 DELETE (/users/1)
+    * **GET** : 서버에서 자원을 조회 (GET /users/1)
+    * **POST** : 서버에 새로운 자원을 생성 (POST /users)
+    * **PUT** : 서버에서 자원의 전체를 업데이트하거나 새로운 자원을 생성 (PUT /users/1)
+    * **DELETE** : 서버에서 자원을 삭제 (DELETE /users/1)
     * **PATCH** : 자원의 부분 업데이트를 수행 (PATCH /users/1)
   * **표현(Representation)** : 클라이언트와 서버는 자원의 표현을 주고받습니다. 표현은 일반적으로 JSON, XML, HTML 등의 형태로 전송된다.
   * **상태 전이(State Transfer)** 클라이언트가 서버의 자원 상태를 변경하는 행위, 클라이언트와 서버는 상태를 주고받으며, 클라이언트는 서버의 자원을 조작하거나 조회하여 상태를 전이한다.
   * **HATEOAS(Hypermedia As The Engine Of Application State)** : REST 아키텍처 스타일의 원칙 중 하나로, 클라이언트가 서버에서 받은 응답에 포함된 링크를 통해 다른 자원에 접근할 수 있게 한다.
 
-<br>
 
-# 용어정리 – 아키텍처 및 분산 시스템 (Senior)
+* **Stateless(무상태성)** : 서버가 클라이언트의 상태(세션)를 저장하지 않고, **각 요청이 처리에 필요한 모든 정보를 담아 독립적으로 처리**되는 것. REST의 핵심 제약 조건 중 하나로, 서버 확장(Scale-out)과 로드밸런싱에 유리하다.
 
-* **MSA (Microservices Architecture)** : 애플리케이션을 작은 독립적인 서비스 단위로 나누어 개발하고 배포하는 아키텍처. 서비스 간 독립성, 확장성, 배포 속도 면에서 유리하지만 분산 시스템의 복잡성(데이터 일관성, 네트워크 지연 등)이 증가한다.
-* **CAP 이론** : 분산 시스템에서 **Consistency(일관성), Availability(가용성), Partition Tolerance(분할 내성)** 세 가지를 모두 만족할 수 없다는 이론. 보통 CP(일관성 중시)와 AP(가용성 중시) 시스템으로 나뉜다.
-* **PACELC 이론** : CAP 이론의 확장으로, 장애가 없을 때(Else) 지연 시간(Latency)과 일관성(Consistency) 사이의 트레이드오프를 설명한다.
-* **Saga 패턴** : MSA 환경에서 여러 서비스에 걸친 분산 트랜잭션을 관리하는 패턴. 각 서비스의 로컬 트랜잭션을 순차적으로 실행하며, 실패 시 **보상 트랜잭션(Compensating Transaction)**을 통해 데이터 일관성을 맞춘다. (Choreography vs Orchestration)
 
-```mermaid
-sequenceDiagram
-    participant O as Order Service
-    participant P as Payment Service
-    participant S as Stock Service
-    
-    Note over O, S: Choreography Saga Example
-    O->>P: Create Order (Event)
-    P->>P: Process Payment
-    P->>S: Payment Completed (Event)
-    S->>S: Update Stock
-    S-->>O: Order Finalized (Event)
-    
-    Note over O, S: Failure Case (Compensation)
-    S-->>P: Stock Failed (Event)
-    P->>P: Refund Payment (Compensate)
-    P-->>O: Order Cancelled (Event)
-```
-* **Transactional Outbox 패턴** : 메시지 발행과 DB 업데이트를 하나의 로컬 트랜잭션으로 묶어 메시지 유실을 방지하는 패턴. 별도의 릴레이 프로세스가 Outbox 테이블을 읽어 메시지 브로커로 전달한다.
-* **CQRS (Command Query Responsibility Segregation)** : 명령(CUD)과 조회(Read)의 모델을 분리하는 패턴. 조회 성능 극대화를 위해 별도의 데이터 저장소나 뷰 모델을 유지하기도 한다.
-* **헥사고날 아키텍처 (Ports and Adapters)** : 비즈니스 로직을 외부 환경(DB, UI, 외부 API)으로부터 독립시키기 위해 인터페이스(Port)와 구현체(Adapter)를 사용하는 아키텍처. 테스트 용이성과 기술 스택 교체에 유연하다.
+* **멱등성(Idempotent)과 안전성(Safe)** : HTTP 메서드의 성질
+  * **안전한(Safe) 메서드** : 호출해도 **서버의 자원 상태를 변경하지 않는** 메서드. (조회 전용)
+  * **멱등한(Idempotent) 메서드** : **같은 요청을 여러 번 보내도 결과(서버 상태)가 한 번 보낸 것과 동일한** 메서드. 네트워크 재시도 시 안전하다. (단, 응답 코드까지 같다는 의미는 아님)
+  * **메서드별 멱등성/안전성**
 
-<br>
+    | 메서드 | 안전(Safe) | 멱등(Idempotent) | 비고 |
+    |--------|:---------:|:----------------:|------|
+    | GET    | O         | O                | 조회만, 상태 변경 없음 |
+    | HEAD   | O         | O                | 본문 없는 GET |
+    | POST   | X         | X                | 호출마다 새 자원 생성 |
+    | PUT    | X         | O                | 같은 값으로 전체 교체 → 결과 동일 |
+    | DELETE | X         | O                | 여러 번 삭제해도 최종 상태 동일(이미 삭제됨) |
+    | PATCH  | X         | X (구현에 따라 다름) | 부분 수정, 보장되지 않음 |
 
-# 용어정리 – 성능 및 운영 (Senior)
 
-* **Redis 캐싱 전략**
-  * **Cache Aside (Look Aside)** : 앱이 캐시를 먼저 확인하고 없으면 DB에서 조회 후 캐시에 저장. 가장 일반적인 방식.
-  * **Write Back** : 데이터를 캐시에 먼저 저장하고 일정 시간 후 DB에 배치 저장. 쓰기 성능은 좋으나 유실 위험이 있다.
-  * **Write Through** : 캐시와 DB에 동시에 데이터를 저장. 일관성은 좋으나 쓰기 속도가 느리다.
+* **HTTP 상태 코드** : 응답의 결과를 나타내는 코드
+  * **2xx (성공)** : 요청 성공. (200 OK, 201 Created — 생성됨, 204 No Content — 성공했으나 본문 없음)
+  * **3xx (리다이렉션)** : 추가 동작 필요. (301 Moved Permanently — 영구 이동, 302 Found — 임시 이동, 304 Not Modified — 캐시 사용)
+  * **4xx (클라이언트 오류)** : 요청 자체의 문제. (400 Bad Request, 401 Unauthorized — 인증 필요, 403 Forbidden — 권한 없음, 404 Not Found, 409 Conflict)
+  * **5xx (서버 오류)** : 서버 측 처리 실패. (500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable)
+
+
+* **REST 성숙도 모델(Richardson Maturity Model)** : REST를 얼마나 잘 지켰는지를 단계로 나눈 모델
+  * **Level 0** : HTTP를 단순 전송 통로로만 사용 (단일 URI, POST 위주)
+  * **Level 1** : 자원(Resource)별로 URI를 분리
+  * **Level 2** : HTTP 메서드(GET/POST/PUT/DELETE)와 상태 코드를 규약대로 사용 (대부분의 현실 REST API가 이 단계)
+  * **Level 3** : HATEOAS까지 적용해 응답에 다음 행동 링크를 포함 (진정한 REST)
+
+
+# 용어정리 – 아키텍처 및 분산 시스템
+
+* **Monolithic vs MSA** : 모놀리식은 하나의 배포 단위에 모든 기능이 포함되어 초기 개발과 운영이 단순하지만, 규모가 커질수록 빌드/배포가 무겁고 일부 기능의 장애가 전체로 전파된다. MSA는 기능별로 독립 배포가 가능해 부분 확장과 장애 격리에 유리하지만 분산 시스템의 복잡성이 증가한다.
+
+
+* **MSA (Microservices Architecture)** : 애플리케이션을 작은 독립적인 서비스 단위로 나누어 개발하고 배포하는 아키텍처. 서비스 간 독립성, 확장성, 배포 속도 면에서 유리하지만 분산 시스템의 복잡성(데이터 일관성, 네트워크 지연, 분산 트랜잭션, 디버깅 난이도 등)이 증가한다.
+  * **장점** : 서비스별 독립 배포/확장, 장애 격리, 기술 스택의 다양성(Polyglot), 팀별 독립 개발
+  * **단점** : 네트워크 통신 비용, 데이터 정합성 보장의 어려움, 통합 테스트/운영 복잡도, 분산 트랜잭션
+
+
+* **CAP 이론** : 분산 시스템에서 **Consistency(일관성), Availability(가용성), Partition Tolerance(분할 내성)** 세 가지를 동시에 모두 만족할 수 없다는 이론. 네트워크 분할(Partition)은 분산 환경에서 필연적이므로, 실질적으로는 분할 발생 시 **CP(일관성 우선)**와 **AP(가용성 우선)** 중 하나를 선택하게 된다.
+  * **CP 시스템** : 일관성을 위해 일부 요청을 거부하거나 대기 (예: MongoDB, HBase, Zookeeper)
+  * **AP 시스템** : 가용성을 위해 오래된 데이터라도 응답 (예: Cassandra, DynamoDB)
+
+
+* **분산 트랜잭션과 데이터 정합성**
+  * **2PC (Two-Phase Commit)** : 코디네이터가 Prepare(준비) → Commit(확정) 두 단계로 모든 참여 노드의 커밋을 동기적으로 보장. 강한 일관성을 제공하지만 코디네이터 장애 시 블로킹이 발생하고, 모든 참여자가 락을 유지해야 해 성능과 가용성이 떨어진다. MSA에서는 잘 사용하지 않음.
+  * **Saga 패턴** : MSA 환경에서 여러 서비스에 걸친 분산 트랜잭션을 관리하는 패턴. 각 서비스의 로컬 트랜잭션을 순차적으로 실행하며, 중간에 실패하면 **보상 트랜잭션(Compensating Transaction)**으로 이전 작업을 되돌려 데이터 일관성(최종적 일관성)을 맞춘다.
+    * **Choreography(코레오그래피)** : 중앙 조정자 없이 각 서비스가 이벤트를 발행/구독하며 다음 단계를 진행. 구현이 단순하지만 흐름 파악이 어렵고 서비스 간 결합이 생길 수 있다.
+    * **Orchestration(오케스트레이션)** : 중앙 오케스트레이터가 각 서비스를 순서대로 호출하고 보상 로직을 관리. 흐름이 명확하지만 오케스트레이터에 로직이 집중된다.
+  * **최종적 일관성(Eventual Consistency)** : 일정 시간이 지나면 모든 노드가 동일한 상태로 수렴한다는 개념. MSA에서는 강한 일관성 대신 최종적 일관성을 받아들이는 경우가 많다.
+
+
+* **MSA 핵심 구성요소**
+  * **API Gateway** : 클라이언트의 단일 진입점(Single Entry Point). 라우팅, 인증/인가, 로드밸런싱, Rate Limiting 등 공통 관심사를 처리 (Spring Cloud Gateway)
+  * **Service Discovery** : 동적으로 변하는 서비스 인스턴스의 위치(IP/Port)를 등록/조회하는 메커니즘 (Eureka, Consul)
+  * **Config Server** : 여러 서비스의 설정을 중앙에서 관리 (Spring Cloud Config)
+  * **분산 추적(Distributed Tracing)** : 여러 서비스를 거치는 요청에 TraceId를 부여해 흐름을 추적
+
+
+* **장애 대응 패턴 (Resilience)**
+  * **Circuit Breaker(서킷 브레이커)** : 특정 서비스 호출의 실패율이 임계치를 넘으면 회로를 열어(Open) 호출을 즉시 차단하고, 장애가 연쇄적으로 전파되는 것을 막는 패턴. Closed → Open → Half-Open 상태로 동작한다 (Resilience4j, Hystrix)
+  * **Bulkhead(벌크헤드)** : 자원(스레드풀, 커넥션 등)을 격리해 한 서비스의 장애가 전체 자원을 고갈시키지 않도록 막는 패턴
+  * **Retry / Timeout / Fallback** : 일시적 오류에 대한 재시도, 무한 대기를 막는 타임아웃, 실패 시 대체 응답 제공
+
+
+* **CQRS (Command Query Responsibility Segregation)** : 명령(CUD)과 조회(Read)의 모델을 분리하는 패턴. 쓰기 모델과 읽기 모델을 분리해 각각 독립적으로 최적화/확장할 수 있다. 조회 성능 극대화를 위해 별도의 읽기 전용 저장소나 뷰 모델을 두기도 한다. 흔히 **Event Sourcing**과 함께 사용된다.
+  * **Event Sourcing** : 현재 상태가 아니라 상태를 변경시킨 이벤트(사건)들을 순서대로 저장하고, 이벤트를 재생(Replay)하여 상태를 복원하는 방식. 이력 추적과 감사(Audit)에 유리하다.
+
+
+* **Transactional Outbox 패턴** : DB 업데이트와 메시지 발행을 하나의 로컬 트랜잭션으로 묶어 처리하는 패턴. 비즈니스 데이터와 함께 Outbox 테이블에 메시지를 저장하고, 별도의 릴레이 프로세스(또는 CDC)가 Outbox 테이블을 읽어 메시지 브로커로 전달한다. "DB 커밋은 됐는데 메시지 발행은 실패"하는 이중 쓰기(Dual Write) 문제와 메시지 유실을 방지한다.
+  * **CDC (Change Data Capture)** : DB의 변경 로그(예: MySQL binlog)를 캡처해 이벤트로 전파하는 기법 (Debezium)
+
+
+* **PACELC 이론** : CAP 이론의 확장으로, 네트워크 분할(P)이 있을 때는 A와 C를 트레이드오프하고, 분할이 없을 때(Else)는 지연 시간(Latency)과 일관성(Consistency) 사이의 트레이드오프가 존재함을 설명한다.
+
+
+* **헥사고날 아키텍처 (Ports and Adapters)** : 비즈니스 로직을 외부 환경(DB, UI, 외부 API)으로부터 독립시키기 위해 인터페이스(Port)와 구현체(Adapter)를 사용하는 아키텍처. 의존성이 외부 → 도메인 방향으로만 향하도록 하여, 테스트 용이성과 기술 스택 교체에 유연하다. (클린 아키텍처와 유사한 지향점)
+
+
+# 용어정리 – 성능 및 운영
+
+* **Redis (Remote Dictionary Server)** : 인메모리(In-Memory) 기반의 Key-Value 저장소. 모든 데이터를 메모리에 저장해 매우 빠르며, 캐시뿐 아니라 세션 저장소, 분산 락, 메시지 큐, 순위표(Ranking) 등 다양하게 활용된다. **싱글 스레드(Single Thread) 이벤트 루프**로 명령을 처리해 race condition 없이 원자성을 보장한다. (단, 무거운 명령은 전체를 블로킹시킬 수 있어 주의 — 예: `KEYS *`)
+
+
+* **Redis 캐싱 전략 (읽기)**
+  * **Cache Aside (Look Aside)** : 앱이 캐시를 먼저 확인하고(Cache Hit 시 반환), 없으면(Cache Miss) DB에서 조회 후 캐시에 저장. 가장 일반적인 방식. 캐시 장애가 DB 조회로 이어져 시스템이 죽지는 않지만, 최초 조회 시 지연이 발생한다.
+
+
+* **Redis 캐싱 전략 (쓰기)**
+  * **Write Through** : 캐시와 DB에 동시에(캐시 갱신 후 DB 저장) 데이터를 저장. 데이터 정합성은 좋으나 매 쓰기마다 두 곳에 저장하므로 쓰기 속도가 느리다.
+  * **Write Back (Write Behind)** : 데이터를 캐시에 먼저 저장하고 일정 시간/일정량이 모이면 DB에 배치(Batch) 저장. 쓰기 성능은 매우 좋으나 DB 반영 전 캐시 장애 시 유실 위험이 있다.
+  * **Write Around** : 쓰기는 DB에만 하고 캐시는 갱신하지 않음. 이후 조회 시점에 캐시에 적재. 자주 읽히지 않는 데이터에 적합.
+
+
+* **캐시 장애 상황**
+  * **Cache Stampede (Thundering Herd)** : 인기 키가 동시에 만료되면, 수많은 요청이 한꺼번에 DB로 몰려(Cache Miss) DB에 부하가 폭증하는 현상. 해결책으로 만료 시간 분산(TTL Jitter), 갱신 시 분산 락(PER 알고리즘, 단일 스레드만 재계산), 논블로킹 재계산 등이 있다.
+  * **Cache Penetration(캐시 관통)** : 캐시와 DB 모두에 없는 데이터를 반복 조회해 매번 DB까지 도달하는 현상. → 빈 결과도 캐싱하거나 **Bloom Filter**로 존재 여부 사전 차단.
+  * **Cache Avalanche(캐시 눈사태)** : 다수의 키가 동시에 만료되거나 캐시 서버 자체가 다운되어 부하가 일시에 DB로 몰리는 현상. → TTL 분산, 다중화(Replica), 서킷 브레이커.
+
+
+* **캐시 일관성과 무효화(Invalidation)** : "캐시 무효화는 컴퓨터 과학의 어려운 문제 중 하나"로 불릴 만큼 까다롭다. DB 갱신 시 캐시를 어떻게 동기화할지가 핵심.
+  * **TTL(Time To Live)** : 만료 시간을 두어 일정 시간 뒤 자동으로 캐시를 비우는 가장 단순한 방법
+  * **Cache Eviction 정책** : 메모리가 가득 찼을 때 데이터를 제거하는 정책. **LRU(가장 오래 안 쓰인 것)**, **LFU(가장 적게 쓰인 것)**, TTL 기반 등
+  * **Write 시 캐시 갱신/삭제** : 데이터 변경 시 캐시를 갱신(Update)하거나 삭제(Delete)하여 정합성 유지. 일반적으로 갱신보다 **삭제(Cache Invalidation)** 후 다음 조회 시 재적재가 안전하다.
+
+
+* **Redis 자료구조** : String, List, Set, Sorted Set(ZSet), Hash, Bitmap, HyperLogLog, Geo, Stream 등을 지원한다.
+  * **Sorted Set** : score 기반 정렬 → 실시간 랭킹/리더보드에 활용
+  * **Hash** : 객체(필드-값) 저장에 적합
+  * **Set** : 중복 제거, 교집합/합집합 연산 (공통 관심사, 태그)
+
+
+* **Redis 분산 락 (Distributed Lock)** : 여러 서버/인스턴스가 공유 자원에 동시에 접근하는 것을 막기 위해 사용. `SETNX`(Set if Not Exists)로 락을 구현하며, 데드락 방지를 위해 반드시 만료 시간(TTL)을 둔다. 다중 노드 환경에서는 **Redlock** 알고리즘을 사용하기도 한다. (Java에서는 Redisson 라이브러리가 대표적)
+
+
+* **Redis 영속성(Persistence)** : 인메모리지만 재시작 시 데이터 복구를 위해 디스크 저장 옵션을 제공한다.
+  * **RDB (Snapshot)** : 특정 시점의 메모리 전체를 스냅샷으로 저장. 파일이 작고 복구가 빠르지만, 스냅샷 사이의 데이터는 유실될 수 있다.
+  * **AOF (Append Only File)** : 모든 쓰기 명령을 로그로 기록. 유실이 적고 안정적이지만 파일이 크고 복구가 상대적으로 느리다. (실무에서는 RDB + AOF 혼용)
+
+
+* **Redis 고가용성 / 확장**
+  * **Replication(복제)** : Master-Replica 구조로 데이터를 복제해 읽기 분산과 장애 대비
+  * **Sentinel(센티넬)** : Master 장애를 감지해 Replica를 자동으로 승격(Failover)시켜 고가용성을 확보
+  * **Cluster(클러스터)** : 데이터를 16384개의 해시 슬롯으로 **샤딩(Sharding)**하여 여러 노드에 분산 저장 → 수평 확장
+
+
 * **JVM 튜닝 및 장애 대응**
   * **Heap Dump** : 특정 시점의 JVM 메모리 상태를 기록한 파일. 메모리 누수(Memory Leak) 분석 시 사용.
   * **Thread Dump** : 특정 시점의 모든 스레드 상태를 기록한 파일. 데드락(Deadlock)이나 CPU 점유율 이상 분석 시 사용.
+
+
 * **Observability (관측 가능성)**
   * **Logging** : 발생한 이벤트 기록 (ELK 스택 등)
   * **Metrics** : 수치화된 데이터 기록 (Prometheus, Grafana)
   * **Tracing** : 분산 환경에서 요청의 흐름 추적 (Micrometer Tracing, Jaeger, Zipkin)
 
-  
+
+# 용어정리 – 컨테이너 및 오케스트레이션
+
+* **Docker** : 애플리케이션과 그 실행 환경(라이브러리, 의존성, 설정)을 **컨테이너(Container)**라는 격리된 단위로 패키징하여, 어디서나 동일하게 실행할 수 있게 해주는 컨테이너 가상화 플랫폼. "내 PC에서는 되는데"라는 환경 차이 문제를 해결한다.
+
+
+* **컨테이너 vs 가상머신(VM)** : VM은 Hypervisor 위에 Guest OS 전체를 띄우는 반면, 컨테이너는 **호스트 OS의 커널을 공유**하고 프로세스 수준으로 격리한다. 따라서 컨테이너는 OS를 포함하지 않아 가볍고, 부팅이 빠르며, 자원 효율이 높다.
+  * 리눅스 커널의 **namespace(자원 격리)**와 **cgroup(자원 제한)** 기술을 기반으로 격리를 구현한다.
+
+
+* **Docker 핵심 개념**
+  * **Image(이미지)** : 컨테이너 실행에 필요한 파일과 설정을 담은 읽기 전용 템플릿. 변경 불가능(Immutable)하다.
+  * **Container(컨테이너)** : 이미지를 실행한 인스턴스. 이미지 위에 쓰기 가능한 레이어가 올라간 상태.
+  * **Dockerfile** : 이미지를 만드는 빌드 절차를 코드로 정의한 파일 (FROM, RUN, COPY, CMD, ENTRYPOINT 등)
+  * **Layer(레이어)** : 이미지는 여러 읽기 전용 레이어로 구성되며, 변경된 레이어만 다시 빌드/전송하므로 캐싱과 재사용에 효율적이다.
+  * **Registry(레지스트리)** : 이미지를 저장/공유하는 저장소 (Docker Hub, ECR, Harbor)
+  * **Volume(볼륨)** : 컨테이너는 삭제되면 데이터가 사라지므로(Ephemeral), 데이터를 영속적으로 보관하기 위해 호스트나 별도 저장소에 마운트하는 메커니즘
+
+
+* **Kubernetes (K8s)** : 구글이 개발해 오픈소스화한 컨테이너 오케스트레이션 플랫폼. 선언적(Declarative) 방식으로 "원하는 상태(Desired State)"를 정의하면, 컨트롤러가 현재 상태를 지속적으로 비교/조정(Reconciliation)하여 그 상태를 유지한다. (자동 배포, 스케일링, 셀프 힐링, 로드밸런싱 제공)
+
+
+* **컨테이너 오케스트레이션(Orchestration)** : 다수의 컨테이너를 여러 서버에 걸쳐 배포/확장/관리/복구하는 것을 자동화하는 것. 컨테이너 수가 많아지면 수동 관리가 불가능하기 때문에 필요하다. 대표 도구가 **Kubernetes(K8s)**.
+
+
+* **K8s 핵심 오브젝트**
+  * **Pod(파드)** : 배포의 최소 단위. 하나 이상의 컨테이너를 묶은 그룹으로, 같은 Pod 내 컨테이너는 네트워크(IP)와 볼륨을 공유한다. Pod는 언제든 죽고 재생성될 수 있어 IP가 고정되지 않는다(그래서 Service가 필요).
+  * **ReplicaSet** : 지정한 수의 Pod 복제본이 항상 유지되도록 관리
+  * **Deployment** : ReplicaSet을 관리하며 **롤링 업데이트/롤백** 등 배포 전략을 제공하는 상위 오브젝트
+  * **Service** : 동적으로 변하는 Pod들에 대한 **고정된 접근 지점(가상 IP)**과 로드밸런싱을 제공
+    * **ClusterIP** : 클러스터 내부 통신용 (기본값)
+    * **NodePort** : 각 노드의 특정 포트로 외부 노출
+    * **LoadBalancer** : 클라우드 로드밸런서와 연동해 외부 노출
+  * **Ingress** : L7(HTTP/HTTPS) 레벨에서 도메인/경로 기반 라우팅을 제공하는 외부 진입점
+  * **ConfigMap / Secret** : 설정값(ConfigMap)과 민감 정보(Secret)를 컨테이너 이미지와 분리해 주입
+  * **Namespace** : 클러스터 내 자원을 논리적으로 분리하는 단위
+  * **Volume / PV / PVC** : 영속 스토리지. **PV(PersistentVolume)**는 실제 저장소, **PVC(PersistentVolumeClaim)**는 사용자가 요청하는 스토리지 요청서
+
+
+* **K8s 아키텍처**
+  * **Control Plane (Master)** : 클러스터를 관리/제어하는 두뇌
+    * **API Server** : 모든 요청의 단일 진입점, 클러스터와의 통신 창구
+    * **etcd** : 클러스터의 모든 상태/설정을 저장하는 분산 Key-Value 저장소
+    * **Scheduler** : 새로운 Pod를 어느 Node에 배치할지 결정
+    * **Controller Manager** : 현재 상태를 원하는 상태로 맞추는 컨트롤러들을 실행
+  * **Worker Node** : 실제 컨테이너(Pod)가 실행되는 서버
+    * **Kubelet** : 노드에서 Pod가 정상 동작하도록 관리하는 에이전트
+    * **Kube-proxy** : Pod 간/외부 네트워크 통신 및 로드밸런싱 처리
+    * **Container Runtime** : 실제 컨테이너를 실행 (containerd 등)
+
+
+* **K8s 운영 기능**
+  * **HPA (Horizontal Pod Autoscaler)** : CPU/메모리 등 메트릭에 따라 Pod 수를 자동으로 늘리고 줄임(수평 확장)
+  * **Self-Healing** : 컨테이너가 죽으면 자동 재시작, 노드 장애 시 다른 노드로 재배치
+  * **Probe(상태 검사)**
+    * **Liveness Probe** : 컨테이너가 살아있는지 검사, 실패 시 재시작
+    * **Readiness Probe** : 트래픽을 받을 준비가 됐는지 검사, 실패 시 Service에서 제외
+    * **Startup Probe** : 기동이 느린 앱의 초기 구동 완료 여부를 검사
+
+
+* **K8s 배포 전략**
+  * **Rolling Update** : Pod를 하나씩 점진적으로 교체. 무중단 배포가 가능하나 신/구 버전이 잠시 공존한다. (K8s 기본값)
+  * **Blue-Green** : 신(Green)/구(Blue) 환경을 동시에 띄우고 트래픽을 한 번에 전환. 빠른 롤백이 가능하나 자원이 두 배 필요.
+  * **Canary** : 일부 트래픽만 신버전으로 보내 검증한 뒤 점진적으로 확대
+
+
+* **이미지 최적화**
+  * **Multi-stage Build** : 빌드 단계와 실행 단계를 분리해, 최종 이미지에는 실행에 필요한 산출물만 포함시켜 이미지 크기를 줄이는 기법
+  * **경량 베이스 이미지** : alpine, distroless 등 작은 베이스 이미지를 사용해 용량과 공격 표면을 줄임
+  * **레이어 캐시 활용** : 자주 바뀌지 않는 의존성 설치를 앞 레이어에 두어 캐시 적중률을 높임 (예: `COPY pom.xml` → 의존성 다운로드 → `COPY src`)
+
+
+* **Docker Compose** : 여러 컨테이너로 구성된 애플리케이션을 하나의 YAML 파일(`docker-compose.yml`)로 정의하고 한 번에 실행/관리하는 도구. 주로 로컬 개발 환경 구성에 사용된다.
+
+
+# 용어정리 – 메시지 브로커 및 이벤트 기반
+
+* **메시지 브로커(Message Broker)** : 시스템 간 메시지를 비동기적으로 중계해주는 미들웨어. 생산자(Producer)와 소비자(Consumer)를 분리하여 **결합도를 낮추고(Decoupling)**, 일시적 부하를 완충(Buffering)하며, 트래픽 급증을 받아내는 역할을 한다.
+  * **동기 통신 vs 비동기 메시징** : REST 같은 동기 호출은 응답을 기다리며 강하게 결합되지만, 메시징은 발행 후 즉시 반환되어 느슨하게 결합되고 장애 격리에 유리하다.
+
+
+* **Kafka (Apache Kafka)** : 대용량 실시간 데이터 스트리밍을 위한 **분산 이벤트 스트리밍 플랫폼**. 메시지를 디스크에 로그(Append-only Log) 형태로 영구 저장하고, 높은 처리량(High Throughput)과 수평 확장에 강점이 있다. 단순 큐를 넘어 이벤트 소싱/로그 수집/스트림 처리에 널리 쓰인다.
+
+
+* **Kafka 핵심 개념**
+  * **Producer / Consumer** : 메시지를 발행하는 주체 / 구독하여 소비하는 주체
+  * **Topic(토픽)** : 메시지가 저장되는 논리적 채널(카테고리)
+  * **Partition(파티션)** : 토픽을 나눈 물리적 단위. 파티션 수만큼 병렬 처리가 가능해 처리량과 확장성의 핵심이다. **파티션 내에서는 순서가 보장**되지만, 토픽 전체의 순서는 보장되지 않는다.
+  * **Offset(오프셋)** : 파티션 내 각 메시지의 고유한 순번. 소비자는 어디까지 읽었는지를 오프셋으로 관리(커밋)한다.
+  * **Consumer Group(컨슈머 그룹)** : 같은 그룹의 컨슈머들이 파티션을 나눠 병렬 소비. 한 파티션은 그룹 내 하나의 컨슈머에만 할당된다. (컨슈머 수 ≤ 파티션 수일 때 효율적)
+  * **Broker / Cluster** : 메시지를 저장/전달하는 Kafka 서버 / 그 서버들의 집합
+  * **Replication(복제)** : 파티션을 여러 브로커에 복제(Leader-Follower)하여 장애에 대비. Leader가 읽기/쓰기를 담당하고 장애 시 Follower가 승격된다.
+  * **Zookeeper / KRaft** : 기존에는 Zookeeper가 메타데이터/리더 선출을 관리했으나, 최신 버전은 이를 제거한 **KRaft** 모드로 전환되고 있다.
+
+
+* **메시지 전달 보장(Delivery Semantics)**
+  * **At-Most-Once** : 최대 한 번. 유실 가능성은 있으나 중복은 없음 (성능 우선)
+  * **At-Least-Once** : 최소 한 번. 유실은 없으나 중복 가능 → **소비자의 멱등성(Idempotency) 처리 필요**. (가장 일반적)
+  * **Exactly-Once** : 정확히 한 번. 유실/중복 모두 없음. Kafka는 트랜잭션과 멱등 프로듀서로 지원하나 비용이 크다.
+
+
+* **멱등성(Idempotency)** : 같은 메시지를 여러 번 처리해도 결과가 동일하도록 보장하는 것. At-Least-Once 환경에서 중복 소비에 대비해 필수적이며, 메시지 고유 ID 기반 중복 체크나 Upsert 등으로 구현한다.
+
+
+* **순서 보장** : 순서가 중요한 메시지는 동일한 Key를 사용해 같은 파티션으로 보내면 순서가 보장된다. (예: 주문ID를 Key로 사용)
+
+
+* **메시징 모델**
+  * **Point-to-Point (Queue)** : 하나의 메시지를 하나의 소비자만 처리. 작업 분산(Work Queue)에 적합.
+  * **Publish-Subscribe (Topic)** : 하나의 메시지를 구독한 모든 소비자가 수신. 이벤트 브로드캐스트에 적합.
+
+
+* **Kafka vs RabbitMQ** : 둘 다 대표적인 메시지 브로커지만 지향점이 다르다.
+  * **Kafka** : 로그 기반, 높은 처리량과 데이터 보존(재처리 가능)에 강점. 대용량 스트리밍/이벤트 소싱에 적합. (Pull 방식 — 컨슈머가 가져감)
+  * **RabbitMQ** : 전통적인 메시지 큐(AMQP). 복잡한 라우팅과 낮은 지연, 메시지 단위 처리에 강점. 처리 후 메시지가 삭제됨. (주로 Push 방식)
+
+
+* **DLQ (Dead Letter Queue)** : 정해진 횟수만큼 재시도해도 처리에 실패한 메시지를 별도 큐로 보내 격리/분석하는 메커니즘. 실패 메시지가 전체 처리를 막는 것을 방지한다.
+
+
+* **이벤트 기반 아키텍처(EDA, Event-Driven Architecture)** : 서비스 간 상태 변화를 **이벤트**로 발행/구독하여 통신하는 아키텍처. MSA에서 서비스 간 결합도를 낮추고 비동기 확장성을 확보하는 데 활용되며, 앞서 다룬 [Saga, Transactional Outbox, CQRS](#용어정리--아키텍처-및-분산-시스템)와 함께 자주 등장한다.
