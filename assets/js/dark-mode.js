@@ -7,36 +7,50 @@
   const body = document.body;
   const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
+  function applyTheme(theme) {
+    body.classList.toggle('dark-mode', theme === 'dark');
+    body.classList.toggle('light-mode', theme === 'light');
+    updateToggleIcon();
+  }
+
+  function getActiveTheme() {
+    if (body.classList.contains('dark-mode')) {
+      return 'dark';
+    }
+
+    if (body.classList.contains('light-mode')) {
+      return 'light';
+    }
+
+    return prefersDarkScheme.matches ? 'dark' : 'light';
+  }
+
   // 저장된 설정 또는 시스템 설정 확인
   const currentTheme = localStorage.getItem('theme');
-  
-  if (currentTheme === 'dark') {
-    body.classList.add('dark-mode');
-  } else if (currentTheme === 'light') {
-    body.classList.remove('dark-mode');
-  } else if (prefersDarkScheme.matches) {
-    body.classList.add('dark-mode');
+
+  if (currentTheme === 'dark' || currentTheme === 'light') {
+    applyTheme(currentTheme);
+  } else {
+    applyTheme(prefersDarkScheme.matches ? 'dark' : 'light');
+    body.classList.remove('light-mode');
   }
 
   // 토글 버튼 이벤트
   if (darkModeToggle) {
     darkModeToggle.addEventListener('click', function() {
-      body.classList.toggle('dark-mode');
+      const theme = getActiveTheme() === 'dark' ? 'light' : 'dark';
+      applyTheme(theme);
       
       // 설정 저장
-      const theme = body.classList.contains('dark-mode') ? 'dark' : 'light';
       localStorage.setItem('theme', theme);
-      
-      // 아이콘 변경
-      updateToggleIcon();
     });
   }
 
   // 토글 아이콘 업데이트
   function updateToggleIcon() {
     if (darkModeToggle) {
-      const icon = darkModeToggle.querySelector('i') || darkModeToggle;
-      if (body.classList.contains('dark-mode')) {
+      const icon = darkModeToggle.querySelector('span, i') || darkModeToggle;
+      if (getActiveTheme() === 'dark') {
         icon.textContent = '☀️';
         darkModeToggle.setAttribute('aria-label', '라이트 모드로 전환');
       } else {
@@ -52,12 +66,8 @@
   // 시스템 테마 변경 감지
   prefersDarkScheme.addEventListener('change', function(e) {
     if (!localStorage.getItem('theme')) {
-      if (e.matches) {
-        body.classList.add('dark-mode');
-      } else {
-        body.classList.remove('dark-mode');
-      }
-      updateToggleIcon();
+      applyTheme(e.matches ? 'dark' : 'light');
+      body.classList.remove('light-mode');
     }
   });
 })();
