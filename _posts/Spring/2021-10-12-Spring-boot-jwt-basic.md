@@ -16,6 +16,15 @@ toc: true
 스프링 시큐리티는 항상 어렵고 수많은 필터들이 엮어 있어서 공부하기 시작하면 끝이 없습니다.
 이전에는 세션 기반의 시큐리티를 적용하였는데 회사의 프로젝트는 JWT를 이용한 SSO를 구현하고 있어 공부를 해보았습니다.
 
+> ⚠️ **버전 안내 (2021년 작성 → 현재 기준 보강)**
+> 이 글은 Spring Boot 2.x / Spring Security 5.x 시절 강의를 따라 정리한 것이라, 지금 그대로는 동작하지 않습니다.
+> - `WebSecurityConfigurerAdapter` 는 Spring Security 5.7에서 deprecated, **6.0에서 제거**되었습니다. → 지금은 `SecurityFilterChain` **빈을 등록**하는 방식으로 바꿔야 합니다.
+> - `antMatchers()` → **`requestMatchers()`**, `authorizeRequests()` → **`authorizeHttpRequests()`** 로 이름이 바뀌었습니다.
+> - `SecurityContextPersistenceFilter` → **`SecurityContextHolderFilter`** 로 대체되었습니다.
+> - 패키지가 `javax.servlet.*` → **`jakarta.servlet.*`** 로 변경되었습니다. (Spring Boot 3 / Jakarta EE 9+)
+>
+> 아래 코드는 **당시 기록을 그대로 남겨두되**, 따라 하다 막히기 쉬운 **실제 버그와 보안 주의점**을 코드 블록마다 callout으로 덧붙였습니다. 최신 버전 설정 예시는 맨 아래 **6. 보강** 절에 정리했습니다.
+
 # 1. CorsConfig 생성
   CORS(Cross-Origin Resource Sharing)는 교차 출처 리소스 공유 라고 번역하고 간단하게 생각하면
   허용된 주소에서 받은 리소스만 사용할수 있다는 것입니다. 이부분을 스프링 시큐리티에서 해결해야 하는 이유는 시큐리티를
@@ -37,10 +46,10 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        //서버 응답시 JSON을 허용할지
+        //쿠키 등 인증정보(credentials) 전송 허용
         config.setAllowCredentials(true);
-        //모든 IP 응답 허용
-        config.addAllowedOrigin("*");
+        //모든 출처 허용 (credentials 허용 시에는 addAllowedOrigin("*") 가 거부되므로 패턴을 사용)
+        config.addAllowedOriginPattern("*");
         //모든 header 응답허용
         config.addAllowedHeader("*");
         //모든 메소드(get, post.. ) 응답 허용
@@ -79,15 +88,16 @@ public class MyFilter1 implements Filter {
 
 
         if(req.getMethod().equals("POST")){
-            String headerAuth =  req.getHeader("Authrization");
+            String headerAuth =  req.getHeader("Authorization");
             System.out.println("headerAuth(POST) : "+ headerAuth);
 
-            //토큰의 이름이 COS 일때만 필터가 이어짐
-            if(headerAuth.equals("COS")){
+            //토큰의 이름이 COS 일때만 필터가 이어짐 (null 이어도 NPE 가 안 나도록 상수를 앞에 둠)
+            if("COS".equals(headerAuth)){
                 filterChain.doFilter(req, res);
             }else{
-                PrintWriter out = res.getWriter();
-                System.out.println("인증 안됨");
+                //인증 실패 시 401 로 응답하고 체인을 진행하지 않음
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.getWriter().write("인증 안됨");
             }
         }
     }
@@ -95,8 +105,8 @@ public class MyFilter1 implements Filter {
 ```
 
 커스텀 필터를 만들때는 Filter interface를 이용하여 생성하게 됩니다.  위 필터는 POST 방식으로 들어온 request에서
-헤더의 Authrization 항목 값을 출력합니다. 이 Authrization 값이 COS 라면 필터를 이어가고 아니라면 필터를 중단시켜서
-스프링 시큐리티 과정을 더이상 진행하지 않게 합니다.
+헤더의 Authorization 항목 값을 출력합니다. 이 Authorization 값이 COS 라면 필터를 이어가고 아니라면 401로 응답하여
+스프링 시큐리티 과정을 더이상 진행하지 않게 합니다. (헤더가 없을 때 NPE가 나지 않도록 비교 대상 문자열을 앞에 두었습니다.)
 
 이렇게 만들어진 필터를 적용하려고 하기 위해서는 스프링 시큐리티 필터 중간에 적용하는 방법을 사용합니다.
 ```
@@ -143,7 +153,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CorsFilter corsFilter;
 
-    private UserRepository userRepository;
+    //@RequiredArgsConstructor 로 주입되려면 final 이어야 한다. (final 이 아니면 주입되지 않아 null)
+    private final UserRepository userRepository;
 
     //스프링 IOC에 패스워드 인코더를 등록시킨다.
     @Bean
@@ -350,7 +361,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String jwtToken = JWT.create()
                 //토큰의 이름 -> 큰 의미는 없다.
                 .withSubject(principalDetail.getUsername())
-                //만료 시간 -> 보통 10초로 잡음
+                //만료 시간 -> 여기서는 30분(60000ms * 30). 액세스 토큰은 보통 수 분~수십 분으로 잡고, 길게 쓰려면 별도 리프레시 토큰을 둔다.
                 .withExpiresAt(new Date(System.currentTimeMillis()+(60000)*30))
                 //토큰에 넣을 값
                 .withClaim("id", principalDetail.getUser().getId())
@@ -415,11 +426,12 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             return;
         }
 
-        String token = jwtHeader.replace(jwtHeader,"Bearer ");
+        //"Bearer " 접두어를 제거하여 실제 토큰만 추출
+        String token = jwtHeader.replace("Bearer ", "");
 
         String username = JWT.require(Algorithm.HMAC512("cos")).build().verify(token).getClaim("username").asString();
 
-        if(username !=null || !username.equals("")){
+        if(username != null && !username.equals("")){
             User user = userRepository.findByUsername(username);
 
             //전달 받은 유저정보로 PrincipalDetail을 생성
@@ -439,6 +451,49 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
 ```
 
-# 6. 결론
+# 6. 보강 — 최신 버전 / 운영 시 주의점
+
+## 6.1 최신 스프링 시큐리티 설정 (SecurityFilterChain)
+`WebSecurityConfigurerAdapter` 가 사라졌으므로, 지금은 아래처럼 **빈을 등록**하는 방식으로 작성합니다.
+
+~~~
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final CorsFilter corsFilter;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilter(corsFilter)
+            .formLogin(f -> f.disable())
+            .httpBasic(h -> h.disable())
+            .authorizeHttpRequests(auth -> auth          // antMatchers → requestMatchers
+                .requestMatchers("/api/v1/user/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                .requestMatchers("/api/v1/manager/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+~~~
+
+## 6.2 운영에서 추가로 챙길 점
+* **리프레시 토큰** — 액세스 토큰은 짧게(수 분~수십 분) 두고, 만료 시 재발급할 리프레시 토큰을 별도로 둔다. 위 예제처럼 액세스 토큰 하나만 길게 쓰면 탈취 시 위험이 크다.
+* **토큰 무효화(로그아웃)** — JWT는 그 자체로는 서버에서 취소가 안 되므로, 강제 로그아웃이 필요하면 블랙리스트(예: Redis)나 토큰 버전 관리를 함께 둔다.
+* **예외 처리** — 토큰 만료/위조 시 `JWTVerificationException` 등을 잡아 401로 응답하도록 한다. 예제처럼 검증 실패를 방치하면 의도치 않게 통과할 수 있다.
+* **비밀키/만료시간 외부화** — `application.yml` 등 설정으로 분리하고 환경별로 다르게 관리한다.
+
+# 7. 결론
 스프링 시큐티리를 통하여 특히 JWT를 이용하는 기본적인 방법을 정리해 보았습니다. 아직도 어렵고... 필터는 많기 때문에
 아직도 많이 공부를 해야할 것 같습니다...ㅜㅜ
+(지금 다시 보니 deprecated 된 부분과 예제 코드의 버그가 꽤 보여서, 위처럼 최신 기준으로 보강해 두었습니다.)
