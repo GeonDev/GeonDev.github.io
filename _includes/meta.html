@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#ffffff">
 
 {% if page.excerpt %}
-<meta name="description" content="{{ page.excerpt| strip_html }}" />
+<meta name="description" content="{{ page.excerpt | strip_html | strip_newlines | truncate: 200 | escape }}" />
 {% else %}
 <meta name="description" content="{{ site.description }}">
 {% endif %}
@@ -16,8 +16,8 @@
 <meta property="twitter:title" content="{{ page.title }}" />
 {% endif %}
 
-<meta property="og:description" content="{{ page.excerpt | default: site.description | strip_html }}" />
-<meta property="twitter:description" content="{{ page.excerpt | default: site.description | strip_html }}" />
+<meta property="og:description" content="{{ page.excerpt | default: site.description | strip_html | strip_newlines | truncate: 200 | escape }}" />
+<meta property="twitter:description" content="{{ page.excerpt | default: site.description | strip_html | strip_newlines | truncate: 200 | escape }}" />
 
 <meta property="og:url" content="{{ site.url }}{{ page.url }}" />
 <meta property="og:site_name" content="{{ site.name }}" />

@@ -35,7 +35,7 @@ layout: default
       "name": "{{ site.name }}"
     },
     "datePublished": "{{ page.date | date_to_xmlschema }}",
-    "description": "{{ page.excerpt | strip_html }}",
+    "description": {{ page.excerpt | strip_html | strip_newlines | truncate: 300 | jsonify }},
     "image": "{{ site.url }}{{ site.avatar }}",
     "mainEntityOfPage": {
       "@type": "WebPage",
