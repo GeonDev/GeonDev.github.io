@@ -46,15 +46,47 @@ with(nolock)을 대신하는 옵션으로
 이라는 설정을 걸수 있다.  트랜젝션 격리 레벨을 낮추어서 with(nolock)과 비슷한 효과를 나타나게 하는 방법이다.
 
 하지만 해당 설정을 아무리 걸어도 **실제 수행되는 쿼리에는 with(nolock)이 출력되지 않는다.**  효과가 없다고 단언할수는 없지만 위에 설정을 추가하는 정도로는 개선되는 포인트가 없었다.
+(`READ_UNCOMMITTED` 격리 수준은 SQL Server에서 NOLOCK과 *유사한* 동작을 하지만, 쿼리에 `WITH (NOLOCK)` 힌트를 직접 붙이는 것과 동일하진 않다.)
 
+> ⚠️ **이 글의 초기 버전에 잘못된 예시가 있어 바로잡는다.**
+> 아래처럼 레포지토리 메서드에 `@Lock(LockModeType.READ_UNCOMMITTED)`를 걸 수 있다고 적었는데, 이는 **컴파일되지 않는 잘못된 코드**다.
+>
+> ~~~
+> // ❌ 잘못된 예시 — LockModeType 에는 READ_UNCOMMITTED 값이 없다
+> @Lock(LockModeType.READ_UNCOMMITTED)
+> List<Entity> findAll();
+> ~~~
+>
+> JPA `LockModeType` enum에는 `NONE`, `READ`/`WRITE`, `OPTIMISTIC*`, `PESSIMISTIC_READ/WRITE/FORCE_INCREMENT` 만 있고 **`READ_UNCOMMITTED`는 없다.** `READ_UNCOMMITTED`는 락 모드가 아니라 **트랜잭션 격리 수준**(`Isolation`)이기 때문이다.
+> 따라서 메서드 단위로 NOLOCK 효과를 주려면 `@Lock`이 아니라, **네이티브 쿼리에 `WITH (NOLOCK)`을 직접 명시**하거나 서비스 메서드에 `@Transactional(isolation = Isolation.READ_UNCOMMITTED)`를 거는 방식을 써야 한다. (이 프로젝트에서는 결국 뒤에 나오는 것처럼 네이티브 쿼리 + `WITH (NOLOCK)` 으로 해결했다.)
 
-레파지토리를 사용하는 모든 서비스에 트랜젹션을 선언하는 것은 비효율적인 일이기 때문에 레파지토리에 직접 격리수준을 지정할수도 있다.
+### ⚠️ NOLOCK / READ_UNCOMMITTED 를 쓸 때의 함정
+
+NOLOCK은 락을 피해 빠르긴 하지만 **dirty read**라는 점을 반드시 알고 써야 한다.
+
+* 아직 커밋되지 않은 데이터를 읽을 수 있다.
+* 스캔 도중 page split이 일어나면 **같은 행을 중복으로 읽거나, 있어야 할 행을 건너뛸 수 있다.**
+
+즉 **투표 집계나 중복투표 체크처럼 정확성이 핵심인 쿼리에 NOLOCK을 쓰면 카운트가 틀리거나 중복 투표가 허용될 수 있다.**
+NOLOCK은 "정확히 안 맞아도 되는 조회/통계 표시용" 쿼리에만 제한적으로 쓰고, 정합성이 중요한 경로에는 쓰지 않는 것이 안전하다.
+
+### 더 나은 대안 — READ_COMMITTED_SNAPSHOT (RCSI)
+
+사실 "SELECT에도 락이 걸린다"는 MSSQL의 동작은, NOLOCK을 곳곳에 흩뿌리는 것보다 **DB 레벨에서 RCSI(행 버전 관리)를 켜는 것**으로 더 깔끔하게 해결할 수 있다.
+RCSI를 켜면 읽기 시 공유락 대신 행의 스냅샷(버전)을 읽기 때문에, **읽기가 쓰기를 막지 않고**(그 반대도) dirty read 없이 일관된 읽기가 가능해진다. Oracle/PostgreSQL의 MVCC와 유사한 방식이다.
+
+~~~sql
+ALTER DATABASE [DB명] SET READ_COMMITTED_SNAPSHOT ON;
+~~~
+
+다만 RCSI는 DB 전체에 영향을 주는 인스턴스 레벨 설정이라 **DBA 권한이 필요한데, 당시 나에게는 DB 설정을 바꿀 권한이 없었다.** 그래서 애플리케이션 단에서 가능한 NOLOCK/네이티브 쿼리로 대응한 것이다. 만약 DB 설정을 바꿀 수 있는 상황이라면 NOLOCK을 흩뿌리기 전에 RCSI 적용을 먼저 DBA와 논의해보는 편이 근본적인 해결에 가깝다.
+
+레파지토리를 사용하는 모든 서비스에 트랜젹션을 선언하는 것은 비효율적인 일이기 때문에, 정합성이 중요하지 않은 조회라면 서비스 메서드 단위로 격리 수준을 지정할 수도 있다.
 
 ~~~
-@Repository
-public interface EntityRepository extends JpaRepository<Entity, Long> {
-    @Lock(LockModeType.READ_UNCOMMITTED)
-    List<Entity> findAll();
+@Transactional(isolation = Isolation.READ_UNCOMMITTED, readOnly = true)
+public List<Entity> findAllForDisplay() {
+    return entityRepository.findAll();
 }
 ~~~
 
@@ -69,6 +101,8 @@ public interface EntityRepository extends JpaRepository<Entity, Long> {
 
 정확하지는 않지만 core_count는 CPU의 개수 effective_spindle_count는 하드디스크 개수(I/O요청 수)라고 생각하면 된다. 커넥션풀 개수는 처음에 20개로 늘렸다가 추후에 100개로 올렸다. 
 
+> 📌 주의: 위 공식대로면 보통 **10~20개 정도의 작은 값**이 나온다. HikariCP 공식 문서도 "풀은 작게 유지하라"는 입장인데, 커넥션을 무작정 늘리면 DB 쪽 컨텍스트 스위칭·락 경합이 오히려 커져 역효과가 날 수 있기 때문이다. 100개는 꽤 큰 편으로, 이 프로젝트의 순간 폭주 트래픽이라는 특수 상황에 맞춘 값이지 일반적인 권장치는 아니다. 수치는 환경마다 부하 테스트로 맞추는 것이 정석이다.
+
 ### 커넥션풀 개수 설정 및 확인
 
 ~~~
@@ -81,6 +115,8 @@ datasource:
     maximum-pool-size: 20
 ~~~
 보통은 커넥션 풀을 설정할때 이렇게 hikari 아래에 설정한다. 문제는 이 프로젝트에서는 아무리 설정을 해도 커넥션 풀 개수가 늘어나지 않았다.  여러가지 시도를 해보다가  아래와 같이 hikari를 제거하고 직접 넣은 설정을 바꿨더니 문제를 해결할 수 있었다. (아마 멀티 DB를 사용하고 있어 발생한 것이 아닌가 생각한다.)
+
+> 📌 왜 `hikari:` 하위에서 안 먹었나: 멀티 DB라서 **DataSource 빈을 직접 만들고 `@ConfigurationProperties("...datasource")`로 바인딩**했기 때문이다. 이렇게 커스텀으로 빈을 만들면 그 prefix가 곧바로 `HikariDataSource`에 바인딩되므로, 속성을 `maximum-pool-size`처럼 datasource **바로 아래**에 두어야 한다. `spring.datasource.hikari.*` 라는 중첩 경로는 Spring Boot **자동 구성**이 DataSource를 만들어줄 때만 동작한다.
 
 ~~~
 datasource:  
@@ -192,6 +228,12 @@ hibernate.connection.provider_disables_autocommit=true
 
 
 투표 이력을 체크할때 필요한 데이터는 최근 투표이력만 있으면 되지만 JPA로 수행을 하다보면 필요하지 않는 정보를 조회해야 한다. 이 쿼리를 네이티브 쿼리로 변경하였다.  
+
+> 💡 GPT의 일반적인 답변 외에, JPA 환경에서 `RESULT-SET-FETCH`(결과를 받아 객체로 매핑하는 단계)를 줄이는 실무 포인트를 보태면 다음과 같다.
+> - **엔티티 대신 DTO 프로젝션으로 조회** — 필요한 컬럼만 담은 DTO를 직접 `select` 하면 매핑 비용과 영속성 컨텍스트 적재 부담이 줄어든다. (여기서 네이티브 쿼리로 바꾼 것도 같은 맥락)
+> - **N+1 점검** — 연관 엔티티의 지연 로딩 때문에 fetch 단계에서 추가 쿼리가 숨어 있는 경우가 많다. fetch join이나 `@EntityGraph`로 정리한다.
+> - **`hibernate.jdbc.fetch_size` 조정** — 한 번에 가져오는 행 수(JDBC fetch size)를 키우면 대량 조회 시 네트워크 왕복이 줄어 fetch 시간이 개선될 수 있다.
+> - **`readOnly = true`** — 변경이 없는 조회는 읽기 전용 트랜잭션으로 두면 더티 체킹 스냅샷을 만들지 않아 오버헤드가 줄어든다.
 
 네이티브 쿼리로 변경 할때 위에서 추가한 **with(nolock)** 도 추가 하였다. 쿼리 변경후 초당 1000회 테스트 코드를 돌렸을떄 결과는 다음과 같다.
 

@@ -77,7 +77,7 @@ public class SwaggerConfig {
 
         if (StringUtils.equals("dev", profile)) {
             Server server = new Server();
-            server.setUrl("http://mem-dev.co.kr");
+            server.setUrl("http://dev.example.com");
             openAPI.servers(new ArrayList<Server>(){{add(server);}});
         }
 

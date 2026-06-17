@@ -36,7 +36,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private static final String LocalUrlHttp = "http://my-local.co.kr:3000";
     private static final String LocalUrlHttps = "https://my-dev.co.kr:3000";
 
-    @Value("${jtbc.domain.front}")
+    @Value("${app.domain.front}")
     String frontUrl;
 
     @Override

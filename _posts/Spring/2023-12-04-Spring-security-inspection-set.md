@@ -103,7 +103,7 @@ http.headers(headers -> headers.xssProtection(xssProtection ->
 처음에는 WebMvcConfigurer를 사용하여 캐시를 사용하지 않는다고 명시해 줬다
 
 ~~~
-import com.jtbc.admin.common.web.service.RestService;
+import com.example.admin.common.web.service.RestService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

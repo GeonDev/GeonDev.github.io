@@ -72,9 +72,9 @@ JPA를 사용할때는 dataSource가 아닌 entityManager를 전달 받아 trans
  상대적으로 복잡한 방식으로 구현되어 있다고 하지만 실제 사용할때는 PlatformTransactionManager를 사용하기 때문에 세팅시 부분만 고려하고 사용하면 된다.  
 
 
-이외로 Hibernate를 이용하는 방법, JUnit 를 할때 사용하는 방법 등이 있다. 
+이외로 Hibernate를 이용하는 HibernateTransactionManager, 여러 리소스를 묶는 분산 트랜잭션(JTA)에 사용하는 JtaTransactionManager 등이 있다. 
 
-Spring Boot에서는 @SpringBootApplication 애너테이션을 사용하여 애플리케이션을 설정하면, PlatformTransactionManager가 자동으로 등록되고 기본적으로 Spring Boot는 JPA와 관련된 설정을 자동으로 처리하며 JpaTransactionManager를 자동으로 설정해준다. (위에 과정을 하지 않아도 된다는 의미)
+Spring Boot에서는 별도 설정 없이도 자동 구성(auto-configuration)이 클래스패스를 보고 적절한 PlatformTransactionManager를 등록해준다. 예를 들어 JDBC만 있으면 DataSourceTransactionManager를, JPA가 있으면 JpaTransactionManager를 자동으로 설정해준다. (위에 과정을 하지 않아도 된다는 의미)
 
 다만 여러 DB에 접근하거나 추가 적인 옵션을 설정하기 위해서는 별도로 @Bean설정을 해주어야 한다. 
 
@@ -120,7 +120,9 @@ public class MyService {
 TransactionTemplate에 Bean으로 설정한 PlatformTransactionManager를 인자로 전달하여 객체를 만들고 필요에 따라 전파 속성을 설정한다.
  나같은 경우에는 해당 로직이 실행될때 기존 트랜젝션과 별도로 실행되기를 바랬기 때문에 **REQUIRES_NEW**로 설정하였다. 
 
-그리고 TransactionTemplate의 execute()를 실행한다. execute를 실행할때 콜백이 있는 경우 new TransactionCallback \<T>() 를 활용하면 된다. 반대로 콜백이 없는 경우에는 위와 같이 new TransactionCallbackWithoutResult()을 선언하여 사용하게 된다. 
+그리고 TransactionTemplate의 execute()를 실행한다. execute를 실행할때 반환값이 있는 경우 new TransactionCallback \<T>() 를 활용하면 된다. 반대로 반환값이 없는 경우에는 위와 같이 new TransactionCallbackWithoutResult()을 선언하여 사용하게 된다. 
+
+> 참고: Spring 5.3 이상에서는 람다로 더 간결하게 쓸 수 있다. 반환값이 없으면 `transactionTemplate.executeWithoutResult(status -> { ... })`, 반환값이 있으면 `transactionTemplate.execute(status -> { ... return result; })` 형태로 사용한다.
 
 나 같은 경우는 기존 소스들이 배치 void 형식이였기 떄문에 TransactionCallbackWithoutResult을 사용하였다. 
 

@@ -211,7 +211,7 @@ id,이름,나이,거주지
 ## 1.2 JdbcCursorItemReader
 
 ## 1.2.1 Cursor 개념
-jtbc의 ResultSet은 Cursor를 구현한 클래스로 쿼리를 실행하기 위해서 Connection이 연결된 상태에서 Cursor의 위치를 한개씩 이동시키면서 데이터를 불러오게 되어 있다. 
+JDBC의 ResultSet은 Cursor를 구현한 클래스로 쿼리를 실행하기 위해서 Connection이 연결된 상태에서 Cursor의 위치를 한개씩 이동시키면서 데이터를 불러오게 되어 있다. 
 
 Cursor도 ItemSteam을 사용하여 데이터를 읽어오는데 open() -> update() -> close()의 순으로 데이터를 읽어오게 되며 모든 데이터를 읽었다는 기준은 update()가 null을 반환하는 것으로 되어 있다. 따라서 아래와 같은 특징을 갖고 있다.
 

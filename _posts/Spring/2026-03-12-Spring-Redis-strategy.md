@@ -501,7 +501,7 @@ public class DataDto implements Serializable {
 
 ```
 org.springframework.data.redis.serializer.SerializationException: 
-Could not read JSON: Cannot construct instance of `com.jtbc.bbs.common.CustomResponseEntity` 
+Could not read JSON: Cannot construct instance of `com.example.bbs.common.CustomResponseEntity` 
 (although at least one Creator exists): cannot deserialize from Object value 
 (no delegate- or property-based Creator)
 ```
