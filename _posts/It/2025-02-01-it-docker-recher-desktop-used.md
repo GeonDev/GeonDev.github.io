@@ -177,3 +177,167 @@ rancher-desktop *   Rancher Desktop moby context              unix:///Users/jnot
 #colima 삭제
 brew uninstall colima
 ~~~
+
+# 4. Docker Apache로 내장 아파치 대체하기
+
+도커 환경이 준비되었으니 이제 이 글의 최초 목적인 **맥북 내장 아파치 대체**를 진행한다.
+기존에는 맥OS 내장 아파치에 도메인별 가상호스트(VirtualHost)를 설정해 로컬 개발을 했는데,
+OS 업데이트 때마다 `/etc/apache2/` 설정이 초기화되는 것이 문제였다.
+
+이를 도커 컨테이너로 옮기면 설정 파일이 프로젝트 디렉토리에 보관되므로,
+OS를 업데이트해도 설정이 사라지지 않고 `docker compose up` 한 번이면 동일한 환경이 복구된다.
+
+구조는 다음과 같다. **아파치(리버스 프록시)만 컨테이너로 띄우고, Tomcat은 기존처럼 IntelliJ에서 실행**한다.
+
+```
+브라우저 → Docker Apache(80) → host.docker.internal → 호스트 Mac의 Tomcat(IntelliJ)
+```
+
+핵심은 컨테이너 안의 아파치가 호스트 맥에서 돌고 있는 Tomcat에 접근해야 한다는 점이다.
+컨테이너 내부에서 `127.0.0.1`은 컨테이너 자신을 가리키므로, **`host.docker.internal`** 이라는
+특수 호스트명으로 호스트(맥)를 가리키도록 프록시를 설정한다.
+
+## 4.1 디렉토리 구성
+
+설정 파일을 프로젝트 디렉토리에 모아두고 버전 관리한다.
+
+```
+docker-apache/
+├── Dockerfile
+├── docker-compose.yml
+└── conf/
+    ├── httpd.conf
+    └── extra/
+        └── httpd-vhosts.conf   ← vhost/proxy 설정은 여기만 수정
+```
+
+## 4.2 Dockerfile
+
+공식 `httpd` 이미지를 기반으로, 작성한 설정 파일만 덮어쓴다.
+
+~~~dockerfile
+FROM httpd:2.4
+COPY conf/httpd.conf /usr/local/apache2/conf/httpd.conf
+COPY conf/extra/httpd-vhosts.conf /usr/local/apache2/conf/extra/httpd-vhosts.conf
+~~~
+
+## 4.3 docker-compose.yml
+
+80 포트를 호스트와 연결하고, `restart: unless-stopped`로 재부팅 후에도 자동 복구되게 한다.
+
+~~~yaml
+services:
+  apache:
+    build: .
+    ports:
+      - "80:80"
+    restart: unless-stopped
+~~~
+
+## 4.4 httpd.conf 핵심 설정
+
+리버스 프록시를 위해 proxy 모듈을 활성화하고, vhost 설정 파일을 include 한다.
+(아래는 기본 `httpd.conf`에서 주석을 풀거나 추가해야 하는 핵심 라인만 발췌)
+
+~~~apache
+Listen 80
+ServerName localhost
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
+
+Include conf/extra/httpd-vhosts.conf
+~~~
+
+## 4.5 httpd-vhosts.conf (도메인별 프록시)
+
+도메인별로 호스트의 Tomcat 포트로 넘겨주는 VirtualHost를 작성한다.
+앞서 말한 대로 `127.0.0.1`이 아니라 **`host.docker.internal`** 을 사용하는 것이 포인트다.
+
+~~~apache
+# 127.0.0.1 대신 host.docker.internal 사용
+# (컨테이너 → 호스트 Mac의 Tomcat 접근)
+
+<VirtualHost *:80>
+    ServerName local.example.com
+    ServerAlias tv.local.example.com vod.local.example.com onair.local.example.com
+    ProxyRequests Off
+    ProxyPreserveHost On
+    ProxyPass / http://host.docker.internal:8180/
+    ProxyPassReverse / http://host.docker.internal:8180/
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerName api.local.example.com
+    ProxyRequests Off
+    ProxyPreserveHost On
+    ProxyPass / http://host.docker.internal:8580/
+    ProxyPassReverse / http://host.docker.internal:8580/
+</VirtualHost>
+~~~
+
+이런 식으로 필요한 도메인 수만큼 VirtualHost 블록을 추가하면 된다.
+서비스가 늘어나면 이 파일에만 블록을 추가하고 다시 빌드하면 된다.
+
+## 4.6 최초 전환
+
+내장 아파치가 80 포트를 점유하고 있으면 충돌하므로 먼저 중지한다.
+
+~~~
+# 1. macOS 내장 아파치 중지
+sudo apachectl stop
+sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+
+# 2. Docker Apache 시작
+cd ~/docker-apache
+docker compose up -d
+
+# 3. 동작 확인
+docker compose ps
+docker compose logs -f
+~~~
+
+IntelliJ로 Tomcat을 띄운 뒤 브라우저에서 해당 도메인으로 접속되면 전환 성공이다.
+(`/etc/hosts`의 도메인 매핑은 OS 업데이트로 초기화되지 않으므로 별도 조치가 필요 없다.)
+
+## 4.7 일상적인 사용 / 설정 변경
+
+~~~
+# 시작 / 중지 / 재시작
+docker compose up -d
+docker compose down
+docker compose restart
+
+# 로그 보기
+docker compose logs -f
+~~~
+
+vhost 설정(`conf/extra/httpd-vhosts.conf`)을 수정한 뒤에는 이미지를 다시 빌드한다.
+
+~~~
+docker compose build && docker compose up -d
+~~~
+
+## 4.8 자주 만나는 문제
+
+* **포트 80 충돌** — OS 업데이트 후 내장 아파치가 다시 살아나 80 포트를 점유하는 경우가 있다.
+
+~~~
+# 80 포트 점유 프로세스 확인
+sudo lsof -i :80
+
+# 내장 아파치가 살아있으면 중지
+sudo apachectl stop
+sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+docker compose up -d
+~~~
+
+* **502 Bad Gateway** — IntelliJ에서 해당 Tomcat이 실행 중인지 먼저 확인한다.
+`host.docker.internal` 연결 자체가 의심되면 컨테이너 내부에서 호스트로 접근 테스트를 해본다.
+
+~~~
+docker compose exec apache curl -I http://host.docker.internal:8180/
+~~~
+
+이렇게 구성하면 아파치 설정 전체가 프로젝트 디렉토리에 남아,
+OS를 업데이트해도 설정이 초기화되지 않고 `docker compose up -d` 한 번으로 동일한 로컬 환경을 복구할 수 있다.

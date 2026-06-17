@@ -9,8 +9,11 @@ comments: true
 toc: true
 ---
 
-## <span style="background-color:#fff5b1; color:red ">이 문서는 정상 작동되지 않을 수 있습니다. </span>
+## <span style="background-color:#fff5b1; color:red ">최초 작성 시 동작하지 않던 문서를 보강했습니다.</span>
 
+처음 이 방법을 따라 했을 때 HTTPS가 정상 동작하지 않았다.
+원인을 추적해보니 설정에 몇 가지 빠진 부분이 있었고, 아래 본문에 그 보강 내용을 반영했다.
+실패 원인 요약은 맨 아래 **"실패 원인과 보강 포인트"** 에 따로 정리해두었다.
 
 >[인증서 구조](https://brunch.co.kr/@sangjinkang/47)
 
@@ -121,10 +124,52 @@ LoadModule ssl_module libexec/apache2/mod_ssl.so
 
 ~~~
 #LoadModule cache_socache_module libexec/apache2/mod_cache_socache.so
-#LoadModule socache_shmcb_module libexec/apache2/mod_socache_shmcb.so
+LoadModule socache_shmcb_module libexec/apache2/mod_socache_shmcb.so
 #LoadModule socache_dbm_module libexec/apache2/mod_socache_dbm.so
 ~~~
 
+### ⚠️ 프록시 모듈 주석 해제 (최초 실패 원인 ①)
+
+여기가 처음에 빠뜨려서 실패했던 부분이다.
+이 글의 목적은 단순 HTTPS가 아니라 **443으로 받아 내부 포트로 넘기는 리버스 프록시**이므로,
+SSL 모듈만으로는 동작하지 않고 **프록시 모듈**도 함께 켜야 한다.
+프록시 모듈이 없으면 아래 `ProxyPass` 지시어를 만났을 때 아파치가 설정 오류로 기동에 실패한다.
+
+`httpd.conf`에서 아래 두 모듈의 주석도 함께 제거한다.
+
+~~~
+LoadModule proxy_module libexec/apache2/mod_proxy.so
+LoadModule proxy_http_module libexec/apache2/mod_proxy_http.so
+~~~
+
+
+### 인증서를 아파치가 읽을 위치로 복사 (최초 실패 원인 ②)
+
+`mkcert`로 만든 인증서는 명령어를 실행한 위치(예: `~/IdeaProjects`)에 생성된다.
+하지만 vhost 설정에서는 보통 `/etc/apache2/ssl/` 같은 고정 경로를 참조하므로,
+**생성 위치와 설정에서 참조하는 경로가 다르면** 아파치가 인증서를 찾지 못해 기동에 실패한다.
+인증서를 참조할 경로로 먼저 복사하고, 파일명을 정확히 맞춘다.
+
+~~~
+sudo mkdir -p /etc/apache2/ssl
+sudo cp _wildcard.aaa.co.kr+2.pem      /etc/apache2/ssl/
+sudo cp _wildcard.aaa.co.kr+2-key.pem  /etc/apache2/ssl/
+~~~
+
+> ⚠️ 처음 작성한 설정에서는 생성한 파일명(`_wildcard.aaa.co.kr+2.pem`)과
+> vhost에서 참조한 파일명이 서로 달랐다. **생성한 파일명과 설정의 경로/파일명은 반드시 일치**해야 한다.
+
+### /etc/hosts 도메인 매핑
+
+브라우저가 `local.aaa.co.kr` 같은 도메인을 로컬로 해석하도록 `/etc/hosts`에 매핑이 있어야 한다.
+
+~~~
+sudo vi /etc/hosts
+~~~
+
+~~~
+127.0.0.1   local.aaa.co.kr tvlocal.aaa.co.kr vodlocal.aaa.co.kr onairlocal.aaa.co.kr
+~~~
 
 ## httpd-ssl.conf 설정 
 
@@ -133,32 +178,66 @@ cd /etc/apache2/extra
 sudo vi httpd-ssl.conf
 ~~~
 
-처음 httpd-ssl.conf 파일을 열면 여러 설명이 있는 것을 알수 있다. 
-SSLCertificateFile와 SSLCertificateKeyFile 에 위에서 생성한 인증서 경로를 지정해 준다. 
+처음 httpd-ssl.conf 파일을 열면 여러 설명이 있는 것을 알수 있다.
+먼저 파일 상단에 **`Listen 443`** 이 있는지 확인하고(없으면 추가), 기본으로 들어 있는
+`<VirtualHost _default_:443>` 예시 블록은 우리가 추가할 블록과 충돌할 수 있으므로 주석 처리한다.
+
+그 다음 아래와 같이 vhost를 작성한다. `SSLCertificateFile`/`SSLCertificateKeyFile`은
+위에서 복사한 경로와 정확히 같게 지정한다.
 
 ~~~
+Listen 443
+
 <VirtualHost *:443>
     ServerName local.aaa.co.kr
     ServerAlias tvlocal.aaa.co.kr vodlocal.aaa.co.kr onairlocal.aaa.co.kr
 
     SSLEngine on
-    SSLCertificateFile "/etc/apache2/ssl/_wildcard.jtbc.co.kr+2.pem"
-    SSLCertificateKeyFile "/etc/apache2/ssl/_wildcard.jtbc.co.kr+2-key.pem"
+    SSLCertificateFile    "/etc/apache2/ssl/_wildcard.aaa.co.kr+2.pem"
+    SSLCertificateKeyFile "/etc/apache2/ssl/_wildcard.aaa.co.kr+2-key.pem"
+
+    ProxyRequests Off
+    ProxyPreserveHost On
 
     <Proxy *>
-        Order deny,allow
-        Allow from all
+        Require all granted
     </Proxy>
 
-    ProxyPass / http://local.aaa.co.kr/
-    ProxyPassReverse / http://local.aaa.co.kr/
-
-    <Location />
-        Order allow,deny
-        Allow from all
-    </Location>
+    # ⚠️ 최초 실패 원인 ③ — 같은 도메인(자기 자신)이 아니라
+    # 실제 애플리케이션이 떠 있는 내부 포트로 넘긴다. (예: Tomcat 8180)
+    ProxyPass        / http://127.0.0.1:8180/
+    ProxyPassReverse / http://127.0.0.1:8180/
 
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 ~~~
+
+도메인이 여러 개라면 위 블록을 도메인·포트별로 복사해 추가하면 된다.
+(`ServerName`과 `ProxyPass` 대상 포트만 바꿔주면 된다.)
+
+## 설정 검사 후 재시작
+
+설정을 바꾼 뒤에는 문법 검사를 먼저 하고, 통과하면 아파치를 재시작한다.
+`configtest`에서 `Syntax OK`가 나오지 않으면 그 메시지가 곧 실패 원인이다.
+
+~~~
+sudo apachectl configtest
+sudo apachectl restart
+~~~
+
+브라우저에서 `https://local.aaa.co.kr` 로 접속해 자물쇠 표시와 함께 정상 응답이 오면 성공이다.
+
+# 실패 원인과 보강 포인트
+
+처음 따라 했을 때 동작하지 않았던 이유는 결국 아래로 정리된다.
+
+| 구분 | 증상 | 원인 | 보강 |
+|------|------|------|------|
+| ① 프록시 모듈 | 아파치 기동 실패 / ProxyPass 무시 | `mod_proxy`, `mod_proxy_http` 미적재 | 두 모듈 주석 해제 |
+| ② 인증서 경로 | 기동 실패(인증서 못 찾음) | 생성 위치·파일명과 설정 참조 경로 불일치 | 참조 경로로 복사 후 파일명 일치 |
+| ③ 프록시 대상 | 무한 루프 / 빈 응답 | `ProxyPass`가 자기 도메인(80)을 가리킴 | 실제 백엔드 포트(`127.0.0.1:8180`)로 지정 |
+| ④ 기타 | 연결 안 됨 / 접근 거부 | `Listen 443` 누락, 기본 vhost 충돌, 2.2 구문(`Order/Allow`) | `Listen 443` 확인, 기본 블록 주석, 2.4 구문 `Require all granted` |
+
+> 참고: 이후에는 OS 업데이트마다 내장 아파치 설정이 초기화되는 문제 때문에,
+> 같은 리버스 프록시를 **Docker 컨테이너**로 옮겨 관리하는 방식으로 전환했다.
