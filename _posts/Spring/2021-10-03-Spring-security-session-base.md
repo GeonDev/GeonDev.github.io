@@ -208,7 +208,7 @@ OAuth2User는 소셜로그인을 제공하는 업체에서 제공하는 attribut
 
 ## 2.2 스프링 시큐리티 서비스 생성
 
-스프링 시큐리티를 활용하여 로그인을 할때 별도의 서비스 클래스를 거쳐서 진행된다. UserDetails, OAuth2User로 도메인 겍체가 분리되어 있던 것 처럼 서비스도 각각 UserDetailsService, DefaultOAuth2UserService로 분리되어 있으며 서로 독립적으로 역할을 수행하기 때문에 둘다 구현해 주어야 하고 두 객체는 모두 클래스로 정의 되어 있기 때문에 재정의를 하기 위해서는 각각 클래스를 만들어서 별도로 상속 받아야 한다.
+스프링 시큐리티를 활용하여 로그인을 할때 별도의 서비스 클래스를 거쳐서 진행된다. UserDetails, OAuth2User로 도메인 겍체가 분리되어 있던 것 처럼 서비스도 각각 UserDetailsService, DefaultOAuth2UserService로 분리되어 있으며 서로 독립적으로 역할을 수행하기 때문에 둘다 구현해 주어야 한다. 단, UserDetailsService는 인터페이스이므로 구현(implements)하고, DefaultOAuth2UserService는 클래스이므로 상속(extends)하여 재정의한다.
 
 
 ### 2.2.1 UserDetailsService 생성

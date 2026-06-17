@@ -13,7 +13,7 @@ toc: true
 
 프로젝트를 진행하면서 지금 구현하는 것에만 신경을 쓰다보니 간단한 설정으로 해결할 수 있는 문제를 수많은 중복된 코드로 해결하거나 나중에 해결하자면서 넘긴 문제가 많습니다. 핑계이긴 하지만 4명이 작업하는 코드를 모두 확인하고 패치하기에는 실력도 부족했고 시간도 부족했습니다.
 
-일단 첫번째 수정사항으로 interrupt를 설정하여 불필요한 로그인 체크를 줄일려고 합니다.
+일단 첫번째 수정사항으로 인터셉터(HandlerInterceptor)를 설정하여 불필요한 로그인 체크를 줄일려고 합니다.
 
 # HandlerInterceptor 설정
 
@@ -21,7 +21,7 @@ toc: true
 
 ![](/images/project/291b9101698bd1.jpg)
 
-이런 불필요한 if문을 제거하기 위해서 인터럽트를 설정하였습니다.
+이런 불필요한 if문을 제거하기 위해서 인터셉터를 설정하였습니다.
 
 ```
 @Component
@@ -61,7 +61,7 @@ public class CertificationInterceptor implements HandlerInterceptor{
 }
 ```
 
-인터럽트에서 작동할 기능을 정하는 클래스를 만들었습니다. 차후에 발전할수도 있겠지만 지금은 특정 URL에 입장하기 전에 로그인을 했는지 확인하는 간단한 코드로 만들었습니다. 이 클래스를 WebCinfig 클래스를 만들어서 적용하기만 하면 인터럽트 작업은 끝나게 됩니다.
+인터셉터에서 작동할 기능을 정하는 클래스를 만들었습니다. 차후에 발전할수도 있겠지만 지금은 특정 URL에 입장하기 전에 로그인을 했는지 확인하는 간단한 코드로 만들었습니다. 이 클래스를 WebCinfig 클래스를 만들어서 적용하기만 하면 인터셉터 적용은 끝나게 됩니다.
 
 ```
 @Configuration
@@ -81,8 +81,8 @@ public class WebCinfig implements WebMvcConfigurer {
 	@Override   
 	public void addInterceptors(InterceptorRegistry registry) {
 
-		//addPathPatterns 해당 패턴에 해당하는 URL을 인터럽트한다.
-		//excludePathPatterns 해당 패턴에 해당하는 URL은 인터럽트하지 않는다.
+		//addPathPatterns 해당 패턴에 해당하는 URL을 인터셉트(가로채기)한다.
+		//excludePathPatterns 해당 패턴에 해당하는 URL은 인터셉트하지 않는다.
 		List<String> addUrlList = new ArrayList<>(Arrays.asList(checkUrls.split(",")));
 
 		List<String> excludeUrlList = new ArrayList<>(Arrays.asList(enableUrls.split(",")));
@@ -94,8 +94,8 @@ public class WebCinfig implements WebMvcConfigurer {
 
 }
 ```
-회사에서 봤던 일부 프로젝트는 인터럽트를 할 URL과 무시할 URL이 하드코딩 되어 있었습니다.
-인터럽트 이후에 여러 분기가 있어서, URL을 직접 비교 해서 하드코딩을 한 것 같은데 좋은 방법이라고 생각되지는 않아 common.properties라는 별도의 파일에서 값을 불러오는 방식으로 적용했습니다.
+회사에서 봤던 일부 프로젝트는 인터셉트할 URL과 무시할 URL이 하드코딩 되어 있었습니다.
+인터셉트 이후에 여러 분기가 있어서, URL을 직접 비교 해서 하드코딩을 한 것 같은데 좋은 방법이라고 생각되지는 않아 common.properties라는 별도의 파일에서 값을 불러오는 방식으로 적용했습니다.
 
 
 # AOP 적용

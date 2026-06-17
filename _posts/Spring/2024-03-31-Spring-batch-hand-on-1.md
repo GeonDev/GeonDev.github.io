@@ -204,7 +204,7 @@ public class SharedConfiguration {
         return jobBuilderFactory.get("shareJob")
                 .incrementer(new RunIdIncrementer())
                 .start(this.shareStep())
-                .start(this.shareStep2())
+                .next(this.shareStep2())
                 .build();
     }
 

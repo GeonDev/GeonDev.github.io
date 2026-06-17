@@ -31,7 +31,7 @@ toc: true
 
             response.setContentType("application/octet-stream");
             response.setContentLength(fileByte.length);
-            response.setHeader("Content-Disposition", "attachment; fileName=\"" + URLEncoder.encode(fileName, "UTF-8") + "\";");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(fileName, "UTF-8") + "\";");
             response.setHeader("Content-Transfer-Encoding", "binary");
 
             response.getOutputStream().write(fileByte);

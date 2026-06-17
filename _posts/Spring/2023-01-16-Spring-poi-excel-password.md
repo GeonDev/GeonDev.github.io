@@ -196,6 +196,6 @@ public class ExcelDownloader extends AbstractView {
 ```
 # 4. 아쉬운 점
 지금 사용하고 있는 POI 버전이 너무 낮다. Apache POI 버전이 5.0 이상이 되었는데 
-암호화에서 사용하고 있는 라이브러리는 3.5 버전이다.
+암호화에서 사용하고 있는 라이브러리는 구버전이다. (참고로 여기서 쓴 agile 암호화(`EncryptionMode.agile`)·`Encryptor`/`OPCPackage` 기반 API는 POI 3.10 이상에서 제공되는 기능이다.)
 
 POI 4.0 이상으로 라이브러리를 사용하면 이상하게 암호화 해제를 할때 파일이 깨지는데 추후에 보충이 필요할것 같다.

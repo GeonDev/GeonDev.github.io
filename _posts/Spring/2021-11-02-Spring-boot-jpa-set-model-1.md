@@ -60,7 +60,7 @@ public class VigApplication {
 
 }
 ```
-또 Application 클래스에 있던 @MapScan 어노테이션도 제거하였습니다.
+또 Application 클래스에 있던 @MapperScan 어노테이션도 제거하였습니다.
 
 
 
@@ -138,7 +138,7 @@ public class ImageKeyword implements Serializable{
 **@ManyToOne / @OneToMany**
 객체와 객체를 조인할때 사용합니다. 조인을 할 객체도 @Entity가 선언되어 있어야 하고 @JoinColumn 값을 입력하지 않는다면 매핑할 객체의 @Id값으로 매핑을 수행합니다.
 
-저는 이부분에서 많은 혼란을 겪었는데  @JoinColumn(name =XXX) 에서 들어갈 칼럼명은 조인될 클래스의 @Id 이라는 것을 알게 되었습니다.
+저는 이부분에서 많은 혼란을 겪었는데  @JoinColumn(name = XXX)의 name은 **현재(소유) 엔티티 테이블에 생기는 외래키(FK) 컬럼명**입니다. 참조되는 상대 테이블의 PK 컬럼은 기본적으로 상대 엔티티의 @Id로 매핑되며, 필요하면 `referencedColumnName`으로 바꿀 수 있습니다.
 
 그리고 이렇게 매핑을 하면서 상당히 삐그덕 거리는 일이 발생하였습니다.
 

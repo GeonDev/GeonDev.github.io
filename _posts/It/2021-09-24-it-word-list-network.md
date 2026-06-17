@@ -40,7 +40,7 @@ toc: true
   * **IGMP (Internet Group Management Protocol)** : 호스트와 인접 라우터가 IPv4 멀티캐스트 그룹 가입/탈퇴 상태를 관리하기 위해 사용하는 프로토콜. 라우터는 IGMP를 통해 어떤 호스트가 어떤 멀티캐스트 그룹을 수신하려는지 파악한다.
   * **IP (Internet Protocol)** : IP는 인터넷 상에서 한 호스트 컴퓨터에서 다른 (브로드캐스트 영역을 포함한) 호스트 컴퓨터로 정보를 전송할 수 있게 도와주는 프로토콜.
   * **ARP (Address Resolution Protocol)** : 목적지의 MAC 주소를 모를 때 목적지 호스트의 IP주소를 MAC주소로 변환해주는 프로토콜.
-  * **RARP (Reverse Address Resolution Protocol)** : ARP와 반대로 목적지의 IP주소를 모를 때, 목적지 호스트의 MAC주소를 보고 MAC주소를 IP주소로 변환해 주는 프로토콜.
+  * **RARP (Reverse Address Resolution Protocol)** : ARP와 반대로, 자신의 MAC 주소는 알지만 자신의 IP 주소를 모를 때 MAC 주소를 기반으로 자신의 IP 주소를 알아내는 프로토콜. (주로 디스크리스 장비의 부팅 시 사용)
 
 
 * **전송 계층**
@@ -206,7 +206,7 @@ toc: true
 * **load balancing** : 전송에 있어서 여러 개의 경로를 통해 데이터를 보냄으로써 전송의 속도를 올리는 방식
 
 
-* **MD5** : Message Digest 5의 약어로, SNMP v.2 에서 메시지 인증에 사용되는 알고리즘, MD5는 통신의 무결성을 검증하고, 발신지를 인증하며, 적시성을 확인하는 일을 한다.
+* **MD5** : Message Digest 5의 약어인 해시(메시지 다이제스트) 알고리즘. 통신의 무결성 검증 등에 사용된다. (참고로 SNMP에서 MD5 기반 메시지 인증은 SNMPv2c가 아니라 SNMPv3의 USM(User-based Security Model)에서 도입되었다.)
 
 
 * **Mesh** : 많은 리던던시(redundancy) 상호 연결 장치들을 네트워크 노드 사이에 전략적으로 배치해 장치들을 관리하기 쉽고 세그먼트로 나누어서 조직하는 네트워크 토폴로지, 보통 메시를 구분할 때 full mesh(완전매시형)와 partial mesh(부분매시형)로 나누어서 말한다.

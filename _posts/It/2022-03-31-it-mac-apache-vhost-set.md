@@ -100,7 +100,7 @@ ProxyPassReverse는 ServerName로 호출했을때 반환할 리버스 프록시 
 위에서 설정한 도메인 들은 로컬에서 실행하는 서버의 도메인 임으로 당연히 DNS서버에서는 불러올수 없다.
 따라서 로컬 호스트 파일에 내용을 추가하여야 한다.
 ~~~
-sudo vi /etc/Hosts
+sudo vi /etc/hosts
 
 
 ## # Host Database #
@@ -114,7 +114,7 @@ sudo vi /etc/Hosts
 ~~~
 
 위와 같이 도메인을 추가하고 재부팅 또는 **dscacheutil -flushcache** 를 입력한다.
-추가로 아파치를 재시작 명령어 **sudo apachectl start** 를 입력하면
+추가로 아파치를 재시작 명령어 **sudo apachectl restart** 를 입력하면 (`start`는 정지 상태에서 시작만 하므로, 설정을 다시 읽으려면 `restart`를 사용한다)
 아파치를 재시작하면서 웹브라우저에 local.abc.com만 입력해서 로컬 서버에 접속할수 있게 된다.
 
 ---

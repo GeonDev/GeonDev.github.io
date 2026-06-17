@@ -693,7 +693,7 @@ public DataDto getData(String param1, String param2) {
 - 캐시 키는 고유해야 함
 - 사용자별로 다른 데이터인 경우 userId를 키에 포함
 - null 파라미터 처리 고려
-- 키 길이 제한 확인 (Redis 권장: 512MB 이하)
+- 키는 짧게 유지 (Redis 키는 최대 512MB까지 가능하지만, 성능을 위해 가능한 짧게 — 보통 수백 byte 이내로 권장)
 
 ### 6. 캐시 만료 시간 설정
 

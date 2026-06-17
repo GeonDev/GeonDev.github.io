@@ -72,7 +72,7 @@ import com.sparta.bootcamp.java_2_example.domain.purchase.dto.PurchaseRequestTes
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.MediaType;
+import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -106,7 +106,7 @@ class PurchaseControllerTest {
             .contentType(MediaType.APPLICATION_JSON.toString())     // 2. 요청의 Content-Type을 JSON으로 설정
             .content(requestBody)                                   // 3. 요청 Body에 JSON 데이터 추가
             .accept(MediaType.APPLICATION_JSON.toString()))         // 4. 클라이언트가 JSON 응답을 기대함을 명시
-        .andExpect(status().is(200))                                // 5. 응답 상태 코드가 200 Created 인지 검증
+        .andExpect(status().is(200))                                // 5. 응답 상태 코드가 200 OK 인지 검증
         .andExpect(jsonPath("$.result").value(true));               // 6. 응답 Body의 result 필드가 true인지 검증
   }
 }

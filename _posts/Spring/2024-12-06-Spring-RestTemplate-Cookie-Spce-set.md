@@ -72,7 +72,7 @@ public class RestApiProcessor {
 일단 RestTemlate 설정을 위한 Component을 생성하여 객체를 반복생성하지 않도록 처리 하였다. 기존에  RestTemplateBuilder를 사용할때 쓰던 ConnectTimeout과 ReadTimeout은
 RequestConfig의 ConnectTimeout 과 SocketTimeout 으로 대체 하여 사용하였다.
 
-추가적으로 RequestConfig에 **sCookieSpec** 이 추가된 것이다. 
+추가적으로 RequestConfig에 **setCookieSpec** 이 추가된 것이다. 
 
 ~~~
 @Immutable

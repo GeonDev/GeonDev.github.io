@@ -116,7 +116,6 @@ import static com.apt.proptech.domain.QUser.user;
 @Repository
 public class UserRepositorySupport extends QuerydslRepositorySupport {
 
-    @Autowired
     private final JPAQueryFactory queryFactory;
 
     public UserRepositorySupport(JPAQueryFactory queryFactory){

@@ -49,7 +49,7 @@ log4j2를 사용하기 위해서는 원래 log4j2 라이브러리 뿐 아니라 
 당연히 log4j2.xml의 위치는 최상위 resource경로에 있어야 한다. 처음에는 이 xml이 어디에 위치하여야 하는지도 몰라서 해맸던 경험이 있다.
 
 logger는 레벨이 있어 log4j2를 설정할때 일정 레벨이하의 로그가 찍힌 경우 무시할수 있다.
-**TRACE > DEBUG > INFO > WARN > ERROR > FATAL**
+**TRACE < DEBUG < INFO < WARN < ERROR < FATAL** (FATAL이 가장 높은 우선순위, TRACE가 가장 낮음)
 사실 나는 DEBUG, INFO, WARN 정도만 사용하는 것 같다.
 
 

@@ -60,7 +60,6 @@ project : target ,src, resource 디렉토리에 있는 파일을 빌드
 		  <mainClass>com.java.main</mainClass>  
 	      <addClasspath>true</addClasspath>  
 	      <addExtensions>true</addExtensions>  
-	      <packageName>com.java</packageName>  
 	   </manifest>
 	</archive>
 </plugin>
@@ -82,7 +81,7 @@ assembly 명령어로 빌드를 하면 jar 파일이 2개가 생성되는데 하
 테그 제거는 위에 테그를 추가 해주면 된다.
 
 ## 명령어 GOAL 설정
-명령어 goal 은  maven에 설정된 기본 명령어를 다른 역할로 수행하도록 변경하는 것이다. 이 설정을 추가한 이유는 다른 프로젝트를 수행하던 사람이 해당 프로젝트를 유지 관리 하게 되었을때 혼란을 갖지 않고 이전에 사용하던 명령어를 그대로 사용할수 있도록 하기 위함이다.
+executions 설정은 플러그인의 goal(`single`)을 특정 라이프사이클 phase(`package`)에 바인딩하는 것이다. 즉 `mvn package`를 실행하면 assembly의 `single` goal이 함께 수행된다. 이렇게 해두면 다른 프로젝트를 수행하던 사람이 해당 프로젝트를 유지 관리 하게 되었을때 혼란을 갖지 않고 이전에 사용하던 명령어(`mvn package`)를 그대로 사용할수 있다.
 
 ~~~
    <executions>  
@@ -110,10 +109,9 @@ assembly 명령어로 빌드를 하면 jar 파일이 2개가 생성되는데 하
       </descriptorRefs>  
       <archive>
 	<manifest>           
-	 <mainClass>com.jtbc.news.process.IJamArticleReceiver</mainClass>  
+	 <mainClass>com.example.news.process.ArticleReceiver</mainClass>  
             <addClasspath>true</addClasspath>  
             <addExtensions>true</addExtensions>  
-            <packageName>com.jtbc.news</packageName>  
          </manifest>     
           </archive>
                 <finalName>${project.artifactId}-${project.version}</finalName>  

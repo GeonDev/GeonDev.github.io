@@ -68,7 +68,7 @@ FCM ADMIN의 의존성은 하나만 추가 하면 된다. 당연히 maven으로 
 
    //firebase admin
     dependencies {
-        implementation 'com.google.firebase:firebase-admin:8.1.0'
+        implementation 'com.google.firebase:firebase-admin:9.3.0'
     }
 ~~~
 

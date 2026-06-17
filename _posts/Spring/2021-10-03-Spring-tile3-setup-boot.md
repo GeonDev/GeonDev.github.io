@@ -187,9 +187,9 @@ public class ConfigurationForTiles {
 </tiles-definitions>
 ```
 
-스프링 타일즈는 5개의 구성요소로 되어 있다. (title,gnb,header, page-title, body, footer) 각각의 구성요소는 고정으로 배치할 수도 있고 Controller를 통하여 변경하면서 사용할수도 있다.
+타일즈의 구성요소(attribute)는 정해진 개수가 있는 것이 아니라 직접 정의해서 사용한다. 이 예제에서는 6개(title, gnb, header, page-title, body, footer)로 구성했다. 각각의 구성요소는 고정으로 배치할 수도 있고 Controller를 통하여 변경하면서 사용할수도 있다.
 타일즈를 통하여 화면을 구성하게 되면 미리 정해진 레이아웃 안에 각각 요소를 추가하는 형태로 구성된다.
-설정에 따라서 5개의 구성요소가 모두 없어도 상관은 없다. 필요에 따라서 5개의 구성요소를 적절하게 조합하여 작성하면 된다.
+설정에 따라서 구성요소가 모두 없어도 상관은 없다. 필요에 따라서 구성요소를 적절하게 조합하여 작성하면 된다.
 
 ```
 <definition name="Main" template="/WEB-INF/tiles/layout/Main.jsp">

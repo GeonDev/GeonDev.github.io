@@ -21,8 +21,8 @@ toc: true
 
  ![](/images/spring/9f77-4beb-a62c-895724d1bd36.png){: .align-center}
 
-어플리케이션에서 RestTemplate를 생성하고, URI, HTTP 메소드 등을 담아서 요청을 하면 추상화 되어 있는 HttpClient의  HttpMessageConverter를
-이용하여 xml, JSON의 형태로 결과를 반환한다.
+어플리케이션에서 RestTemplate를 생성하고, URI, HTTP 메소드 등을 담아서 요청을 하면 RestTemplate이 가진 HttpMessageConverter를
+이용하여 xml, JSON의 형태로 결과를 반환한다. (HttpMessageConverter는 내부 HTTP 클라이언트가 아니라 RestTemplate의 추상화이며, HTTP 클라이언트 라이브러리는 ClientHttpRequestFactory로 별도로 추상화된다.)
 
 
 # 2. RestTemplate 활용 서버간 통신 구현

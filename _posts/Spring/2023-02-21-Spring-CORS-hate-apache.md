@@ -196,7 +196,7 @@ public void addCorsMappings(CorsRegistry registry) {
 <script defer="defer" type="module" src="www.abc.com/test.js" crossorigin="anonymous"></script>
 ~~~
 
-스크립트 테그안에 **crossorigin** 속성을 추가하면 된다. 기본값은 anonymous
+스크립트 테그안에 **crossorigin** 속성을 추가하면 된다. (속성을 아예 생략하면 CORS 요청을 하지 않으며, `anonymous`는 속성이 있되 값이 비었거나 잘못된 경우에 적용되는 기본값이다.)
 
 [속성 참고](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin)
 

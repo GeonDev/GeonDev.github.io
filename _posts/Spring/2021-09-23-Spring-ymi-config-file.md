@@ -126,7 +126,8 @@ import java.util.List;
 @Configuration
 @ConfigurationProperties(prefix = "table")
 @PropertySource(value = "classpath:tableConfig.yml", factory = YamlPropertySourceFactory.class)
-
+@Getter
+@Setter
 public class TableColumnConfig {
 
     private List<String> userColumn;

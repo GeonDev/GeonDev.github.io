@@ -95,7 +95,7 @@ public class MasterDataBaseConfig {
 @EnableTransactionManagement
 public class SlaveDataBaseConfig {
     @Bean(name = "slave1DataSource")
-    @ConfigurationProperties(prefix = "spring.slave-1.datasource")
+    @ConfigurationProperties(prefix = "spring.slave.datasource")
     public DataSource masterDataSource() {
         //application.properties에서 정의한 DB 연결 정보를 빌드
         return DataSourceBuilder.create().build();

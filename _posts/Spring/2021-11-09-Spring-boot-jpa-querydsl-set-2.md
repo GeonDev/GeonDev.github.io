@@ -31,7 +31,7 @@ comments: true
 ```
 아주 간단하게 page를 반환하는 메소드를 생성할수 있다. 처음에는 PageImpl를 따로 구현해서 제작한 것이라고 생각하였는데 Spring date core에 이미 구현되어 있는 클래스였다.
 
-이렇게 반환된 PageImpl은 Page를 포함하고 있기 때문에 이후에는 기존에 사용하던 Service에서 불러오기만하면 된다.
+이렇게 반환된 PageImpl은 Page 인터페이스를 구현(implements)한 클래스이기 때문에, 이후에는 기존에 사용하던 Service에서 Page 타입으로 불러오기만하면 된다.
 
 
 # 2. 기존 Service와 비교

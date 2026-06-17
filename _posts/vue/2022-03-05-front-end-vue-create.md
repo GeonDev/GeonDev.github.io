@@ -19,7 +19,7 @@ toc: true
 먼저 npm으로 vue-cli를 설치 한다.
 
 ```
-npm install -g@vue/cli
+npm install -g @vue/cli
 ```
 지금 기준(2022.03)으로 이렇게 명령어를 입력하면 Vue CLI v5.0.1 버전이 설치된다.
 CLI 가 설치 되었다면 프로젝트를 생성한다. 프로젝트를 생성할때 매뉴얼 모드를 선택하여 설치하였다.

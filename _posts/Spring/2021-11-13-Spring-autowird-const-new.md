@@ -39,7 +39,7 @@ public class ApplicationContextProvider implements ApplicationContextAware{
 
 }
 ```
-**ApplicationContext**는 스프링에서 제어권을 가지고 BeanFactory를 상속받고 있는 Context라고 한다. 트랜잭션 관리, 메시지 기반의 다국어 처리, AOP 처리등등 DI(Dependency Injection) 과 Ioc(Inverse of Conversion) 외에도 많은 부분을 지원하고 있고 컨테이너가 실행될때 빈을 Pre-loading한다고 한다.
+**ApplicationContext**는 스프링에서 제어권을 가지고 BeanFactory를 상속받고 있는 Context라고 한다. 트랜잭션 관리, 메시지 기반의 다국어 처리, AOP 처리등등 DI(Dependency Injection) 과 IoC(Inversion of Control) 외에도 많은 부분을 지원하고 있고 컨테이너가 실행될때 빈을 Pre-loading한다고 한다.
 
 ApplicationContextProvider 클래스 IoC를 수행하는 ApplicationContext를 넘겨주는 역할을 수행한다.
 
@@ -62,8 +62,6 @@ public class VisionInfo extends Thread {
 	private KeywordService keywordService;			
 	private ColorService colorService;
 
-
-	public VisionInfo() {}
 
 	public VisionInfo() {
 

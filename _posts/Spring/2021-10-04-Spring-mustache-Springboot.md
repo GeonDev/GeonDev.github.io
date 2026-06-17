@@ -38,7 +38,7 @@ https://github.com/GeonDev/Proptech
 spring:
   mustache:
     expose-session-attributes: true
-    suffix=.mustache
+    suffix: .mustache
 ```
 필수는 아니지만 머스테치에서 세션을 사용할수 있도록 값을 받아오는 기능을 추가한다.
 suffix 설정을 이용하여 머스테치 파일의 확장자를 .mustache에서 다른 이름으로 변경하는 설정도 할 수 있지만 나는 굳이 필요없다고 생각하였다.
