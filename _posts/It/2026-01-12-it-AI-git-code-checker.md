@@ -753,7 +753,7 @@ cat GEMINI_REPORT.md
 ✅ [PASS] 코드 리뷰 통과!
 ============================================
 📄 리포트: GEMINI_REPORT.md
-💬 추천 커밋 메시지: KPCB-123 사용자 인증 로직 추가
+💬 추천 커밋 메시지: PROJ-123 사용자 인증 로직 추가
 ============================================
 ~~~
 
@@ -794,10 +794,10 @@ mv .git/hooks/pre-commit .git/hooks/pre-commit.backup
 # 🤖 Gemini 시니어 코드 리뷰 리포트
 
 > **분석 일시:** 2025-01-12 14:30:45
-> **브랜치:** `feature/KPCB-123-user-auth`
+> **브랜치:** `feature/PROJ-123-user-auth`
 > **분석 파일 수:** 3 개
 > **총 변경 라인:** 42 라인
-> **JIRA 티켓:** KPCB-123
+> **JIRA 티켓:** PROJ-123
 
 ## 📂 분석 대상 파일
 - **F1**: `src/main/java/UserService.java` - 28 라인
@@ -843,7 +843,7 @@ N+1 문제는 발견되지 않았습니다.
 ## 💬 추천 커밋 메시지
 
 ~~~
-KPCB-123 사용자 인증 로직 추가
+PROJ-123 사용자 인증 로직 추가
 ~~~
 
 ---
@@ -950,13 +950,13 @@ AI_PROMPT="${CLEAN_INPUT}
 JIRA ID 형식을 변경하고 싶다면:
 
 ~~~bash
-# 현재: KPCB-123 메시지
+# 현재: PROJ-123 메시지
 FINAL_MSG="$JIRA_ID $COMMIT_MSG"
 
-# 변경: [KPCB-123] 메시지
+# 변경: [PROJ-123] 메시지
 FINAL_MSG="[$JIRA_ID] $COMMIT_MSG"
 
-# 변경: 메시지 (KPCB-123)
+# 변경: 메시지 (PROJ-123)
 FINAL_MSG="$COMMIT_MSG ($JIRA_ID)"
 ~~~
 
