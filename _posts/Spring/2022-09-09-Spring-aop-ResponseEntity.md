@@ -11,17 +11,17 @@ toc: true
 
 신규 시스템의 API를 만들면서 오류 처리나 반환값에 대해서 고민하게 되었다. 어떻게 전달하는게 가장 깔끔한 방법일지 고민 했다.  
 이전 프로젝트에서는 AOP를 이용하여 컨트롤러에서 특정값을 반환하면 해당 값에 따라 메세지를 던지는 방식으로 반환값을 일관되게 처리하였다.  
-이렇게 반환값을 지정하였을때 문제점은 잘못된 값을 반환하더라도 HTTP 상태 코드가 200으로 내려오는 경우가 발생하다는 것이다.  
+이렇게 반환값을 지정하였을때 문제점은 잘못된 값을 반환하더라도 HTTP 상태 코드가 200으로 내려오는 경우가 발생한다는 것이다.  
 메세지는 잘못되었다고 하는데 반환은 200인 상황이 마음에 들지 않아 방법을 찾아봤다.
 
 # 1. ResponseEntity를 활용한 상태값 반환
 
-HTTP 상태 코드를 원하는 값으로 전달할수 있는 클래스는 ResponseEntity 이다 사용법도 간단하다.  
+HTTP 상태 코드를 원하는 값으로 전달할수 있는 클래스는 ResponseEntity 이다. 사용법도 간단하다.  
 미리 정해져 있는 메소드를 사용하고 메소드를 넣은 방법으로 원하는 작업을 수행할 수 있다.
 
-우선 클래스 결과값 반환할 클래스를 하나 만들었다. 메세지와 데이터를 전달 할수 있도록 생성한 간단한 클래스를 생성하였다  
+우선 결과값을 반환할 클래스를 하나 만들었다. 메세지와 데이터를 전달 할수 있도록 간단한 클래스를 생성하였다.  
 이렇게 만들어준 이유는 DTO 반환시 프론트엔드에서 상태에 대한 설명을 요청했기 때문이다.
-~~~
+~~~java
 @Getter
 @Setter
 @Schema(description = "API 응답 DTO")
@@ -36,11 +36,11 @@ public class ResultDto {
 }
 ~~~
 
-위에 생성한 클래스를 이용하여 컨트롤러에서 결과를 반한한다.  
+위에 생성한 클래스를 이용하여 컨트롤러에서 결과를 반환한다.  
 만들었던 API중에 간단한 형태의 API를 찾아 첨부하였다. 코드를 보면 위에서 생성한 ResultDto를 ResponseEntity에 전달하여 값을 보낸다.  
 아래에서 ResponseEntity.ok()라고 하면 HTTP code 200 을 반환한다.
 
-~~~
+~~~java
 @AllowWithOutLogin
 @RequestMapping(value = {"/", "/index"} ,method = RequestMethod.GET)
 @Operation(description = "접속 서버 확인용")
@@ -62,7 +62,7 @@ ResponseEntity.ok 외에도 ResponseEntity.badRequest(), ResponseEntity.accepted
 위에서 ResponseEntity를 반환하는 컨트롤러를 만들었다면 상태에 따라 에러를 반환하는 코드를 만들어서 일관된 메세지를 전달 할수 있도록 처리한다.  
 우선 Exception을 담을 클래스를 생성한다.
 
-~~~
+~~~java
 import org.springframework.http.HttpStatus;
 
 public abstract class BaseException extends RuntimeException{
@@ -100,7 +100,7 @@ public abstract class BaseException extends RuntimeException{
 프로그램에 따라 원하는 값을 선택하여 생성하면 된다.  
 나같은 경우 조회 권한이 없을때, 파라메터 등 오류가 있을때, 찾는 값이 없을때 이렇게 3개의 상황에 대한 상태값을 추가하였다.
 
-~~~
+~~~java
 import org.springframework.http.HttpStatus;
 
 public class ForbiddenException extends BaseException{
@@ -130,7 +130,7 @@ public class ForbiddenException extends BaseException{
 ~~~
 **조회 권한이 없을때 FORBIDDEN(403)을 출력**
 
-~~~
+~~~java
 import org.springframework.http.HttpStatus;
 
 public class InvalidRequestException extends BaseException{
@@ -160,7 +160,7 @@ public class InvalidRequestException extends BaseException{
 ~~~
 **파라메터 등 전달 값에 오류가 있을 경우 BAD_REQUEST(400)**
 
-~~~
+~~~java
 public class NoFoundException extends BaseException{
 
     private static final long serialVersionUID = 1L;
@@ -194,15 +194,15 @@ public class NoFoundException extends BaseException{
 스프링에서 이런 기능은 Interceptor나 AOP로 처리하는 것이 편리한데 여기서는 클래스 실행 전후에 처리할 과정이 있어 AOP로 처리하였다.
 
 
-~~~
+~~~java
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequiredLogin {
 }
 ~~~
-AOP를 사용할때 이런게 커스텀 어노테이션을 생성해 두면 좀더 편하게 옵션을 관리할수 있다.  
+AOP를 사용할때 이런 커스텀 어노테이션을 생성해 두면 좀더 편하게 옵션을 관리할수 있다.  
 AOP코드 내부에 if문을 계속 추가하는 것보다는 더 깔끔하기 때문에 이쪽을 선호한다.
 
-~~~
+~~~java
 
 @Around("execution(* com.tt.controller.*.*(..)) && @annotation(com.tt.aspect.option.RequiredLogin)")
 public ResponseEntity addResponseAccAdvice(ProceedingJoinPoint joinPoint) {
@@ -238,7 +238,7 @@ public ResponseEntity addResponseAccAdvice(ProceedingJoinPoint joinPoint) {
 물론 상황에 따라서 좀더 세밀하게 분류하는 것도 가능하지만 일단 일관성을 유지하는 정도에서 끝냈다.
 
 
-~~~
+~~~java
 private ResponseEntity commonResponseEntity(ProceedingJoinPoint joinPoint){
 
 		ResponseEntity response = ResponseEntity.status(HttpStatus.OK).build();
@@ -266,12 +266,12 @@ private ResponseEntity commonResponseEntity(ProceedingJoinPoint joinPoint){
 
 위에 코드를 보면 @Before에서 확인할 내용을 보고 난후 미리 정의해 둔 BaseException의 대한 처리나  
 ResultDto에 별도의 메세지가 없을 경우 어떻게 처리를 하는지 정의 된 내용을 확인할수 있다.  
-이 코드를 작성하면서 가장 중점을 둔 부분은 전달 메세지를 일관적이게 주는 것 이였기 때문에 이런 과정을 거졌다.
+이 코드를 작성하면서 가장 중점을 둔 부분은 전달 메세지를 일관적이게 주는 것 이었기 때문에 이런 과정을 거쳤다.
 
 
 # 3. Exception 발생 시키기
 
-~~~
+~~~java
 @Override
 public AdminDetailDto getAdminDetail(String adminId) {
 		AdminUser adminUser = adminRepository.findByAdminId(adminId);

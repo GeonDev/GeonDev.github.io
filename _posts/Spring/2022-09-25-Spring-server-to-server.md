@@ -14,7 +14,7 @@ toc: true
 신규 시스템의 API를 만들면서 기존 시스템의 DB에 접근해야 되는 일이 생겼다.  
 이러면서 동시에 고민이 생겼는데 신규 시스템은 개인정보 관리용 시스템이라 DB를 별도로 분리해서 별도망으로 관리하여야 한다. 
 
-기존 시스템의 DB와 연결하는 것은 보안정책상 까다로운 결제를 받아야 하고 비슷한 기능이 이미 기존 시스템에 있는데 굳이 새로 API를 만드는 것은 귀찮은 일이라 서버간 통신을 알아보다가 RestTemplate를 사용하기로 하였다.
+기존 시스템의 DB와 연결하는 것은 보안정책상 까다로운 결재를 받아야 하고 비슷한 기능이 이미 기존 시스템에 있는데 굳이 새로 API를 만드는 것은 귀찮은 일이라 서버간 통신을 알아보다가 RestTemplate를 사용하기로 하였다.
 
 # 1. RestTemplate을 활용한 서버 통신
  RestTemplate은 스프링 3.0 이상 부터 지원하고 HttpClient의 기능을 추상화 하여 제공한다.  
@@ -27,7 +27,7 @@ toc: true
 
 # 2. RestTemplate 활용 서버간 통신 구현
 
-~~~
+```java
 public ApiResultMapper<PaymentLocalData> getUserPaymentInfo(String userId, int page, int size) {
 
       URI uri = UriComponentsBuilder
@@ -59,7 +59,7 @@ public ApiResultMapper<PaymentLocalData> getUserPaymentInfo(String userId, int p
 
       return null;
   }
-~~~   
+```
 
 먼저 URI uri를 보면 어떤 API와 통신을 할지 지정하는 코드 이다. 굳이 UriComponentsBuilder를 사용하여 URL을 생성하는 이유는  
 파라미터 설정이 쉽기 때문이다. 당연히 스트링을 합치거나 다른 방법을 사용할수 있긴 하지만 파라미터가 많아 질수록 UriComponentsBuilder를 사용 하는 것이 편리하다.
@@ -70,7 +70,7 @@ public ApiResultMapper<PaymentLocalData> getUserPaymentInfo(String userId, int p
 
 파라메터 매핑을 할때 **DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES** 라는 옵션을 추가한 것을 알수 있다.
 이 옵션은 JSON을 매핑 할때 해당값이 없으면(API 호출시에 결과값이 없는 호출일 수도 있음으로) 해당부분은 매핑을 무시하고 넘겨주어
-오륙 터지지 않게 만들어 준다.
+오류가 터지지 않게 만들어 준다.
 
 전달 받은 ResponseEntity<String> result 에서 데이터가 저장되어 있는 Body를 반환하여 mapper에 전달을 해준다.  
 mapper에서 데이터를 파싱할때는 이름 기준으로 파싱을 한다. 그렇기 때문에 문제가 생기는 경우가 있는데 클래스 내부에 클래스로 데이터를 저장한 경우에 반환값이
@@ -80,7 +80,7 @@ mapper에서 데이터를 파싱할때는 이름 기준으로 파싱을 한다. 
 프론트엔드 파트에서 파싱 작업을 또 한번 하거나 서버에서 또 잘라줘야 하는 문제가 있었다. 그래서 데이터를 전달 받을 전용 클래스  ApiResultMapper를 만들어서  
 형태가 다른 결과 값을 그나마 쉽게 파싱할수 있도록 처리하였다. ApiResultMapper는 특별한 기능은 아니고 단순 제네릭 클래스이다.
 
-~~~
+```java
 @Data
 public class ApiResultMapper<T> {
 
@@ -93,12 +93,12 @@ public class ApiResultMapper<T> {
     private List<T> data;
 
 }
-~~~
+```
 
 타 서버에서 결과를 반환할때 사용하는 이름을 data 라고 강제로(?) 지정하고 mapper에서 사용하게 되면 파싱을 할때 data 라는 이름으로 결과가 반환됨으로  
-여러 클래스에 사용할수 있다. 참고로 타 서버에서 어떤 형식으로 값을 반환했는데 전달한다. 페이징을 위한 값과 데이터를 전달한다.
+여러 클래스에 사용할수 있다. 참고로 타 서버에서는 아래와 같은 형식으로 값을 반환한다. 페이징을 위한 값과 데이터를 함께 전달한다.
 
-~~~
+```java
 @Override
 public Map<String, Object> getAllUserPaginatePaymentLog(
         String ssoUserId,  int pageIndex, int pageLogLimit) {
@@ -123,6 +123,6 @@ public Map<String, Object> getAllUserPaginatePaymentLog(
 
     return result;
 }
-~~~
+```
 
-이렇게 서버간 통신을 정리했다. 최근에는 webClient를 사용한다고 하니 다음 기회때 사용법을 정리해야겠다.
+이렇게 서버간 통신을 정리했다. 최근에는 WebClient를 사용한다고 하니 다음 기회때 사용법을 정리해야겠다.

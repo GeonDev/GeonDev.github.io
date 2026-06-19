@@ -3,7 +3,7 @@ layout: post
 title: 맥북 M1에서 mariaDB 완전 삭제 하기
 date: 2023-01-01
 Author: Geon Son
-categories: Spring
+categories: DB
 tags: [DB]
 comments: true
 toc: true
@@ -16,23 +16,20 @@ m1 칩이 나오고 심지어 m2 칩이 나온 상태인데 아직도 DB들은 a
 
 # 1. 서비스 정지 및 삭제
 
-~~~
-ada@kadaui-MacBookAir ~ % brew services stop mariadb
+~~~bash
+kada@kadaui-MacBookAir ~ % brew services stop mariadb
 Stopping `mariadb`... (might take a while)
 ==> Successfully stopped `mariadb` (label: homebrew.mxcl.mariadb)
 kada@kadaui-MacBookAir ~ % brew uninstall mariadb
 Uninstalling /opt/homebrew/Cellar/mariadb/10.10.2... (927 files, 208.5MB)
-
-kada@kadaui-MacBookAir ~ % brew uninstall mariadb
-Uninstalling /opt/homebrew/Cellar/mariadb/10.10.2... (927 files, 208.5MB)
 ~~~
 
-이런 메세지가 나오면 삭제가 완료 되었지만 완전삭제를 위해서는 내부에 설정 및 생성된 DB도 삭제 해야 한다.
-이 과정 없이 DB를 다시 설치하면 이전에 생성했던 DB와 계정을 다시 볼수 있기 때문에 완전 삭제가 아니다.
+이런 메시지가 나오면 삭제가 완료 되었지만 완전삭제를 위해서는 내부에 설정 및 생성된 DB도 삭제 해야 한다.
+이 과정 없이 DB를 다시 설치하면 이전에 생성했던 DB와 계정을 다시 볼 수 있기 때문에 완전 삭제가 아니다.
 
-# 2. 서비스 정지 및 삭제
+# 2. 데이터 및 설정 파일 삭제
 
-~~~
+~~~bash
 kada@kadaui-MacBookAir % cd /opt/homebrew/var
 kada@kadaui-MacBookAir var % rm -rf mysql
 

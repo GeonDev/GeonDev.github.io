@@ -13,7 +13,7 @@ toc: true
 
 ![centos](/images/linux/Centos-logo-light.svg){: .align-center}
 
-yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축하던 방식이다.
+yum을 사용할 수 없는 폐쇄망에서 자바,tomcat 개발환경을 구축하던 방식이다.
 최근에는 도커같은 유명한 시스템이 있지만 아주 가끔 인터넷이 연결되지 않는 환경도 있으니까
 어떤 방식으로 세팅했는지 기록하였다.
 
@@ -36,17 +36,17 @@ yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축
 
 - 설치 경로 : /usr/local/java
 
-```
+```bash
 [root@localhost]# mkdir /usr/local/java
 ```
 
 
 
-2) 설치 경로에 파일 복사 및 jdk 압축 해제 [root 권한]
+**2) 설치 경로에 파일 복사 및 jdk 압축 해제 [root 권한]**
 
 
 - 설치 경로 : /usr/local/java
-```
+```bash
 [root@localhost java]# tar -xvzf jdk-8u171-linux-x64.tar.gz
 ```
 
@@ -55,8 +55,8 @@ yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축
 **3) java링크 폴더 생성**  
 
 - /usr/local/java 폴더 안에 심볼릭 생성
-```
-[root@localhost java]# ln -s /usr/local/java/jdk1.8.0_171 java
+```bash
+[root@localhost java]# ln -s /usr/local/java/jdk1.8.0_171 /usr/local/java/java
 ```
 
 
@@ -64,14 +64,14 @@ yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축
 **4) 심볼릭 링크 생성 및 자바 버전 설정**
 
 - 사용가능한 자바 버전을 추가한다.
-```
+```bash
 [root@localhost]# alternatives --install /usr/bin/java java /usr/local/java/jdk1.8.0_171/bin/java 1
 [root@localhost]# alternatives --install /usr/bin/javac javac /usr/local/java/jdk1.8.0_171/bin/javac 1
 [root@localhost]# alternatives --install /usr/bin/javaws javaws /usr/local/java/jdk1.8.0_171/bin/javaws 1
 ```
 
 - 어떤 버전을 사용할지 강제로 지정한다.
-```
+```bash
 [root@localhost]# alternatives --set java /usr/local/java/jdk1.8.0_171/bin/java
 [root@localhost]# alternatives --set javac /usr/local/java/jdk1.8.0_171/bin/javac
 [root@localhost]# alternatives --set javaws /usr/local/java/jdk1.8.0_171/bin/javaws
@@ -83,12 +83,12 @@ yum을 사용할 수 없는 폐쇠망에서 자바,tomcat 개발환경을 구축
 
 
 - profile 설정
-```
+```bash
 [root@localhost]# vi /etc/profile
 ```
 
 - 상단에 아래 내용 추가 및 저장
-```
+```properties
 JAVA_HOME=/usr/local/java/java
 CLASSPATH=$JAVA_HOME/jre/lib:$JAVA_HOME/lib/tools.jar
 PATH=$PATH:$JAVA_HOME/bin
@@ -96,7 +96,7 @@ export JAVA_HOME CLASSPATH PATH
 ```
 
 - 설정된 profile 적용
-```
+```bash
 [root@localhost]# source /etc/profile
 ```
 
@@ -104,7 +104,7 @@ export JAVA_HOME CLASSPATH PATH
 
 **6) 설정 적용 확인**
 
-```
+```bash
 [root@localhost]# java -version
 [root@localhost]# javac -version
 ```
@@ -114,13 +114,13 @@ export JAVA_HOME CLASSPATH PATH
 # 3. tomcat 설치 및 환경 설정
 
 **1) Tomcat 계정 생성**
-```
+```bash
 [root@localhost]# useradd tomcat
 [root@localhost]# passwd tomcat
 ```
 
 - tomcat 계정으로 변경
-```
+```bash
 [root@localhost]# su - tomcat
 ```
 
@@ -135,9 +135,9 @@ Useradd 로 유저 생성시 옵션에 주의할 것
 
 - 로그저장을 위한 폴더
 
-```
-[tomcat@localhost]# mkdir -p /home/tomcat/logs/tomcat
-[tomcat @localhost]# mkdir -p /home/tomcat/webapps
+```bash
+[tomcat@localhost]$ mkdir -p /home/tomcat/logs/tomcat
+[tomcat@localhost]$ mkdir -p /home/tomcat/webapps
 ```
 mkdir에 -p 옵션을 주어야 하위 디렉토리가 한번에 생성된다.
 
@@ -145,16 +145,16 @@ mkdir에 -p 옵션을 주어야 하위 디렉토리가 한번에 생성된다.
 
 **3) 톰켓 파일 설치**
 
-```
-[tomcat@localhost]# tar -xvzf apache-tomcat-9.0.41.tar.gz
+```bash
+[tomcat@localhost]$ tar -xvzf apache-tomcat-9.0.41.tar.gz
 ```
 
 
 
 **4) Tomcat 심볼릭 링크 생성**
 
-```
-[tomcat@localhost]# ln -s /home/tomcat/apache-tomcat-9.0.41/ tomcat
+```bash
+[tomcat@localhost]$ ln -s /home/tomcat/apache-tomcat-9.0.41/ tomcat
 ```
 심볼릭 링크는 바로가기 역할을 수행한다. 정상적으로 링크가 설정되었을 때 계정의 홈 디렉토리에서 ls -al 명령어를 수행하였을 때 다음과 같이 나와야 정상적으로 심볼릭 링크가 지정된 것이다.
 
@@ -176,9 +176,9 @@ drwxrwxr-x. 2 tomcat tomcat        6 Apr 29 14:58 webapps
 
 **5) 톰캣 시작/정지 스크립트 심볼릭 설정**
 
-```
-[tomcat@localhost]# ln -s /home/tomcat/tomcat/bin/startup.sh /home/tomcat/startup
-[tomcat@localhost]# ln -s /home/tomcat/tomcat/bin/shutdown.sh /home/tomcat/shutdown
+```bash
+[tomcat@localhost]$ ln -s /home/tomcat/tomcat/bin/startup.sh /home/tomcat/startup
+[tomcat@localhost]$ ln -s /home/tomcat/tomcat/bin/shutdown.sh /home/tomcat/shutdown
 ```
 심볼릭 링크를 설정하고 ls-al 을 입력하면 다음과 같이 확인할수 있다.    
 ```
@@ -213,13 +213,13 @@ drwxrwxr-x. 2 tomcat tomcat        6 Apr 29 14:58 webapps
 
 - profile 설정
 
-```
+```bash
 [root@localhost]# vi /etc/profile
 ```
 
 - 기존에 추가된 설정을 변경
 
-```
+```properties
 JAVA_HOME=/usr/local/java/java
 CATALINA_HOME=/home/tomcat/tomcat
 CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$CATALINA_HOME/lib/jsp-api.jar:$CATALINA_HOME/lib/servlet-api.jar
@@ -229,13 +229,13 @@ export JAVA_HOME CLASSPATH PATH CATALINA_HOME JRE_HOME
 
 - profile 설정 적용
 
-```
+```bash
 [root@localhost]# source /etc/profile
 ```
 
 - profile 설정 완료 테스트
 
-```
+```bash
 [root@localhost]# echo $CATALINA_HOME
 ```
 
@@ -245,15 +245,15 @@ export JAVA_HOME CLASSPATH PATH CATALINA_HOME JRE_HOME
 
 - catalina.sh 수정
 
-```
+```bash
 [tomcat@localhost ~]$ vi /home/tomcat/tomcat/bin/catalina.sh
 ```
 
 
 
-- “catalina.out” 검색하여 경로 아래 내용으로 수정(Vi 편집기에서 :/ catalina.out을 입력)
+- "catalina.out" 검색하여 경로 아래 내용으로 수정(Vi 편집기에서 :/ catalina.out을 입력)
 
-```
+```bash
 CATALINA_OUT=/home/tomcat/logs/tomcat/catalina.out
 ```
 
@@ -261,16 +261,16 @@ CATALINA_OUT=/home/tomcat/logs/tomcat/catalina.out
 
 - server.xml 수정
 
-```
+```bash
 [tomcat@localhost ~]$ vi /home/tomcat/tomcat/conf/server.xml
 ```
 
 
 
-- “logs” 검색하여 경로 아래 내용으로 수정
+- "logs" 검색하여 경로 아래 내용으로 수정
 
-```
-directory=”/home/tomcat/logs/tomcat”
+```xml
+directory="/home/tomcat/logs/tomcat"
 ```
 
 
@@ -282,32 +282,32 @@ directory=”/home/tomcat/logs/tomcat”
             unpackWARs="true" autoDeploy="true" deployIgnore=".*">
 ```
 
-deployIgnore=".*"는 리눅스 서버에 배포할때 컨텍스트 루트를 “/”로 하기위한 설정이다. 단 이렇게 설정을 할 경우 빌드를 변경하고 재 배포시에 ROOT디렉토리를 삭제하여야 한다.
+deployIgnore=".*"는 리눅스 서버에 배포할때 컨텍스트 루트를 "/"로 하기위한 설정이다. 단 이렇게 설정을 할 경우 빌드를 변경하고 재 배포시에 ROOT디렉토리를 삭제하여야 한다.
 
 
 
 - logging.properties 수정
 
-```
+```bash
 [tomcat@localhost ~]$ vi /home/tomcat/tomcat/conf/logging.properties
 ```
 
 
 
 
-- “logs” 검색하여 경로 아래 내용으로 수정(3개)
+- "logs" 검색하여 경로 아래 내용으로 수정(3개)
 
-```
-1catailna.org.apache.juil./AsyncFileHandlerdirectory = home/tomcat/logs/tomcat
-2localhost.org.apache.juil./AsyncFileHandlerdirectory = home/tomcat/logs/tomcat
-3manager.org.apache.juil./AsyncFileHandlerdirectory = home/tomcat/logs/tomcat
+```properties
+1catalina.org.apache.juli.AsyncFileHandler.directory = /home/tomcat/logs/tomcat
+2localhost.org.apache.juli.AsyncFileHandler.directory = /home/tomcat/logs/tomcat
+3manager.org.apache.juli.AsyncFileHandler.directory = /home/tomcat/logs/tomcat
 ```
 
 
 
 **8) 80, 443포트 방화벽 설정 [root 권한]**
 
-```
+```bash
 [root@localhost]# firewall-cmd --permanent --zone=public --add-port=80/tcp
 [root@localhost]# firewall-cmd --permanent --zone=public --add-port=443/tcp
 [root@localhost]# firewall-cmd --reload
@@ -319,7 +319,7 @@ deployIgnore=".*"는 리눅스 서버에 배포할때 컨텍스트 루트를 “
 
 - 포트 포워딩 허용 여부 확인
 
-```
+```bash
 [root@localhost]# sysctl net.ipv4.ip_forward
 net.ipv4.ip_forward = 1
 ```
@@ -329,7 +329,7 @@ net.ipv4.ip_forward = 1
 
 - net.ipv4.ip_forward  값이 1이 아닐 경우
 
-```
+```bash
 [root@localhost]# echo 1 > /proc/sys/net/ipv4/ip_forward
 ```
 
@@ -337,7 +337,7 @@ net.ipv4.ip_forward = 1
 
 - 포트 포워딩 설정
 
-```
+```bash
 [root@localhost]# firewall-cmd --zone=public --add-forward-port=port=80:proto=tcp:toport=8080 --permanent
 
 [root@localhost]# firewall-cmd --zone=public --add-forward-port=port=443:proto=tcp:toport=8443 --permanent
@@ -351,7 +351,7 @@ net.ipv4.ip_forward = 1
 
   - 허용된 방화벽 포트 확인
 
-  ```
+  ```bash
   firewall-cmd --list-all
   ```
 
@@ -359,6 +359,6 @@ net.ipv4.ip_forward = 1
 
   - 방화벽 상태 확인
 
-  ```
+  ```bash
   firewall-cmd --state
   ```

@@ -9,25 +9,25 @@ comments: true
 toc: true    
 ---
 
-신규 시스템을 만들면서 프론트엔트 파트와 협업을 하게 되었다. 이제는 드디어 백엔드 작업만 수행하면 되는데  
-협업을 빠르게 수행하기 위해여 API 전달을 문서가 아니라 Swagger를 통하여 전달하기로 하였다.  
+신규 시스템을 만들면서 프론트엔드 파트와 협업을 하게 되었다. 이제는 드디어 백엔드 작업만 수행하면 되는데  
+협업을 빠르게 수행하기 위하여 API 전달을 문서가 아니라 Swagger를 통하여 전달하기로 하였다.  
 생각보다 간단해서 다른 프로젝트에도 적용하면 좋을것 같다.
 
 # 1. 의존성 주입
-```
+```xml
 <dependency>
 		<groupId>org.springdoc</groupId>
 		<artifactId>springdoc-openapi-ui</artifactId>
 		<version>1.4.1</version>
 </dependency>
 ```
-기존 swagger를 사용하려고하면 springfox-swagger-ui', 'springfox-swagger2' 이렇게 2가지를 추가하여야 한다.  
-swagger3로 넘어오게 되면 springdoc-openapi-ui라는 한가지 의존성만 추가 하면 된다
+기존 swagger를 사용하려고 하면 springfox-swagger-ui, springfox-swagger2 이렇게 2가지를 추가하여야 한다.  
+swagger3로 넘어오게 되면 springdoc-openapi-ui라는 한가지 의존성만 추가하면 된다.
 
 
 # 2. Application Yml 설정
 
-~~~
+```yaml
 springdoc:
   api-docs:
     path: /api-docs
@@ -39,8 +39,8 @@ springdoc:
 spring:
   mvc:
     pathmatch:
-      matching-strategy: ANT_PATH_MATCHER		
-~~~
+      matching-strategy: ANT_PATH_MATCHER
+```
 
 swagger-ui.path 의 경우 스웨거를 실행할때 필요한 경로를 지정한다.  
 지정하지 않았을 경우에는 localhost:{port}/swagger-ui/index.html 로 접속된다고 한다.
@@ -58,7 +58,7 @@ spring.mvc.pathmatch.matching-strategy 기본 값이 ant_path_matcher 에서 pat
 ## 2.1. SwaggerConfig 설정
 
 
-~~~
+```java
 @Configuration
 @Profile({"local", "dev"})
 public class SwaggerConfig {
@@ -84,15 +84,15 @@ public class SwaggerConfig {
         return openAPI;
     }
 }
-~~~
+```
 
-SwaggerConfig를 추가하면 각 상황에 맟추어서 Swagger의  설명을 추가하거나 옵션을 줄수 있다.  
+SwaggerConfig를 추가하면 각 상황에 맞추어서 Swagger의 설명을 추가하거나 옵션을 줄 수 있다.  
 여기서는 Swagger API에 타이틀과 프로필에 따라 서버 URL을 다르게 지정하는 기능을 추가하였다.  
 
 
 # 3. Controller 구현
 
-```
+```java
 @RestController
 @RequiredArgsConstructor
 
@@ -132,7 +132,7 @@ public ResponseEntity registAdminUser(HttpServletRequest request,
 대부분 DTO를 반환하도록 만들면 반환 형태 까지 지정할수 있어 좀더 편리하게 프론트엔드 파트와 소통할수 있다.  
 아무리 DTO에 @Schema를 지정하여 세팅을 하더라도 @ApiResponse에 지정되지 않는다면 스웨거에 노출되지 않는다.
 
-~~~
+```java
 @Getter
 @Setter
 @Schema(description = "유저 검색 결과값")
@@ -144,19 +144,19 @@ public class SearchUserDto {
     @Schema(required = true, description = "개별 유저 리스트")
     List<UserSimpleDto> userList;
 }
-~~~
+```
 DTO 클래스에 @Schema를 이용해서 값에 대한 설명을 작성하고 @ApiResponse로 연결을 한 상태에서 스웨거에 접속하면  
 ![](/images/spring/sdi48vmqrvf.png){: .align-center}
 이런 식으로 반환값에 DTO 형식이 표시 되고 아래 Schema에서 해당 DTO에 대한 설명을 볼수 있다.
 
 
-# 4.Swagger 확인
+# 4. Swagger 확인
 
-로컬에서 스워거를 실행 시켜보면 다름과 같은 화면이 나온다.
+로컬에서 스웨거를 실행 시켜보면 다음과 같은 화면이 나온다.
 
 ![](/images/spring/s2dff425ahoo.png){: .align-center}
 
 여기서 API 하나를 눌러서 확인해보면 이렇게
 ![](/images/spring/ge46geety.png){: .align-center}
 
-어떤 파라메터를 넣을지, 결과값은 어떤지 바로 확인할수 있어 프론트엔트 개발자와 소통할때 좀더 편하게 작업 할수 있게 되었다.  
+어떤 파라메터를 넣을지, 결과값은 어떤지 바로 확인할 수 있어 프론트엔드 개발자와 소통할 때 좀더 편하게 작업할 수 있게 되었다.  

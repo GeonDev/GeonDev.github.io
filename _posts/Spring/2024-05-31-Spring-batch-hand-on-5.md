@@ -13,7 +13,7 @@ toc: true
 
 * ItemReader에서 읽은 데이터를 가공 또는 Filtering
 * Step의 ItemProcessor는 optional
-ItemProcessor는 필수는 아니지만, 책임 분리를 분리하기 위해 사용
+ItemProcessor는 필수는 아니지만, 책임을 분리하기 위해 사용
 * ItemProcessor는 I(input)를 O(output)로 변환하거나
 ItemWriter의 실행 여부를 판단 할 수 있도록 filtering 역할을 한다.
 (ItemWriter는 not null만 처리)
@@ -23,7 +23,7 @@ itemReader에서 10개의 person 클래스를 생성한 후에 ItemProcessor를 
   
 ItemProcessor <I,O> 의 형태로 선언하며 Input, output의 자료형을 명시한다.
 
-~~~
+~~~java
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;

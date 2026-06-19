@@ -1,6 +1,6 @@
 ---
 layout: post
-title: SMappingJackson2JsonView를 이용하여 JSON 파싱(jsonView)
+title: MappingJackson2JsonView를 이용하여 JSON 파싱(jsonView)
 date: 2021-10-05
 Author: Geon Son
 categories: Spring
@@ -9,10 +9,10 @@ comments: true
 toc: true
 ---
 
-ajax를 사용하면서 가장 불편하다고 생각했던 것이 json으로 파싱을 하는 과정이였다.
+ajax를 사용하면서 가장 불편하다고 생각했던 것이 json으로 파싱을 하는 과정이었다.
 프론트엔드에 대한 지식이 부족하다보니 생으로 만드는 부분도 있겠지만 기본적으로 ajax호출 과정이 길다고 생각했다. 기존에 작성했던 코드를 보면 데이터를 전달하는 과정도 받아오는 과정도 다소 귀찮았다고 생각한다. (나중에는 아예 백엔드에서 뷰 자체를 던지기도 하더라...)
 
-```
+```javascript
 $.ajax(
 		{
 			url : "/search/json/getSearchResultList",
@@ -76,7 +76,7 @@ $.ajax(
 나만 모르고 있었던것 같지만.......이러한 과정을 조금이나마 쉽게 해주는(?) JsonView 라이브러리를 회사에서 사용해서 사용법을 정리해보려고 한다.
 
 # 1. 의존성 주입
-```
+```xml
 <dependency>
 	<groupId>com.fasterxml.jackson.core</groupId>
 	<artifactId>jackson-core</artifactId>
@@ -92,7 +92,7 @@ $.ajax(
 
 보통 인터넷을 검색하면 위에 두개의 라이브러리를 추가하라고 한다.
 물론 두개를 추가해도 작동이 되지만 스프링부트를 사용하면 조금 더 간단(?)한 방법으로 추가할 수도 있다.
-```
+```xml
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -102,7 +102,7 @@ starter-web을 추가하게되면 위에 필요한 모든 라이브러리를 포
 
 # 2. Config 설정
 
-```
+```java
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -126,7 +126,7 @@ public class WebConfig {
 
 아래 예시는 ModelAndView를 반환하거나 String을 반환하는 경우로 작성하였다.
 
-```
+```java
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

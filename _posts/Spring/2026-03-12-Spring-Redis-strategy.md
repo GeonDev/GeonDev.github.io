@@ -9,18 +9,17 @@ comments: true
 toc: true    
 ---
 
-## 개요
-
-본 문서는 Spring Boot 프로젝트에 Redis 캐싱을 적용하면서 발생한 이슈와 해결 방법을 정리한 가이드입니다.
-향후 프로젝트에서 Redis를 도입할 때 참고하여 동일한 문제를 사전에 방지할 수 있습니다.
+운영하던 게시판 서비스에 Redis 캐싱을 적용하면서 직렬화 실패와 레이어 구조 문제로 적지 않게 시간을 썼다.
+처음에는 단순히 `@Cacheable`만 붙이면 될 줄 알았는데, 캐싱 대상으로 어떤 객체를 넣느냐에 따라 직렬화가 깨지거나
+역직렬화가 실패하는 경우가 많았다. 그래서 적용 과정에서 부딪힌 이슈와 정리한 설계 기준을 한곳에 모아 두었다.
 
 ## 프로젝트 설계 원칙
 
-Redis 캐싱을 고려한 프로젝트는 처음부터 다음 원칙을 따라 설계해야 합니다.
+Redis 캐싱을 적용할 프로젝트라면 처음부터 다음 기준을 잡고 설계하는 편이 낫다.
 
 ### 1. ObjectMapper 설정
 
-Redis 직렬화를 위한 ObjectMapper는 별도로 설정합니다.
+Redis 직렬화에 쓸 ObjectMapper는 API 응답용과 분리해서 별도로 설정한다.
 
 ```java
 @Configuration
@@ -52,24 +51,21 @@ public class RedisConfig {
 }
 ```
 
-**핵심 설정**
-- **JavaTimeModule**: `LocalDateTime` 등 날짜/시간 타입 직렬화
-- **activateDefaultTyping**: 타입 정보 포함 (다형성 지원)
-- **disableCachingNullValues**: null 값 캐싱 방지
+각 설정의 역할은 이렇다.
+- `JavaTimeModule`: `LocalDateTime` 등 날짜/시간 타입 직렬화
+- `activateDefaultTyping`: 타입 정보 포함 (다형성 지원)
+- `disableCachingNullValues`: null 값 캐싱 방지
 
-**중요: Redis 전용 ObjectMapper를 별도로 만들어야 하는 이유**
-
-Redis 직렬화 설정과 REST API 응답 설정은 요구사항이 다릅니다:
+Redis 전용 ObjectMapper를 굳이 별도로 만든 이유는 Redis 직렬화와 REST API 응답이 요구사항이 다르기 때문이다.
 
 | 구분 | Redis ObjectMapper | API ObjectMapper |
 | :--- | :--- | :--- |
-| **타입 정보 포함** | 필요 (역직렬화를 위해) | 불필요 (클라이언트에 노출 안 함) |
-| **null 처리** | 캐싱 안 함 | 응답에 포함 가능 |
-| **날짜 형식** | 타임스탬프 가능 | ISO-8601 형식 선호 |
+| 타입 정보 포함 | 필요 (역직렬화를 위해) | 불필요 (클라이언트에 노출 안 함) |
+| null 처리 | 캐싱 안 함 | 응답에 포함 가능 |
+| 날짜 형식 | 타임스탬프 가능 | ISO-8601 형식 선호 |
 
-만약 전역 ObjectMapper를 Redis에 사용하면:
-1. `activateDefaultTyping` 설정이 API 응답에도 적용되어 불필요한 타입 정보가 클라이언트에 노출됨
-2. Redis 전용 설정이 API 응답 형식을 변경할 수 있음
+전역 ObjectMapper를 그대로 Redis에 쓰면 `activateDefaultTyping`이 API 응답에도 적용되어
+응답 JSON에 불필요한 타입 정보(`@class`)가 같이 나가게 된다.
 
 ```java
 // 잘못된 예시: 전역 ObjectMapper 사용
@@ -105,11 +101,11 @@ public ObjectMapper objectMapper() {
 }
 ```
 
-따라서 `@Qualifier("redisObjectMapper")`를 사용하여 Redis 설정에만 주입합니다.
+그래서 `@Qualifier("redisObjectMapper")`로 Redis 설정에만 이 매퍼를 주입한다.
 
 ### 2. 레이어별 객체 분리
 
-**Controller 계층**
+Controller 계층
 - HTTP 요청/응답 처리 전담
 - `ResponseEntity`, `HttpHeaders` 등 HTTP 관련 객체만 사용
 - Service로부터 받은 DTO를 ResponseEntity로 감싸서 반환
@@ -129,7 +125,7 @@ public ResponseEntity<DataDto> getData() {
 }
 ```
 
-**Service 계층**
+Service 계층
 - 순수 비즈니스 로직만 처리
 - DTO 또는 도메인 객체만 반환
 - HTTP 관련 객체(ResponseEntity, HttpStatus 등) 사용 금지
@@ -151,14 +147,12 @@ public ResponseEntity<DataDto> getData() {
 }
 ```
 
-**Repository 계층**
+Repository 계층
 - 데이터 접근만 담당
 - Entity 반환
 - 비즈니스 로직 포함 금지
 
 ### 3. Entity를 직접 반환하지 않기
-
-**문제점**
 
 ```java
 // 잘못된 예시
@@ -209,7 +203,7 @@ public class UserDto implements Serializable {
 
 **필수 요구사항**
 
-모든 캐싱 대상 DTO는 다음을 만족해야 합니다:
+모든 캐싱 대상 DTO는 다음을 만족해야 한다.
 
 ```java
 // 방법 1: 기본 생성자 + Getter/Setter (가장 안전)
@@ -587,7 +581,7 @@ private ResponseEntity<OnairCommentArticleListDto> getOnairComment(...) {
 
 **필수 요구사항**
 
-캐싱 대상 클래스는 다음 중 하나를 만족해야 합니다:
+캐싱 대상 클래스는 다음 중 하나를 만족해야 한다.
 
 - 기본 생성자(no-args constructor) 제공
 - `@JsonCreator`가 붙은 생성자 제공
@@ -697,7 +691,7 @@ public DataDto getData(String param1, String param2) {
 
 ### 6. 캐시 만료 시간 설정
 
-**설정 예시**
+기본 TTL은 다음처럼 설정한다.
 
 ```yaml
 spring:
@@ -706,32 +700,16 @@ spring:
       time-to-live: 600000  # 10분 (밀리초)
 ```
 
-**고려사항**
+TTL은 데이터 변경 빈도에 맞춰 정하면 된다. 실시간성이 중요한 데이터는 짧게 가져가거나 캐싱에서 빼고,
+메모리 사용량과 성능 사이에서 적당히 타협한다.
 
-- 데이터 변경 빈도에 따라 TTL 조정
-- 실시간성이 중요한 데이터는 짧은 TTL 또는 캐싱 제외
-- 메모리 사용량과 성능 간 트레이드오프 고려
+최소 TTL 권장
 
-**최소 TTL 권장 사항**
+TTL을 1~2초처럼 너무 짧게 잡으면 캐시 히트율이 낮아 캐싱을 안 한 것과 큰 차이가 없고,
+만료 순간에 요청이 DB로 몰리는 Cache Stampede가 생기기 쉽다. Redis와의 통신과 직렬화/역직렬화도
+계속 반복되어 오히려 손해다. 실시간성이 필요한 데이터라도 최소 5~10초 정도는 두는 편이 낫다고 본다.
 
-캐시 만료 시간은 최소 5~10초 이상으로 설정하는 것을 권장합니다.
-
-너무 짧은 TTL의 문제점:
-
-1. **Cache Stampede (캐시 스탬피드)**
-    - 캐시가 만료되는 순간 동시에 여러 요청이 DB로 몰림
-    - DB에 순간적으로 높은 부하 발생
-    - 캐시의 효과가 거의 없음
-
-2. **네트워크 오버헤드**
-    - Redis와의 빈번한 통신으로 네트워크 비용 증가
-    - 직렬화/역직렬화 작업 반복으로 CPU 사용량 증가
-
-3. **캐싱 효율 저하**
-    - 1~2초 TTL은 캐시 히트율이 매우 낮음
-    - 캐싱을 하지 않는 것과 큰 차이 없음
-
-**TTL 설정 가이드**
+TTL 설정 예시
 
 ```yaml
 # 정적 데이터 (거의 변경되지 않음)
@@ -750,9 +728,7 @@ spring.cache.redis.time-to-live: 10000    # 10초
 # 캐싱하지 않거나 Cache-Aside 패턴으로 수동 관리
 ```
 
-**캐시 워밍업 전략**
-
-짧은 TTL을 사용해야 하는 경우:
+짧은 TTL을 써야 한다면 스케줄러로 미리 캐시를 갱신해 두는 방법도 있다.
 
 ```java
 // 스케줄러로 주기적으로 캐시 갱신
@@ -828,7 +804,7 @@ void testCaching() {
 
 ### 1. Cache-Aside (Lazy Loading)
 
-가장 일반적인 캐싱 패턴으로, Spring의 `@Cacheable`이 이 패턴을 구현합니다.
+가장 일반적인 캐싱 패턴으로, Spring의 `@Cacheable`이 이 패턴을 구현한다.
 
 **동작 방식**
 
@@ -875,7 +851,7 @@ public class UserService {
 
 ### 2. Write-Through
 
-데이터를 쓸 때 캐시와 DB에 동시에 저장하는 패턴입니다.
+데이터를 쓸 때 캐시와 DB에 동시에 저장하는 패턴이다.
 
 **동작 방식**
 
@@ -921,7 +897,7 @@ public class UserService {
 
 ### 3. Write-Behind (Write-Back)
 
-데이터를 캐시에만 먼저 쓰고, 나중에 비동기로 DB에 저장하는 패턴입니다.
+데이터를 캐시에만 먼저 쓰고, 나중에 비동기로 DB에 저장하는 패턴이다.
 
 **동작 방식**
 
@@ -973,7 +949,7 @@ public class ViewCountService {
 
 ### 4. Refresh-Ahead
 
-캐시 만료 전에 미리 갱신하는 패턴입니다.
+캐시 만료 전에 미리 갱신하는 패턴이다.
 
 **동작 방식**
 
@@ -1020,7 +996,7 @@ public class PopularArticleService {
 
 ### 5. Cache Stampede 방지 전략
 
-여러 요청이 동시에 Cache Miss를 만나 DB에 몰리는 현상을 방지합니다.
+여러 요청이 동시에 Cache Miss를 만나 DB에 몰리는 현상을 막는 방법이다.
 
 **문제 상황**
 

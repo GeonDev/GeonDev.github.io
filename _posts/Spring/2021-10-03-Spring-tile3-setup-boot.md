@@ -16,8 +16,8 @@ toc: true
 
 스프링에 적용하는 내용은 많이 보았지만 Springboot에 적용하는 내용은 많이 없어 정리한다.
 
-#  1. 라이브러리 다운로드
-```
+# 1. 라이브러리 다운로드
+```xml
 <properties>
 	<java.version>1.8</java.version>		
 	<!-- tiles version -->
@@ -57,7 +57,7 @@ toc: true
 
 # 2. ViewResolver 설정
 
-```
+```java
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.ViewResolver;
@@ -123,7 +123,7 @@ public class ConfigurationForTiles {
 
 
 # 3. tiles.xml 살펴 보기
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE tiles-definitions PUBLIC
        "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
@@ -132,7 +132,7 @@ public class ConfigurationForTiles {
 
 	<!-- 통합 메인 레이아웃 -->
 	<definition name="Main" template="/WEB-INF/tiles/layout/Main.jsp">
-		<put-attribute name="title" value="HNS MALL" />
+		<put-attribute name="title" value="MALL" />
 		<put-attribute name="gnb" value="/WEB-INF/tiles/inc/sidemenu.jsp" />
 		<put-attribute name="header" value="/WEB-INF/tiles/inc/header.jsp" />
 		<put-attribute name="page-title" value="/WEB-INF/tiles/inc/title.jsp" />
@@ -142,7 +142,7 @@ public class ConfigurationForTiles {
 
 	<!-- 통계 메인 레이아웃 -->
 	<definition name="statMain" template="/WEB-INF/tiles/layout/StatMain.jsp">
-		<put-attribute name="title" value="HNS MALL" />
+		<put-attribute name="title" value="MALL" />
 		<put-attribute name="gnb" value="/WEB-INF/tiles/inc/sidemenu.jsp" />
 		<put-attribute name="header" value="/WEB-INF/tiles/inc/header.jsp" />
 		<put-attribute name="page-title" value="/WEB-INF/tiles/inc/title.jsp" />
@@ -191,13 +191,13 @@ public class ConfigurationForTiles {
 타일즈를 통하여 화면을 구성하게 되면 미리 정해진 레이아웃 안에 각각 요소를 추가하는 형태로 구성된다.
 설정에 따라서 구성요소가 모두 없어도 상관은 없다. 필요에 따라서 구성요소를 적절하게 조합하여 작성하면 된다.
 
-```
+```xml
 <definition name="Main" template="/WEB-INF/tiles/layout/Main.jsp">
 <definition name="statMain" template="/WEB-INF/tiles/layout/StatMain.jsp">
 <definition name="predictMain" template="/WEB-INF/tiles/layout/PredictMain.jsp">
 ```
 ## 3.1. Main.jsp(레이아웃) 구성
-```
+```jsp
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%   
 response.setHeader("Cache-Control","no-store");   
@@ -299,7 +299,7 @@ if (request.getProtocol().equals("HTTP/1.1"))
 
 # 4. Controller 호출
 
-```
+```java
 import java.util.HashMap;
 import java.util.Map;
 
@@ -318,10 +318,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.tis.hnsmall.domain.HisLogin;
-import com.tis.hnsmall.domain.Manager;
-import com.tis.hnsmall.service.ManagerService;
-import com.tis.hnsmall.utill.CmmUtil;
+import com.example.mall.domain.HisLogin;
+import com.example.mall.domain.Manager;
+import com.example.mall.service.ManagerService;
+import com.example.mall.utill.CmmUtil;
 
 
 @Controller
@@ -358,8 +358,6 @@ public class MainController {
 		return mv;
 	}
 
-    	private static final Logger logger = LoggerFactory.getLogger(StatController.class);
-
 	@RequestMapping("/stat/totalCall")
 	public ModelAndView totalCall(Model model ) {
 
@@ -373,7 +371,7 @@ public class MainController {
 
 Controller에서 화면을 호출할때 특이한 점은 view를 호출 하는 이름이 파일 이름이 아니라 tiles에서 설정한 이름이라는 것입니다. tiles.xml의 definition 부분 중 호출될 이름을 지정하는 부분이 있는데 이것을 이용하여 타일즈에서 불러올 파일을 동적으로 불러옵니다.
 
-```
+```xml
 <definition name="main" extends="Main">
 <definition name="stat/*" extends="statMain">
 ```

@@ -16,47 +16,43 @@ toc: true
 보통의 경우 스프링부트로 작성된 어플리케이션은 하나의 DB만 접근하여 사용한다. 아주 가끔 다른 DB의 정보를 가져오거나 역할 분리를 위해 서로 다른 DB에 접근하기도 하는데 어떻게 설정하는지 정의한다.
 
 # 1. application.yml 설정
-```
+```yaml
 spring:
   master:
     datasource:
-      jdbc-url: jdbc:mariadb://localhost:3306/proptech
-      username: ENC(LyzpWYaIfBHycYC0uOJw6w==)
-      password: ENC(/j9TCvgQDkpQWHi2dq56ag==)
+      jdbc-url: jdbc:mariadb://localhost:3306/{database}
+      username: ENC({ENCRYPTED_USERNAME})
+      password: ENC({ENCRYPTED_PASSWORD})
       driver-class-name: org.mariadb.jdbc.Driver
----
-
-spring:
   slave:
     datasource:
-      jdbc-url: jdbc:mariadb://localhost:3306/proptech
-      username: ENC(LyzpWYaIfBHycYC0uOJw6w==)
-      password: ENC(/j9TCvgQDkpQWHi2dq56ag==)
+      jdbc-url: jdbc:mariadb://localhost:3306/{database}
+      username: ENC({ENCRYPTED_USERNAME})
+      password: ENC({ENCRYPTED_PASSWORD})
       driver-class-name: org.mariadb.jdbc.Driver
-
 ```
 
-단일 연결시 사용하던 URL부분을 jdbc-url로 번경/ connetion 구분을 위한 master, slave 테그 추가 (이름은 임의로 설정할 수 있다./ IDE에서 올바르지 않는 설정으로 출력될 수 있다.) Slave의 경우 여러 개가 될수도 있다.
+단일 연결시 사용하던 URL 부분을 jdbc-url로 변경하고, connection 구분을 위한 master, slave 태그를 추가한다. (이름은 임의로 설정할 수 있다. IDE에서 올바르지 않은 설정으로 표시될 수 있다.) Slave의 경우 여러 개가 될 수도 있다.
 
 로그관리를 위해 HikariCP를 활용하여 작성하는 방법도 있는 것 같지만 일단 사용하지 않고 작성한다.
 
 # 2. DataBase Config 작성
-각 커넥션에 접속하기위한 Config를 작성한다. @Primary 를 활용하여 해당 DB가 기본값 (Master) 라는 것을 설정할 수 있다.
-```
+각 커넥션에 접속하기 위한 Config를 작성한다. @Primary를 활용하여 해당 DB가 기본값 (Master) 이라는 것을 설정할 수 있다.
+```java
 @MapperScan(value = "com.example.demo.mapper.master", sqlSessionFactoryRef = "masterSqlSessionFactory")
 ```
 
 
 @MapperScan 어노테이션을 활용하여 어떤 경로의 Mapper를 connection에 연결할지 정의한다. 해당 경로에는 Mapper 인터페이스가 들어가게 된다.
-설정한 경로 이외에 영역에서 코드를 작성하면 당연히 인식되지 않음으로 주의한다.
+설정한 경로 이외의 영역에서 코드를 작성하면 당연히 인식되지 않으므로 주의한다.
 
-```
+```java
 sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:com/example/demo/mybatis/master/*.xml"));
 ```
 sqlSessionFactory 에서 어떤 경로를 통하여 쿼리문 (xml)을 불러오게 될지 결정한다.
 
 ## 2.1. MasterDatabaseConfig.java
-```
+```java
 @Configuration
 @MapperScan(value = "com.example.demo.mapper.master", sqlSessionFactoryRef = "masterSqlSessionFactory")
 @EnableTransactionManagement
@@ -89,7 +85,7 @@ public class MasterDataBaseConfig {
 ```
 
 ## 2.2. SlaveDatabaseConfig.java
-```
+```java
 @Configuration
 @MapperScan(value = "com.example.demo.mapper.slave", sqlSessionFactoryRef = "slave1SqlSessionFactory")
 @EnableTransactionManagement
@@ -118,11 +114,11 @@ public class SlaveDataBaseConfig {
 
 ```
 
-# 3. Mapper xml파일 정의
-Xml 파일 또한 config 에서 설정한 경로에 저장 하여 설정한다
+# 3. Mapper xml 파일 정의
+Xml 파일 또한 config에서 설정한 경로에 저장하여 설정한다.
 
 ## 3.1. MasterDataBaseMapper.xml
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
  <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
@@ -135,7 +131,7 @@ Xml 파일 또한 config 에서 설정한 경로에 저장 하여 설정한다
 ```
 
 ## 3.2. SlaveDataBaseMapper.xml
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
@@ -147,8 +143,8 @@ Xml 파일 또한 config 에서 설정한 경로에 저장 하여 설정한다
 ```
 
 # 4. Mapper interface 정의
-config에서 정의한 경로에 Mapper 클래스를 생성, Config에서 경로를 설정해주었기 때문에  @Repository @Mapper 어노테이션이 필요하지 않다.
-```
+config에서 정의한 경로에 Mapper 인터페이스를 생성한다. Config에서 경로를 설정해주었기 때문에 @Repository, @Mapper 어노테이션이 필요하지 않다.
+```java
 package com.example.demo.mapper.master;
 
 import java.util.List;
@@ -160,7 +156,7 @@ public interface MasterDataBaseMapper {
 
 ```
 
-```
+```java
 package com.example.demo.mapper.slave;
 
 import java.util.List;
@@ -176,8 +172,8 @@ public interface Slave1DataBaseMapper {
 
 # 5. Service 클래스 정의
 
-정의한 mapper 클래스를 활용하여 Service 클래스 작성, Service 클래스 부터는 단일 커넥션으로 작성한 방식과 크게 다르지 않게 정의하여 사용한다. 클래스를 분리하여도 되고 분리하지 않아도 상관없다.
-```
+정의한 mapper 인터페이스를 활용하여 Service 클래스를 작성한다. Service 클래스부터는 단일 커넥션으로 작성한 방식과 크게 다르지 않게 정의하여 사용한다. 클래스를 분리하여도 되고 분리하지 않아도 상관없다.
+```java
 @Service
 public class MasterDataBaseService {
    @Autowired
@@ -193,5 +189,7 @@ public class MasterDataBaseService {
    public List<CountryModel> getCountry() throws Exception {
       return slave1DataBaseMapper.getCountry();
    }
-
+}
 ```
+
+이렇게 서로 다른 Mapper를 주입받아 사용하면 하나의 Service에서도 두 DB에 모두 접근할 수 있다.

@@ -83,7 +83,7 @@ jwt:
   refresh-expiration-ms: 1209600000  # 리프레시 토큰 만료: 14일
 ```
 
-> 💡 키 생성 예시: `openssl rand -base64 48` 로 만든 문자열을 `JWT_SECRET` 환경변수에 넣으면 된다.
+> 키 생성 예시: `openssl rand -base64 48` 로 만든 문자열을 `JWT_SECRET` 환경변수에 넣으면 된다.
 
 # 3. JwtTokenProvider — 토큰 생성과 해석
 
@@ -181,7 +181,7 @@ public class JwtTokenProvider {
 }
 ```
 
-> 📌 0.11 → 0.12 주요 변경점: `parserBuilder()` 제거 → `parser()`, `setSigningKey()` → `verifyWith()`,
+> 0.11 → 0.12 주요 변경점: `parserBuilder()` 제거 → `parser()`, `setSigningKey()` → `verifyWith()`,
 > `parseClaimsJws()` → `parseSignedClaims()`, `getBody()` → `getPayload()`, 빌더의 `setSubject/setExpiration` → `subject/expiration`.
 
 # 4. 사용자 조회 — UserDetailsService
@@ -302,7 +302,7 @@ public class SecurityConfig {
 }
 ```
 
-> 📌 `hasRole("ADMIN")` 은 내부적으로 `ROLE_ADMIN` 권한을 확인한다. 그래서 토큰 claim·UserDetails 의 권한은
+> `hasRole("ADMIN")` 은 내부적으로 `ROLE_ADMIN` 권한을 확인한다. 그래서 토큰 claim·UserDetails 의 권한은
 > `ROLE_ADMIN` 처럼 **`ROLE_` 접두어를 포함**해서 다뤄야 한다. (앞의 코드들이 그렇게 맞춰져 있다.)
 
 # 7. 로그인 엔드포인트 — 토큰 발급
@@ -431,7 +431,7 @@ public class TokenRefreshController {
 }
 ```
 
-> 📌 재발급 때 권한을 토큰에서 그대로 베끼지 않고 `loadUserByUsername` 으로 **다시 조회**하는 이유: 그래야 그 사이 바뀐 권한(예: 등급 강등)이 새 액세스 토큰에 반영된다.
+> 재발급 때 권한을 토큰에서 그대로 베끼지 않고 `loadUserByUsername` 으로 **다시 조회**하는 이유: 그래야 그 사이 바뀐 권한(예: 등급 강등)이 새 액세스 토큰에 반영된다.
 
 ## 8.3 로그아웃
 
@@ -446,7 +446,7 @@ public ResponseEntity<Void> logout(Authentication authentication) {
 }
 ```
 
-> 💡 `type` claim 으로 액세스/리프레시를 구분해 둔 이유: 리프레시 토큰을 일반 API 인증(`Authorization: Bearer`)에 그대로 쓰는 오용을 막기 위해서다. 인증 필터에서 `type=access` 만 받도록 한 번 더 거르면 더 안전하다.
+> `type` claim 으로 액세스/리프레시를 구분해 둔 이유: 리프레시 토큰을 일반 API 인증(`Authorization: Bearer`)에 그대로 쓰는 오용을 막기 위해서다. 인증 필터에서 `type=access` 만 받도록 한 번 더 거르면 더 안전하다.
 
 # 9. 권한 확인 — 컨트롤러에서 받아 쓰기
 

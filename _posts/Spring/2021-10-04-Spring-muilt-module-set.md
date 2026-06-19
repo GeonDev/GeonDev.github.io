@@ -19,14 +19,14 @@ toc: true
 # 1. 멀티 모듈?
 
 
-멀티모듈을 사용하는 이유 중 가장 큰 이유는 공통되는 코드를 재사용하고 프로젝트 관리를 용이하기 하기 위해 입니다.
+멀티모듈을 사용하는 이유 중 가장 큰 이유는 공통되는 코드를 재사용하고 프로젝트 관리를 용이하게 하기 위해서입니다.
 프로젝트를 진행하면서 어드민 페이지와 일반 유저 페이지가 같이 있어야 하는 경우 같은 DB에 접속하기 때문에 서비스 코드들은 대부분 동일하게 작동하는데 프로젝트를 2개로 만들자니 비효율적이면서
 동시에 관리하기도 힘들기 때문에 멀티 모듈을 활용하여 화면 영역만 분리하여 사용할수 있게 되고 별도의 서버에서 운영하는 것도 쉬워지게 됩니다.
 
 실무에서는 각 프로젝트별(PC, 모바일) 톰켓 서버를 분리하되 DAO, Service와 같은 공통 기능은 하나로 개발하기 위해서
 멀티모듈을 사용한 것으로 보입니다.
 
-![](images/it/1ee73c57image1.png){: .align-center}
+![](/images/it/1ee73c57image1.png){: .align-center}
 
 테스트 에서는 root-parent라는 프로젝트에 아래에 root-service, root-web이라는 스프링 프로젝트가 모듈로 있는 형태로 제작하였습니다.
 이름처럼 service를 수행하는 프로젝트와 web(화면) 부분을 분리하였습니다.
@@ -40,11 +40,11 @@ toc: true
 생성된 프로젝트에서 모듈은 간단하게 생성할 수 있습니다.
 
 ![](/images/it/1ee73c57image2.png){: .align-center}
-인텔리제이 기준으로 FILE - New - Moudle 에 들어가서 모듈을 생성합니다.
+인텔리제이 기준으로 File - New - Module 에 들어가서 모듈을 생성합니다.
 이렇게 프로젝트를 생성하면 새로 생성된 모듈은 완전히 비어있는 상태로 생성되기 때문에 src, resource 부분의 값은 넣어 주어야 합니다.
 특히 모듈 또한 스프링부트 이기 때문에 WebApplication 클래스 처럼 스프링부트를 시작하기 위한 main 클래스가 반드시 있어야 합니다.
 
-부모영역에 있는 src/resourc는 사용하지 않기 때문에 삭제해주면 됩니다. 결과적으로는 아래와 같은 구조로 프로젝트가 생성됩니다.
+부모 영역에 있는 src/resources는 사용하지 않기 때문에 삭제해주면 됩니다. 결과적으로는 아래와 같은 구조로 프로젝트가 생성됩니다.
 ![](/images/it/1ee73c57image3.png){: .align-center}
 
 
@@ -52,10 +52,10 @@ toc: true
 
 # 3. 프로젝트 의존성
 
-멀티 모듈 프로젝트에서 service 모듈은 다른 모듈이 사용할수 있어야 합니다.
+멀티 모듈 프로젝트에서 service 모듈은 다른 모듈이 사용할 수 있어야 합니다.
 다른 모듈이 service를 사용하기 위해서는 dependency를 추가해 주게 됩니다. 일반적인 라이브러리를 추가하는 방법 처럼 service 모듈을 추가하게 되면 다른 모듈에서 service의 기능을 참조하여 사용할 수 있게 됩니다.
 
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -89,11 +89,11 @@ toc: true
 </project>
 ```
 
-이렇게 pom.xml를 수정하더라고 실제 사용하기 위해 root-web프로젝트에서 @Autowired를 수행하면 com.example.service를 찾을 수 없다는 메세지를 받게 됩니다. 이유는 **스프링부트의 자동검색은 자기 클래스 하위에 있는 것만 검색하기 때문**입니다.
+이렇게 pom.xml를 수정하더라도 실제 사용하기 위해 root-web 프로젝트에서 @Autowired를 수행하면 com.example.service를 찾을 수 없다는 메세지를 받게 됩니다. 이유는 **스프링부트의 컴포넌트 자동 검색은 메인 클래스가 위치한 패키지와 그 하위 패키지만 검색하기 때문**입니다.
 
-root-web의 하위 패키지는 com.example.web부터 검색하기 때문에 com.example.service를 찾으라고 하면 검색되지 않습니다. 그렇기 때문에 WebApplication 클래스에서 컴포넌트를 어디부터 스켄 할지 지정해 주어야 합니다.
+root-web의 메인 클래스는 com.example.web 패키지에 있어 그 하위만 검색하기 때문에 com.example.service는 검색되지 않습니다. 그렇기 때문에 WebApplication 클래스에서 컴포넌트를 어디부터 스캔할지 지정해 주어야 합니다.
 
-```
+```java
 @ComponentScan("com.example")
 @SpringBootApplication
 public class WebApplication {
@@ -110,7 +110,7 @@ public class WebApplication {
 
 먼저 root-service 모듈에 TestService 클래스를 생성합니다.
 지금은 테스트 이기 때문에 따로 DB를 연결하지는 않고 간단히 서비스 기능이 동작하게만 제작하였습니다.
-```
+```java
 package com.example.service;
 
 import org.springframework.stereotype.Service;
@@ -126,7 +126,7 @@ public class TestService {
 
 이후에 root-web에서 @Autowired를 이용해서 TestService를 사용하는 controller를 제작합니다.
 
-```
+```java
 package com.example.web;
 
 import com.example.service.TestService;

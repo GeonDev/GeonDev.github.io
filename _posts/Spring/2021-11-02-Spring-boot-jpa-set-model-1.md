@@ -15,7 +15,7 @@ Mybatis 로 제작되었던 프로젝트에 JPA를 적용하는 과정을 정리
 
 ## 1. 의존성 주입
 
-```
+```xml
 <!-- spring-boot-starter-data-jpa 내부에 JDBC를 포함하고 있다. -->
 <dependency>
 	<groupId>org.springframework.boot</groupId>
@@ -40,7 +40,7 @@ Mybatis 로 제작되었던 프로젝트에 JPA를 적용하는 과정을 정리
 기존에 사용하던 mybatis와 jdbc를 pom.xml에서 제거하였습니다. spring-boot-starter-data-jpa 내부에 이미 jdbc를 가지고 있기 때문에 추가적인 의존성 주입을 하지 않아도 됩니다.
 
 
-```
+```java
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -66,12 +66,12 @@ public class VigApplication {
 
 ## 2. 도메인 객체 변경
 
-mybatis 로 프로젝트를 제작할 때 select 매핑을 많이 해둔 편이라 도메인 객체에서 ID를 받아오는 경우가 많지 않을 것이라고 생각하였는데 착각이였습니다.
+mybatis 로 프로젝트를 제작할 때 select 매핑을 많이 해둔 편이라 도메인 객체에서 ID를 받아오는 경우가 많지 않을 것이라고 생각하였는데 착각이었습니다.
 
 JPA에서는 mybatis와 달리 테이블과 테이블을 연결할때 객체의 관계를 통하여 조인을 실행하기 때문에 int CodeId 와 같은 형태로 정의되어 있는 도메인 내부 값들은 모두 변경이 필요했습니다.
 
 
-```
+```java
 @Data
 public class ImageKeyword implements Serializable{
 
@@ -97,7 +97,7 @@ public class ImageKeyword implements Serializable{
 이런 식으로 객체가 아닌 특정 칼럼의 값을 불러오는 경우가 더 많아 이러한 클래스 변수들을 모두 수정하는 작업을 진행하였습니다.
 
 
-```
+```java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -131,7 +131,7 @@ public class ImageKeyword implements Serializable{
 
 **@GeneratedValue** 주로 ID와 같이 사용됩니다. 기본키의 값을 자동으로 생성해주는 기능을 합니다. JPA는 DBMS에 유연하게 변경이 가능하다고 알고 있는데 GeneratedValue같은 기능을 사용하기 위해서는 DBMS마다 다른 설정이 필요합니다. 이런 것을 방언(?)이라고 한다고 합니다.
 
-**@Column(name = "alarm_Id")** 위에 설명했던 테이블과 비슷한 기능으로 매핑하려는 칼럼의 이름과 클래스 변수의 이름이 다를떄 사용합니다.
+**@Column(name = "alarm_Id")** 위에 설명했던 테이블과 비슷한 기능으로 매핑하려는 칼럼의 이름과 클래스 변수의 이름이 다를 때 사용합니다.
 
 **@Enumerated(EnumType.STRING)** Enum 타입을 매핑합니다. 플래그로 사용합니다.
 

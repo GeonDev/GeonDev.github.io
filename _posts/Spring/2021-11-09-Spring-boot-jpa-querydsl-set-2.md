@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Springboot + Spring Date JPA+ QueryDsl 적용하기(Maven) 2
+title: Springboot + Spring Data JPA + QueryDsl 적용하기(Maven) 2
 date: 2021-11-09
 Author: Geon Son
 categories: Spring
@@ -16,7 +16,7 @@ comments: true
 
 # 1. PageImpl 반환 메소드 생성
 
-```
+```java
     // PageImpl은 Spring Data에서 이미 선언되어 있는 도메인
     public PageImpl<User> findUserTypeAndDatePage(String type, String value, String startDate, String endDate , Pageable pageable){
 
@@ -29,14 +29,14 @@ comments: true
         return new PageImpl<>(result, pageable, totalCount);
     }
 ```
-아주 간단하게 page를 반환하는 메소드를 생성할수 있다. 처음에는 PageImpl를 따로 구현해서 제작한 것이라고 생각하였는데 Spring date core에 이미 구현되어 있는 클래스였다.
+아주 간단하게 page를 반환하는 메소드를 생성할 수 있다. 처음에는 PageImpl을 따로 구현해서 제작한 것이라고 생각하였는데 Spring Data에 이미 구현되어 있는 클래스였다.
 
 이렇게 반환된 PageImpl은 Page 인터페이스를 구현(implements)한 클래스이기 때문에, 이후에는 기존에 사용하던 Service에서 Page 타입으로 불러오기만하면 된다.
 
 
 # 2. 기존 Service와 비교
 
-```
+```java
    @Override
     public Pagination getItemList(Pageable pageable, String type, String value) {
 
@@ -74,7 +74,7 @@ comments: true
 기존에 Pagination을 반환하는 UserService는 repository에 구현된 JPA 인터페이스를 불러와야 하기 때문에 불필요한 조건 분기도 있고 깔끔하지 않았다.
 
 
-```
+```java
     public Pagination getItemList(Pageable pageable, String type, String value, String startDate, String endDate) {
 
         PageImpl<User> userPage = userRepositorySupport.findUserTypeAndDatePage(type, value, startDate, endDate, pageable);
@@ -100,6 +100,6 @@ comments: true
     }    
 ```
 
-새로 QueryDsl을 사용해 제작된 findUserTypeAndDatePage는 분기를 모두 내부에서 처리하기 떄문에 전달 받은 모든 파라미터를 넣기만 하면 동적 쿼리를 생성한다.
+새로 QueryDsl을 사용해 제작된 findUserTypeAndDatePage는 분기를 모두 내부에서 처리하기 때문에 전달 받은 모든 파라미터를 넣기만 하면 동적 쿼리를 생성한다.
 
-머스테치를 사용하기 때문에 전달하는 데이터의 양이 많아보이지만 이부분은 다른 템플릿을 사용하면 변경되는 부분 이기 떄문에 쿼리 부분만 비교하면 더 간단한 형태로 구현된 것을 알 수 있다.
+머스테치를 사용하기 때문에 전달하는 데이터의 양이 많아 보이지만 이 부분은 다른 템플릿을 사용하면 변경되는 부분이기 때문에 쿼리 부분만 비교하면 더 간단한 형태로 구현된 것을 알 수 있다.

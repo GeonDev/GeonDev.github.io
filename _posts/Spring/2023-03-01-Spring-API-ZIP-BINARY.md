@@ -25,7 +25,7 @@ toc: true
 재무정보 API에서 불러오는 키는 [전자공시 - 고유번호](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019018) 라고 하는 별도의 API를 사용하여야만 받아올수 있고 이 정보는 **Zip FILE (binary)** 로 전달 한다고 한다.
 
 json, xml도 아니고 압축데이터를 바이너리로 제공한다니 눈앞이 아찔하다...  
-같은 문제(?)를 격은 [포스팅](https://velog.io/@dragontiger/API-%ED%86%B5%EC%8B%A0%EC%9C%BC%EB%A1%9C-zip-%ED%8C%8C%EC%9D%BC%EC%9D%84-%EB%B0%9B%EA%B2%8C-%EB%90%9C%EB%8B%A4%EB%A9%B4-Java-IO-Stream-%EC%9D%B4%ED%95%B4)이 있어 참고하였는데 마지막 부분에 바이너리를 한번에 처리하는 기능은 **[Fatal Error] :1:1: 예기치 않은 파일의 끝입니다.** 라는 오류를 해결할 수 없어 결국 API로 바이너리를 받아 zip 파일을 생성하고, 생성한 파일의 압축을 풀고 xml을 파싱하는 방식으로 진행하였다.
+같은 문제(?)를 겪은 [포스팅](https://velog.io/@dragontiger/API-%ED%86%B5%EC%8B%A0%EC%9C%BC%EB%A1%9C-zip-%ED%8C%8C%EC%9D%BC%EC%9D%84-%EB%B0%9B%EA%B2%8C-%EB%90%9C%EB%8B%A4%EB%A9%B4-Java-IO-Stream-%EC%9D%B4%ED%95%B4)이 있어 참고하였는데 마지막 부분에 바이너리를 한번에 처리하는 기능은 **[Fatal Error] :1:1: 예기치 않은 파일의 끝입니다.** 라는 오류를 해결할 수 없어 결국 API로 바이너리를 받아 zip 파일을 생성하고, 생성한 파일의 압축을 풀고 xml을 파싱하는 방식으로 진행하였다.
 
 
 # 1. binary 파일 다운로드 하기
@@ -33,7 +33,7 @@ json, xml도 아니고 압축데이터를 바이너리로 제공한다니 눈앞
 macOS를 사용중이여서 괜찮은 건가 싶긴 하지만 일단 바이너리 파일 부터 다운 받아 보기로 하였다.
 
 
-~~~
+~~~java
 UriComponents uri = UriComponentsBuilder
         .newInstance()
         .scheme("https")
@@ -66,7 +66,7 @@ at org.springframework.web.client.RestTemplate.getForEntity(RestTemplate.java:35
 추가로 어차피 추후에 파일 저장을 위해서 InputStream.readAllBytes() 을 반환해야 되는데 자료형이 byte 배열로 되어 있다. 아예 전달 받는 자료형을 바이트 배열로 지정하면 getForEntity를 사용하더라도 오류가 발생하지 않는다.  
 (나같은 경우에는 연습 겸, 좀더 명확한 호출을 위하여 exchange를 사용하였다.)
 
-~~~
+~~~java
 UriComponents uri = UriComponentsBuilder
     .newInstance()
     .scheme("https")
@@ -88,7 +88,7 @@ ResponseEntity<byte[]> response = restTemplate.exchange(uri.toString(), HttpMeth
 이때는 간단하게(?) FileOutputStream을 활용하면 된다. 여기서 설정한 filePath는 임의로 설정한 파일 경로이다.  
 추후에 윈도우 서버에서 구동할 생각도 있기 때문에 OS에 따라 경로를 바꿔 주기 위해서 변수로 설정을 하였다.
 
-~~~
+~~~java
 try {
 File lOutFile = new File(filePath  + "temp.zip");
 FileOutputStream lFileOutputStream = new FileOutputStream(lOutFile);
@@ -107,9 +107,9 @@ e.printStackTrace();
 하지만 자동화를 할 것이라면 압축 풀기도 해주어야 되기 때문에 압축 해제 코드도 추가 하였다.
 
 
-# 2. zip 압출 풀기
+# 2. zip 압축 풀기
 
-~~~
+~~~java
 public static void unZip(String ZipFilePath, String FilePath) {
 File Destination_Directory = new File(FilePath);
 if (!Destination_Directory.exists()) {
@@ -160,7 +160,7 @@ Buffered_Output_Stream.close();
 
 
 # 3. xml 파싱하기
-~~~
+~~~java
 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 factory.setIgnoringElementContentWhitespace(true);
 DocumentBuilder builder = factory.newDocumentBuilder();

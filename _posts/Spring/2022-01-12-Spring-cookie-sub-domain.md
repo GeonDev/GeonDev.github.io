@@ -35,7 +35,7 @@ toc: true
 
 # 2. 쿠키 생성
 
-```
+```java
 private void setCookies()  {     
     HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
 
@@ -64,8 +64,8 @@ setDomain 에는 접속 가능한 도메인을 넣는다. 많은 블로그에서
 공부를 할때는 도메인을 사용한 웹 사이트를 구성해 본적이 없고
 심지어 SI에서 일할때는 내부 시스템이라고 IP를 입력하는 시스템만 만들어서 도메인을 딱히 설정해 본적이 없다...
 
-도메인이 없을때 간단하게 테스트트를 할수 있는 방법은 host 파일을 설정하는 것이다. DNS 타기 전에 먼저
-PC 내부에 호스트 파일을 타기 때문에 여기에 도메인을 설정하면 비슷한(?) 효과를 쓸수 있다.
+도메인이 없을때 간단하게 테스트를 할수 있는 방법은 host 파일을 설정하는 것이다. DNS 타기 전에 먼저
+PC 내부에 호스트 파일을 타기 때문에 여기에 도메인을 설정하면 비슷한(?) 효과를 볼수 있다.
 맥북 기준으로 터미널에 **sudo vi /etc/hosts** 를 입력하고 원하는 URL을 설정하면 된다.
 
 ![](/images/spring/g5lhqzgqj03.jpg){: .align-center}

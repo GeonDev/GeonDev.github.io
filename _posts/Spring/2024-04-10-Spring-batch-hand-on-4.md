@@ -25,7 +25,7 @@ FlatFileItemWriter는 데이터가 매핑된 객체를 파일로 write
 테스트를 위하여 이전에 생성한 Person객체를 사용하는 ItemReader를 생성한다.  
 ItemWriter는 **csvFileItemWriter** 라는 이름으로 설정하였다. 
 
-~~~
+```java
 @Configuration
 @Slf4j
 public class ItemWriterConfiguration {
@@ -78,15 +78,15 @@ public class ItemWriterConfiguration {
     }
 
 }
-~~~
+```
 
 FlatFileItemWriter는 CSV 파일에 데이터를 작성하기위해서 FieldExtractor 객체가 필요하다.    
-FieldExtractor를 이용하여 필드 객채의 이름을 설정 한다.
+FieldExtractor를 이용하여 필드 객체의 이름을 설정 한다.
 
 입력받은 데이터를 한줄씩 구분하여 작성하기 위해서 구분자가 필요한데 이때 LineAggregator를 사용한다.  
 
 FlatFileItemWriter는 builder를 이용하여 생성하게 된다.
-~~~
+```java
     private ItemWriter<Person> csvFileItemWriter() throws Exception {
         BeanWrapperFieldExtractor<Person> fieldExtractor = new BeanWrapperFieldExtractor<>();
         
@@ -111,11 +111,11 @@ FlatFileItemWriter는 builder를 이용하여 생성하게 된다.
 
         return itemWriter;
     }
-~~~
+```
 
 이렇게 파일을 작성하여도 문제는 없지만 추가적으로 CSV 파일에 header와 footer를 생성할수 있다.  
 위에 FlatFileItemWriter에 headerCallback, footerCallback을 추가하면 된다.
-~~~
+```java
         FlatFileItemWriter<Person> itemWriter = new FlatFileItemWriterBuilder<Person>()
                 .name("csvFileItemWriter")
                 .encoding("UTF-8")
@@ -123,9 +123,9 @@ FlatFileItemWriter는 builder를 이용하여 생성하게 된다.
                 .lineAggregator(lineAggregator)
                 //header, footer 실행 
                 .headerCallback(writer -> writer.write("id,이름,나이,거주지"))
-                .footerCallback(writer -> writer.write("-------------------/n"))
+                .footerCallback(writer -> writer.write("-------------------\n"))
                 .build();
-~~~
+```
 itemWriter를 변경하고 다시 실행을 하게 되면 전체 파일이 다시 실행하게 된다.  
 파일을 새로 생성하지 않고 기존에 있던 파일에 이어서 데이터를 작성하고 싶다면 append(true) 옵션을 추가하면 된다.  
 단, append를 하게 되면 파일을 이어쓰는 것이기 때문에 마지막 footer에 반드시 개행문자를 추가해 주어야 정상적인 데이터 출력이 된다.
@@ -140,7 +140,7 @@ ex) insert into person (name, age, address) values (1,2,3), (4,5,6), (7,8,9);
 
 jdbc를 사용하기 때문에 당연히 DataSource를 사용한다. 생성자에서 데이터를 받아올수 있도록 생성자를 추가하였다.
 
-~~~
+```java
 @Configuration
 @Slf4j
 public class ItemWriterConfiguration {
@@ -189,7 +189,7 @@ public class ItemWriterConfiguration {
         return itemWriter;
     }
 }
-~~~
+```
 
 ## 1.3 JpaItemWriter
 * JpaItemWriter는 JPA Entity 기반으로 데이터를 DB에 write
@@ -198,7 +198,7 @@ public class ItemWriterConfiguration {
 
 jpa를 사용하기 위해 EntityManagerFactory를 추가한다. 
 
-~~~
+```java
 @Configuration
 @Slf4j
 public class ItemWriterConfiguration {
@@ -242,5 +242,5 @@ public class ItemWriterConfiguration {
         return itemWriter;
     }
 }
-~~~
+```
 

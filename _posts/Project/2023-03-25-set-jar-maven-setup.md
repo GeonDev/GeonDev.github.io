@@ -16,11 +16,10 @@ toc: true
 
 # maven-assembly-plugin 플러그인
 
-위에 플러그인은 프로그램에서 사용하는 jar를 빌드시에 루트 경로에 포함시켜 주는 플러그인 이다.
-해당 플러그인을 빌드를 할때는 명령어를 다르게 사용하는데   **assembly:assembly**,  **assembly:single**
-이렇게 두가지의 명령어를 사용한다.  또 빌드를 하게 되면 빌드된 프로젝트에 **jar-with-dependencies** 라는 접미사(?)가 추가 된다.  
+위 플러그인은 프로그램에서 사용하는 jar를 빌드시에 루트 경로에 포함시켜 주는 플러그인 이다.
+해당 플러그인을 빌드를 할때는 명령어를 다르게 사용하는데 예전에는 **assembly:assembly** 도 사용했지만 이제는 deprecated 되었기 때문에 **assembly:single** 로 통일하거나 package 페이즈에 바인딩해서 사용하는게 좋다.  또 빌드를 하게 되면 빌드된 프로젝트에 **jar-with-dependencies** 라는 접미사(?)가 추가 된다.  
 
-~~~
+~~~xml
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-assembly-plugin</artifactId>
@@ -33,18 +32,20 @@ toc: true
 </plugin>
 ~~~
 
-위에 설정이 maven-assembly-plugin의 기본 설정이다. 
-descriptorRef 에는 jar-with-dependencies, project ,src 등이 있는데 
+위 설정이 maven-assembly-plugin의 기본 설정이다. 
+maven-assembly-plugin이 기본으로 제공하는 내장 descriptorRef는 `bin`, `jar-with-dependencies`, `src`, `project` 이렇게 4가지가 있는데 
 
-jar-with-dependencies : jar  파일을 프로젝트 내부에 포함
-project : target ,src, resource 디렉토리에 있는 파일을 빌드 
+bin : 빌드 결과물과 README, LICENSE 같은 파일을 함께 아카이빙
+jar-with-dependencies : 의존 jar의 클래스까지 모두 풀어서 하나의 실행 가능한 jar로 포함
+src : 소스 파일만 아카이빙
+project : 전체 프로젝트 구조를 그대로 아카이빙
 
-이렇게 설정에 따라 빌드에 포함하는 데이터를 구분할수 있다. project를 설정할수도 있지만 나는 jar-with-dependencies로 설정을 하였다. 이렇게 빌드를 하면 또다른 문제가 발생한다. 바로 메니페스트 파일이 겹치면서 초기화가 된다. maven-jar-plugin으로 설정을 해도 순서에 상관없이 무시된다. 
+이렇게 설정에 따라 빌드에 포함하는 데이터를 구분할수 있다. 나는 jar-with-dependencies로 설정을 하였다. 이렇게 빌드를 하면 또다른 문제가 발생한다. 바로 매니페스트 파일이 겹치면서 초기화가 된다. maven-jar-plugin으로 설정을 해도 순서에 상관없이 무시된다. 
 방법은 maven-assembly-plugin 내부에 추가로 설정하는 것이다.
 
 ## manifest 설정
 
-~~~
+~~~xml
 
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -65,25 +66,25 @@ project : target ,src, resource 디렉토리에 있는 파일을 빌드
 </plugin>
 ~~~
  
-위에 소스 처럼 manifest를 추가하면 특정 메인 클래스를 추가하여 실행시킬수 있다. 다만 main 클래스를 여러개로 만드는 것은 실패 했다. 
+위 소스 처럼 manifest를 추가하면 특정 메인 클래스를 추가하여 실행시킬수 있다. 다만 main 클래스를 여러개로 만드는 것은 실패 했다. 
 
 
 ## 프로젝트 접미사 제거
 
-assembly 명령어로 빌드를 하면 jar 파일이 2개가 생성되는데 하나는 기존 처럼 dependencies 미포함 파일, 또하나는 테그가 붙어 있는 dependencies가 포함된 파일이다. 상황에 따라 기본 파일을 생성할 필요도 있지만 없을수도 있다. 나는 bamboo를 사용하여 빌드를 하고 있고 다른 프로젝트들은 모두 프로젝트 이름으로 jar 빌드를 하기 떄문에 테그 제거를 해주려고 했다. 
+assembly 명령어로 빌드를 하면 jar 파일이 2개가 생성되는데 하나는 기존 처럼 dependencies 미포함 파일, 또하나는 태그가 붙어 있는 dependencies가 포함된 파일이다. 상황에 따라 기본 파일을 생성할 필요도 있지만 없을수도 있다. 나는 bamboo를 사용하여 빌드를 하고 있고 다른 프로젝트들은 모두 프로젝트 이름으로 jar 빌드를 하기 때문에 태그 제거를 해주려고 했다. 
 
-~~~
+~~~xml
 <finalName>${project.artifactId}-${project.version}</finalName>  
 <!-- 생성된 jar에 접미사 없이 프로젝트 이름만 출력되도록 설정 -->  
 <appendAssemblyId>false</appendAssemblyId>
 ~~~
 
-테그 제거는 위에 테그를 추가 해주면 된다.
+태그 제거는 위 태그를 추가 해주면 된다.
 
 ## 명령어 GOAL 설정
 executions 설정은 플러그인의 goal(`single`)을 특정 라이프사이클 phase(`package`)에 바인딩하는 것이다. 즉 `mvn package`를 실행하면 assembly의 `single` goal이 함께 수행된다. 이렇게 해두면 다른 프로젝트를 수행하던 사람이 해당 프로젝트를 유지 관리 하게 되었을때 혼란을 갖지 않고 이전에 사용하던 명령어(`mvn package`)를 그대로 사용할수 있다.
 
-~~~
+~~~xml
    <executions>  
       <execution>
                <phase>package</phase>  
@@ -97,7 +98,7 @@ executions 설정은 플러그인의 goal(`single`)을 특정 라이프사이클
 
 
 ## 전체 설정
-~~~
+~~~xml
 <plugin>  
    <groupId>org.apache.maven.plugins</groupId>  
    <artifactId>maven-assembly-plugin</artifactId>  
@@ -118,7 +119,7 @@ executions 설정은 플러그인의 goal(`single`)을 특정 라이프사이클
       <!-- 생성된 jar에 접미사 없이 프로젝트 이름만 출력되도록 설정 -->  
       <appendAssemblyId>false</appendAssemblyId>  
    </configuration>  
-   <!-- mvn package 명령어 실행시 maven-assembly-plugin의 명렁인 assembly:single이 실행되도록 설정 -->
+   <!-- mvn package 명령어 실행시 maven-assembly-plugin의 명령인 assembly:single이 실행되도록 설정 -->
      
    <!-- 다른 프로젝트와 명령어를 동일하게 사용하기 위하여 설정 -->  
    <executions>  
@@ -131,11 +132,3 @@ executions 설정은 플러그인의 goal(`single`)을 특정 라이프사이클
         </executions>
 </plugin>
 ~~~
-
-
-
-
-
-
-
-
