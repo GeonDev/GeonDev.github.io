@@ -4,7 +4,7 @@ title: 미래의 개발자를 위한 이야기 – 차세대 AI 개발자가 갖
 date: 2025-07-24
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [AI, Cloud, Azure, GitHub Copilot]
 comments: true
 toc: true
 ---

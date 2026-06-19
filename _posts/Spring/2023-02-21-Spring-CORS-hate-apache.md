@@ -4,7 +4,7 @@ title: 나를 괴롭히는 Spring CORS 해결하기(apache, nginx)
 date: 2023-02-21
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [CORS, Spring Security, Nginx, Apache, Spring Boot]
 comments: true
 toc: true    
 ---

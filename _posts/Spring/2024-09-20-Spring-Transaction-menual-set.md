@@ -4,7 +4,7 @@ title: 스프링 트랜젝션 수동으로 적용하기 (PlatformTransactionMana
 date: 2024-09-20
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Transaction, PlatformTransactionManager, Spring Boot]
 comments: true
 toc: true    
 ---

@@ -4,7 +4,7 @@ title: 앱 푸시 GCM -> FCM 적용하기 (FCM ADMIN) 버전 업데이트
 date: 2024-06-12
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [FCM, Push Notification, Firebase, Spring Boot]
 comments: true
 toc: true    
 ---

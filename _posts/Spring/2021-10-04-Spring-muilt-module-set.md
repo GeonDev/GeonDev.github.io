@@ -4,7 +4,7 @@ title: Spring boot 멀티 모듈 (Multi Module) 생성하기 + Maven
 date: 2021-10-04
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring Boot, Multi Module, Maven]
 comments: true
 toc: true
 ---

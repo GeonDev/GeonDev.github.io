@@ -4,7 +4,7 @@ title: 프로그래머스 메뉴 리뉴얼(JAVA)
 date: 2021-09-22
 Author: Geon Son
 categories: Algorithm
-tags: [Algorithm]
+tags: [Algorithm, Java, Combination, DFS, Hash]
 comments: true
 ---
 

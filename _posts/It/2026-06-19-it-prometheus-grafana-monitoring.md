@@ -4,7 +4,7 @@ title: Prometheus + Grafana + cAdvisor로 Spring MSA 모니터링 구축하기
 date: 2026-06-19
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [Monitoring, Prometheus, Grafana, MSA, Docker]
 comments: true
 toc: true
 ---

@@ -4,7 +4,7 @@ title: RestTemplate 설정으로 인한 쿠키 경고 메세지 수정 (Response
 date: 2024-12-06
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [RestTemplate, Cookie, HttpClient, Spring Boot]
 comments: true
 toc: true    
 ---

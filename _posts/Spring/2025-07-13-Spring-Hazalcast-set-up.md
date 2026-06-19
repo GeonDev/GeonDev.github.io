@@ -4,7 +4,7 @@ title: Hazelcast Spring Boot 적용하기
 date: 2025-07-14
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Hazelcast, Cache, Spring Boot]
 comments: true
 toc: true    
 ---

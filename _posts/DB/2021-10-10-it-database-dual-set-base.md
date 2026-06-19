@@ -4,7 +4,7 @@ title: 데이터베이스 이중화란?
 date: 2021-10-10
 Author: Geon Son
 categories: DB
-tags: [DB]
+tags: [Database, Replication, RAC, CDC, High Availability]
 comments: true
 toc: true  
 ---

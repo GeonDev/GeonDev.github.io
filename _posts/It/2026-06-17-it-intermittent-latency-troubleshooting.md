@@ -4,7 +4,7 @@ title: 간헐적 API 지연, 원인 탐색 과정
 date: 2026-06-17
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [Troubleshooting, Latency, Network, tcpdump]
 comments: true
 toc: true
 ---

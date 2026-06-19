@@ -4,7 +4,7 @@ title: 프로그래머스 - 수식 최대화
 date: 2021-09-22
 Author: Geon Son
 categories: Algorithm
-tags: [Algorithm]
+tags: [Algorithm, Java, Permutation, Implementation, String]
 comments: true
 toc: true
 ---

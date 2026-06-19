@@ -4,7 +4,7 @@ title: 스프링 빈이 아닌 new로 생성한 객체에 @Autowired 하기
 date: 2021-11-13
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Dependency Injection, ApplicationContext, Spring Bean, IoC]
 comments: true
 toc: true    
 ---

@@ -4,7 +4,7 @@ title: Docker Desktop 대체를 위한 Rancher Desktop 세팅(mac + apache )
 date: 2025-02-01
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [Docker, Rancher Desktop, macOS, Apache]
 comments: true
 toc: true
 ---

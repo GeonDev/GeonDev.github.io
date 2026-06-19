@@ -4,7 +4,7 @@ title: Spring Tiles3 + Spring boot 적용해보기
 date: 2021-10-03
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring Boot, Tiles, Spring MVC, JSP, ViewResolver]
 comments: true
 toc: true  
 ---

@@ -4,7 +4,7 @@ title: 스프링부트에 lucy-xss-servlet-filter 적용하기
 date: 2021-10-27
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring Boot, XSS, Servlet Filter, Lucy XSS]
 comments: true
 toc: true
 ---

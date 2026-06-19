@@ -4,7 +4,7 @@ title: 이미지 검색프로젝트(VIG) Migration/Refactoring -3
 date: 2021-10-10
 Author: Geon Son
 categories: Project
-tags: [Project]
+tags: [Spring Boot, Vision API, Scheduler, Thread, Queue]
 comments: true
 toc: true
 ---

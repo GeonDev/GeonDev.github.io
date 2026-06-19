@@ -4,7 +4,7 @@ title: API 테스트와 단위 테스트
 date: 2025-11-13
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Testing, JUnit, Mockito, MockMvc, Rest Assured]
 comments: true
 toc: true    
 ---

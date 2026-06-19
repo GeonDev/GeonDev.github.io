@@ -4,7 +4,7 @@ title: MSA에서 JWT 인증·권한 전파하기 (게이트웨이 검증 + @PreA
 date: 2026-04-21
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [MSA, JWT, API Gateway, Authentication, Spring Security]
 comments: true
 toc: true
 ---

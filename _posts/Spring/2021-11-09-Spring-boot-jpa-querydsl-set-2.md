@@ -4,7 +4,7 @@ title: Springboot + Spring Data JPA + QueryDsl 적용하기(Maven) 2
 date: 2021-11-09
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [JPA, QueryDSL, Pagination, Spring Data JPA]
 comments: true
 ---
 

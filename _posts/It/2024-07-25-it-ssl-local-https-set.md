@@ -4,7 +4,7 @@ title: 로컬 개발 환경에 HTTPS 세팅 방법 (apache)
 date: 2024-07-25
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [HTTPS, SSL, Apache, macOS]
 comments: true
 toc: true
 ---

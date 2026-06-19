@@ -4,7 +4,7 @@ title: 로컬 임시 저장 파일 업로더 만들기
 date: 2024-02-11
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring Boot, File Upload, JavaScript, CMS]
 comments: true
 toc: true    
 ---

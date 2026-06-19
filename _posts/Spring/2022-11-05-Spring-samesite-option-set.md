@@ -4,7 +4,7 @@ title: Spring 설정을 활용하여 sameSite 옵션 추가하기
 date: 2022-11-05
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Cookie, SameSite, CORS, Spring Boot, Tomcat]
 comments: true
 toc: true    
 ---

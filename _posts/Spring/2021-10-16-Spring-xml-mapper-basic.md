@@ -4,7 +4,7 @@ title: Spring xml mapper로 xml 만들기
 date: 2021-10-16
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Jackson, XmlMapper, XML, Lombok]
 comments: true
 toc: true
 ---

@@ -4,7 +4,7 @@ title: 맥북 m1에서 VUE 프로젝트 생성하기
 date: 2022-03-05
 Author: Geon Son
 categories: Vue
-tags: [Vue]
+tags: [Vue, Vue CLI, npm, Apple Silicon, Rosetta]
 comments: true
 toc: true
 ---

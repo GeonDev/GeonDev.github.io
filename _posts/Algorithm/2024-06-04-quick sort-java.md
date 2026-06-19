@@ -5,7 +5,7 @@ title: 간단하고 반복적인 문제들
 date: 2024-06-04
 Author: Geon Son
 categories: Algorithm
-tags: [Algorithm]
+tags: [Algorithm, Java, Sorting, Stack, Dynamic Programming]
 comments: true
 toc: true
 ---

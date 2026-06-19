@@ -4,7 +4,7 @@ title: Redis 캐싱 적용 가이드
 date: 2026-03-12
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Redis, Cache, Serialization, Spring Boot]
 comments: true
 toc: true    
 ---

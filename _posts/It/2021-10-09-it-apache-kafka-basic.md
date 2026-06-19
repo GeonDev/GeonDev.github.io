@@ -4,7 +4,7 @@ title: 아파치 카프카(Apache Kafka) 기초 정리
 date: 2021-10-09
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [Kafka, Messaging, Pub/Sub, Broker]
 comments: true
 toc: true
 ---

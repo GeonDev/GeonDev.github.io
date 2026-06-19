@@ -4,7 +4,7 @@ title: Spring 다른 서버 API 호출 하여 사용하기 (RestTemplate)
 date: 2022-09-25
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [RestTemplate, Server to Server, REST API, Spring Boot]
 comments: true
 toc: true    
 ---

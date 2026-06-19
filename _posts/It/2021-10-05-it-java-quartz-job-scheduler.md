@@ -4,7 +4,7 @@ title: Quartz job Scheduler 기본 사용법 정리
 date: 2021-10-05
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [Quartz, Scheduler, Java, Cron]
 comments: true
 toc: true
 ---

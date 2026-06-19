@@ -4,7 +4,7 @@ title: Spring Security JWT 구현해 보기
 date: 2021-10-12
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring Security, JWT, CORS, Spring Boot]
 comments: true
 toc: true
 ---

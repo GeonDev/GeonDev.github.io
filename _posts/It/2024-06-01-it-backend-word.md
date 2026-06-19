@@ -4,7 +4,7 @@ title: 백엔드 이론을 위한 IT 용어 정리
 date: 2024-06-01
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [Backend, CS, Database, Network]
 comments: true
 toc: true
 ---

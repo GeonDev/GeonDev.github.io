@@ -4,7 +4,7 @@ title: Jdk8 에서 Apple App Store Connect API 사용하기
 date: 2025-03-14
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [JWS, JWT, Apple Login, App Store Connect, Spring Boot]
 comments: true
 toc: true    
 ---

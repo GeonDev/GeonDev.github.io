@@ -4,7 +4,7 @@ title: 프로그래머스 신규아이디(JAVA)
 date: 2021-09-22
 Author: Geon Son
 categories: Algorithm
-tags: [Algorithm]
+tags: [Algorithm, Java, String, Regex, Implementation]
 comments: true
 toc: true
 ---

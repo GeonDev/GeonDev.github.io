@@ -4,7 +4,7 @@ title: MappingJackson2JsonView를 이용하여 JSON 파싱(jsonView)
 date: 2021-10-05
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring MVC, Jackson, JSON, ViewResolver, Spring Boot]
 comments: true
 toc: true
 ---

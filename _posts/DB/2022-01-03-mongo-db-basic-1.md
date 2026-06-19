@@ -4,7 +4,7 @@ title: 맥북 M1에서 MongoDB 사용해 보기
 date: 2022-01-03
 Author: Geon Son
 categories: DB
-tags: [DB]
+tags: [MongoDB, Docker, macOS, Apple Silicon, Homebrew]
 comments: true
 toc: true
 ---

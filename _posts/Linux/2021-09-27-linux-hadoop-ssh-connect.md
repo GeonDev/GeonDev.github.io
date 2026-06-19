@@ -4,7 +4,7 @@ title: VirtualBox에서 Hadoop실행을 위한 SSH 설정
 date: 2021-09-27
 Author: Geon Son
 categories: Linux
-tags: [Linux]
+tags: [Hadoop, SSH, VirtualBox, Firewall]
 comments: true
 toc: true
 ---

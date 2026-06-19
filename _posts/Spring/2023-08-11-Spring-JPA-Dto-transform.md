@@ -4,7 +4,7 @@ title: JPA에서 원하는 항목만 바로 뽑아 사용하기 (dto mapping, pr
 date: 2023-08-11
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring Boot, JPA, DTO, Projection]
 comments: true
 toc: true    
 ---

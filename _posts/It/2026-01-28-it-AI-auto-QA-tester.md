@@ -4,7 +4,7 @@ title: QA Agent Server, AI 기반 웹 테스트 자동화
 date: 2026-01-28
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [AI, Playwright, MCP, Spring AI, Gemini]
 comments: true
 toc: true
 ---

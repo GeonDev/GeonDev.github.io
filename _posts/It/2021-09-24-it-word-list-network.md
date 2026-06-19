@@ -4,7 +4,7 @@ title: 네트워크 핵심 용어 정리
 date: 2021-09-24
 Author: Geon Son
 categories: IT
-tags: [IT]
+tags: [Network, TCP/IP, HTTP, DNS, Load Balancing]
 comments: true
 toc: true
 ---

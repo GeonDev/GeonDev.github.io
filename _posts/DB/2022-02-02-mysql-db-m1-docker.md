@@ -4,7 +4,7 @@ title: 맥북 M1에서 Mysql 사용법, 도커 이미지 설치
 date: 2022-02-02
 Author: Geon Son
 categories: DB
-tags: [DB]
+tags: [MySQL, Docker, Apple Silicon, macOS]
 comments: true
 toc: true
 ---

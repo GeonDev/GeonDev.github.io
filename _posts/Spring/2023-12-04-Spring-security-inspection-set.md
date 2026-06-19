@@ -4,7 +4,7 @@ title: 자주 나오는 보안 검수 대응
 date: 2023-12-04
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Spring Security, Web Security, XSS, CSP, HTTP Headers]
 comments: true
 toc: true    
 ---

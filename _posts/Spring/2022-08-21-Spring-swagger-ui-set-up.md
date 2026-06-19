@@ -4,7 +4,7 @@ title: Spring Swagger를 세팅하여 API 를 전달하기
 date: 2022-08-21
 Author: Geon Son
 categories: Spring
-tags: [Spring]
+tags: [Swagger, OpenAPI, Spring Boot, REST API]
 comments: true
 toc: true    
 ---
