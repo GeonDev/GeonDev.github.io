@@ -20,6 +20,12 @@ $dark-code-bg: #2d2d2d;
     border-right: 1px solid $dark-border;
   }
 
+  .dark-mode-toggle {
+    background: rgba(45, 45, 45, 0.85);
+    border: 1px solid $dark-border;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+
   .site-name a {
     color: $dark-text;
   }
