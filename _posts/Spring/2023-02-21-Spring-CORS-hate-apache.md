@@ -201,3 +201,57 @@ public void addCorsMappings(CorsRegistry registry) {
 [속성 참고](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin)
 
 
+# 5. allowCredentials(true) 와 와일드카드(*)는 같이 못 쓴다
+쿠키나 인증 정보를 주고받으려고 `allowCredentials(true)`를 켰다면, origin 허용에 `*`(전체 허용)를 쓸 수 없다.  
+스프링이 아래 같은 에러를 내며 아예 뜨지 않거나, 떠도 브라우저가 요청을 거부한다.
+
+> When allowCredentials is true, allowedOrigins cannot contain the special value "*" ...
+
+자격증명을 아무 origin에나 열어주는 건 보안상 위험하기 때문에 막혀 있는 것이다.  
+그래도 서브도메인처럼 패턴으로 열어야 한다면 `allowedOrigins` 대신 `allowedOriginPatterns`(스프링 5.3 / 부트 2.4 이상)를 쓰면 된다. 이때 응답에는 `*`가 아니라 요청한 origin이 그대로 내려간다.
+
+~~~
+registry.addMapping("/poll/**")
+        .allowedOriginPatterns("https://*.my-service.co.kr")
+        .allowedMethods(
+                HttpMethod.HEAD.name(),
+                HttpMethod.OPTIONS.name(),
+                HttpMethod.GET.name(),
+                HttpMethod.POST.name()
+        )
+        .allowedHeaders("*")
+        .allowCredentials(true);
+~~~
+
+# 6. 웹서버(apache/nginx)에서 CORS 헤더가 중복되는 경우
+이 글 제목에 apache/nginx가 들어간 이유이기도 한데, CORS 헤더를 **애플리케이션과 웹서버 양쪽에서 동시에** 붙이면 응답에 `Access-Control-Allow-Origin`이 두 번 들어간다.  
+이러면 브라우저는 아래처럼 거부한다.
+
+> The 'Access-Control-Allow-Origin' header contains multiple values '..., ...', but only one is allowed.
+
+그런데 cURL은 CORS 정책을 강제하지 않기 때문에 헤더가 두 개든 말든 그냥 200으로 통과한다.  
+"cURL은 되는데 브라우저만 안 되는" 전형적인 원인 중 하나다.
+
+해결은 단순하다. CORS 헤더는 **한 군데에서만** 내려주도록 정하면 된다.  
+스프링에서 처리한다면 nginx의 `add_header Access-Control-Allow-Origin ...` 같은 설정을 빼고, 반대로 웹서버에서 처리한다면 스프링 쪽 CORS 설정을 정리한다. 응답 헤더를 직접 까보고 `access-control-allow-origin`이 몇 개 찍히는지 확인하는 게 먼저다.
+
+# 7. Spring Security를 쓴다면 http.cors()도 켜야 한다
+스프링 시큐리티가 끼어 있으면 WebMvcConfigurer에 CORS를 아무리 잘 설정해놔도 동작하지 않을 수 있다.  
+시큐리티 필터가 컨트롤러보다 앞단에서 요청을 가로채는데, 인증 정보가 없는 preflight(OPTIONS) 요청을 막아버리기 때문이다.
+
+시큐리티 설정에서 cors를 켜주면 MVC에 설정한 CORS 규칙(또는 `CorsConfigurationSource` 빈)을 그대로 사용한다.
+
+~~~
+http.cors(Customizer.withDefaults());
+~~~
+
+preflight 인 OPTIONS 요청은 인증 없이 통과되도록 열어두는 것도 잊지 말자.
+
+# 8. 바뀐 설정이 반영이 안 될 땐 preflight 캐시를 의심하라
+위 2번의 cURL 응답을 보면 `access-control-max-age: 36000` 이 있다. 이건 브라우저가 preflight 결과를 그 시간(초)만큼 캐시한다는 뜻이다.  
+서버 CORS 설정을 분명히 고쳤는데도 계속 같은 에러가 난다면, 브라우저가 예전 preflight 결과를 그대로 쓰고 있는 경우가 있다.
+
+디버깅 중에는 max-age를 짧게 두거나, 브라우저 캐시를 비우고 다시 시도해 보자.  
+(참고로 크롬 등은 이 값을 무한정 믿지 않고 자체 상한, 보통 최대 2시간 정도로 제한한다.)
+
+
