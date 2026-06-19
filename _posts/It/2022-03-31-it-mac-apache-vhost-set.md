@@ -16,15 +16,15 @@ toc: true
 
 ## 아파치 vhost 사용 설정
 
-~~~
+~~~bash
 sudo vi /etc/apache2/httpd.conf
 ~~~
 
 맥북에는 기본적으로 아파치가 설치되어 있다. 설치된 아파치에서 가상호스트 설정(vhost)을 열어주는 설정과
 프록시를 사용하겠다는 설정을 열어준다. 해당 페이지를 열어보면 #으로 vhost 설정과 프록시 설정이 주석처리 되어 있다.
-해당 내용을 해제 하면 된다. (/vhost , /proxy를 입력하여 해당 내용을들 찾아 수정하면 된다.)
+해당 내용을 해제 하면 된다. (/vhost , /proxy를 입력하여 해당 내용들을 찾아 수정하면 된다.)
 
-~~~
+~~~apache
 # vhost 사용
 Include /private/etc/apache2/extra/httpd-vhosts.conf
 
@@ -39,7 +39,7 @@ LoadModule proxy_http_module libexec/apache2/mod_proxy_http.so
 웹에서 http 통신이 포트번호 없이 호출하는 방법은 생략 가능한 *80 포트로 포트포워딩 설정을 진행하면 된다.
 위에서 풀어놓은 vhost 설정을 지정하면 된다.
 
-~~~
+~~~apache
 # Virtual Hosts
 #
 # Required modules: mod_log_config
@@ -78,8 +78,8 @@ LoadModule proxy_http_module libexec/apache2/mod_proxy_http.so
 
 # 이 부분이 추가 되었다.
 <VirtualHost *:80>
-    ServerName local.abc.com
-    ServerAlias tv.local.abc.com vod.local.abc.com onair.local.abc.com
+    ServerName local.example.com
+    ServerAlias tv.local.example.com vod.local.example.com onair.local.example.com
     ProxyRequests Off
     ProxyPreserveHost On
     ProxyPass / http://127.0.0.1:8180/
@@ -87,9 +87,9 @@ LoadModule proxy_http_module libexec/apache2/mod_proxy_http.so
 </VirtualHost>
 ~~~
 
-httpd-vhosts.conf 파일 내부에 새로운 &lt;VirtualHost &#42;&#58;80&gt; 테그를 추가한다.
+httpd-vhosts.conf 파일 내부에 새로운 &lt;VirtualHost &#42;&#58;80&gt; 태그를 추가한다.
 ServerName은 로컬 호스트 파일 내부에 설정한 도메인을 넣는다.
-ServerAlias는  ServerName과 같은 서버이지만 호출 가능한 도메인(별명)을 추가해준다.
+ServerAlias는 ServerName과 같은 서버이지만 호출 가능한 도메인(별명)을 추가해준다.
 
 ProxyPass에 ServerName을 호출 했을때 불러올 실제 URL을 지정한다.
 ProxyPassReverse는 ServerName로 호출했을때 반환할 리버스 프록시 URL을 지정한다.
@@ -97,25 +97,28 @@ ProxyPassReverse는 ServerName로 호출했을때 반환할 리버스 프록시 
 
 
 ## 로컬 호스트 파일 변경
-위에서 설정한 도메인 들은 로컬에서 실행하는 서버의 도메인 임으로 당연히 DNS서버에서는 불러올수 없다.
+위에서 설정한 도메인들은 로컬에서 실행하는 서버의 도메인이므로 당연히 DNS 서버에서는 불러올 수 없다.
 따라서 로컬 호스트 파일에 내용을 추가하여야 한다.
-~~~
+~~~bash
 sudo vi /etc/hosts
+~~~
 
-
-## # Host Database #
+~~~
+##
+# Host Database
+#
 # localhost is used to configure the loopback interface
 # when the system is booting. Do not change this entry.
 ##
 
 127.0.0.1 localhost
-127.0.0.1 local.abc.com
-
+127.0.0.1 local.example.com
 ~~~
 
 위와 같이 도메인을 추가하고 재부팅 또는 **dscacheutil -flushcache** 를 입력한다.
-추가로 아파치를 재시작 명령어 **sudo apachectl restart** 를 입력하면 (`start`는 정지 상태에서 시작만 하므로, 설정을 다시 읽으려면 `restart`를 사용한다)
-아파치를 재시작하면서 웹브라우저에 local.abc.com만 입력해서 로컬 서버에 접속할수 있게 된다.
+추가로 아파치 재시작 명령어 **sudo apachectl restart** 를 입력한다.
+(`start`는 정지 상태에서 시작만 하므로, 변경한 설정을 다시 읽으려면 `restart`를 사용한다.)
+아파치를 재시작하고 나면 웹브라우저에 local.example.com만 입력해서 로컬 서버에 접속할 수 있게 된다.
 
 ---
 
@@ -171,8 +174,8 @@ services:
 
 ~~~apache
 <VirtualHost *:80>
-    ServerName local.abc.com
-    ServerAlias tv.local.abc.com vod.local.abc.com onair.local.abc.com
+    ServerName local.example.com
+    ServerAlias tv.local.example.com vod.local.example.com onair.local.example.com
     ProxyRequests Off
     ProxyPreserveHost On
     ProxyPass / http://host.docker.internal:8180/

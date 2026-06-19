@@ -13,13 +13,13 @@ toc: true
 http://www.quartz-scheduler.org/downloads/
 
 
-일정 시간, 주기적으로 작동되는 배치 프로그램을 만들때 사용하는 라이브러리, 회사에서 서로 다른 DB의 데이터를 마이그레이션 하거나 주기별로 DB데이터를 동기화 시키는 데몬을 만들게 되어 사용방법을 정리한다.
+일정 시간, 주기적으로 작동되는 배치 프로그램을 만들 때 사용하는 라이브러리다. 서로 다른 DB의 데이터를 마이그레이션 하거나 주기별로 DB 데이터를 동기화 시키는 데몬을 만들게 되어 사용 방법을 정리한다.
 
 # 1. 구성 요소
 **JobDetail** : 스케줄러에서 수행할 작업을 담을 JOB을 생성, Job을 상속하는 클래스를 JobBuilder.newJob()을 이용하여 전달 해야 한다.
 
-**JobDataMap** : 스케줄러에서 JOB이 실행될떄 사용할 변수 값을 전달하는데 사용한다.
-key-value 형식으로 값을 전달하고 JOB을 수행할떄 값을 꺼낼수 있다.
+**JobDataMap** : 스케줄러에서 JOB이 실행될 때 사용할 변수 값을 전달하는 데 사용한다.
+key-value 형식으로 값을 전달하고 JOB을 수행할 때 값을 꺼낼 수 있다.
 
 **Trigger** : 스케줄러를 어떤 방식으로, 어떤 주기로 작동할 지 결정한다.
 - SimpleTrigger : start time, end time, interval time, repeat times 설정
@@ -35,7 +35,7 @@ key-value 형식으로 값을 전달하고 JOB을 수행할떄 값을 꺼낼수 
 Job interface를 implements 하여 execute() 메소드를 만든다.
 execute() 메소드는 스케줄러가 수행할 기능을 명시한다.
 
-```
+```java
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -60,7 +60,7 @@ JobDetail에 위에서 생성한 JobTest 클래스를 이용하여 실행될 Job
 이때 JobDataMap을 추가로 입력하여 job 수행중에 값을 불러올 수 있도록 한다.
 Trigger를 이용하여 스케줄러의 주기를 정한다.
 
-```
+```java
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
@@ -99,12 +99,12 @@ public class QuartzMainTest {
 	}
  }
 ```
- 예제에서는 JobDetail, Trigger에 별다른 설정을 하지 않았지만 실제 사용할때는 Job에 ID, Group 등을 입력하여 구분하거나 여러 옵션을 넣을 수 있다.
+ 예제에서는 JobDetail, Trigger에 별다른 설정을 하지 않았지만 실제 사용할 때는 Job에 ID, Group 등을 입력하여 구분하거나 여러 옵션을 넣을 수 있다.
 
 예를 들어 위에서는 JobDetail, JobDataMap를 따로 선언하여 값을 넣었지만 아래 코드처럼
 JobDetail 내부의 JobDataMap을 불러오는 방식으로 변수를 넣어줄 수 있고
 
-```
+```java
 JobDetail jobDetail = newJob(JobTest.class).build();
 
 //JobDetail에 JobDataMap을 불러온다.              
@@ -118,7 +118,7 @@ http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-le
 http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html
 
 
-```
+```java
 import static org.quartz.TriggerBuilder.*;
 import static org.quartz.CronScheduleBuilder.*;
 import static org.quartz.SimpleScheduleBuilder.*;
