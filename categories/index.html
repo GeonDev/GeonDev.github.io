@@ -10,35 +10,45 @@ permalink: /categories/
 
 <div class="tags">
   <ul class="label">
-    {% for category in site.categories %}
-    <li>
-      <a href="#{{ category[0] }}">
-        <span>{{ category[0] }}</span>
-        <span class="count">{{ category[1] | size }}</span>
-      </a>
-    </li>
-    {% endfor %}
-  </ul>
-
-  {% for category in site.categories %}
-    <h2 id="{{ category[0] }}">
-      {{ category[0] }}
-    </h2>
-    <ul class="tag">
-      {% for post in category[1] %}
-        {% if post.title != null %}
+    {% for count in (1..site.posts.size) reversed %}
+      {% for category in site.categories %}
+        {% assign category_count = category[1] | size %}
+        {% if category_count == count %}
           <li>
-            {% if post.link %}
-              <a href="{{ post.link }}">
-            {% else %}
-              <a href="{{ site.baseurl }}{{ post.url }}">
-            {% endif %}
-                {{ post.title }}
-              </a>
-              <time>{{ post.date | date: "%Y-%m-%d" }}</time>
+            <a href="#{{ category[0] }}">
+              <span>{{ category[0] }}</span>
+              <span class="count">{{ category_count }}</span>
+            </a>
           </li>
         {% endif %}
       {% endfor %}
-    </ul>
+    {% endfor %}
+  </ul>
+
+  {% for count in (1..site.posts.size) reversed %}
+    {% for category in site.categories %}
+      {% assign category_count = category[1] | size %}
+      {% if category_count == count %}
+        <h2 id="{{ category[0] }}">
+          {{ category[0] }}
+        </h2>
+        <ul class="tag">
+          {% for post in category[1] %}
+            {% if post.title != null %}
+              <li>
+                {% if post.link %}
+                  <a href="{{ post.link }}">
+                {% else %}
+                  <a href="{{ site.baseurl }}{{ post.url }}">
+                {% endif %}
+                    {{ post.title }}
+                  </a>
+                  <time>{{ post.date | date: "%Y-%m-%d" }}</time>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+        {% endif %}
+    {% endfor %}
   {% endfor %}
 </div>
