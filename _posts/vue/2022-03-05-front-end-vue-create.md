@@ -3,7 +3,7 @@ layout: post
 title: 맥북 m1에서 VUE 프로젝트 생성하기
 date: 2022-03-05
 Author: Geon Son
-categories: VUE
+categories: Vue
 tags: [Vue]
 comments: true
 toc: true
