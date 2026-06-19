@@ -467,6 +467,37 @@ nav {
   }
 }
 
+.tag-collapsible {
+  display: inline-block;
+  max-height: 3.6em;
+  line-height: 1.8;
+  overflow: hidden;
+  vertical-align: top;
+
+  &.is-expanded {
+    max-height: none;
+  }
+}
+
+.tag-toggle {
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: $base-lighten-color;
+  cursor: pointer;
+  font-size: $small-font-size;
+  font-weight: 300;
+  line-height: 1.8;
+
+  &:hover,
+  &:focus {
+    color: $oc-teal-8;
+    outline: none;
+    text-decoration: underline;
+  }
+}
+
 .posts > .post {
   padding-bottom: 2em;
   border-bottom: 1px solid $divider-color;
