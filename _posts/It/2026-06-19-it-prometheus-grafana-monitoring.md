@@ -20,9 +20,9 @@ toc: true
 
 세 툴의 역할은 이렇게 나뉜다.
 
-- **Prometheus** — 메트릭을 주기적으로 수집(scrape)하고 시계열로 저장한다. Spring Boot Actuator가 `/actuator/prometheus`로 메트릭을 그대로 뱉어주기 때문에 궁합이 좋다.
+- **Prometheus** — 메트릭을 주기적으로 수집(scrape)하고 시계열로 저장한다. Spring Boot Actuator가 `/actuator/prometheus`로 메트릭을 그대로 뱉어주기 때문에 쉽게 적용할수 있다.
 - **Grafana** — Prometheus에 쌓인 데이터를 대시보드로 시각화한다. 잘 만들어진 대시보드를 ID만으로 가져다 쓸 수 있어서 처음 세팅 비용이 적다.
-- **cAdvisor** — 컨테이너 단위로 메모리/CPU/네트워크, 그리고 OOM 발생을 수집한다. 앱 내부(JVM)가 아니라 **컨테이너 바깥에서 본 리소스**다. 다만 뒤에서 이야기하듯, macOS(Colima/Docker Desktop)에서는 컨테이너별 메트릭이 잘 안 붙어서, 내 경우 메모리 추적은 결국 JVM 힙 쪽으로 했다.
+- **cAdvisor** — 컨테이너 단위로 메모리/CPU/네트워크, 그리고 OOM 발생을 수집한다. 앱 내부(JVM)가 아니라 **컨테이너 바깥에서 본 리소스**다. 다만 macOS(Colima/Docker Desktop)에서는 컨테이너별 메트릭이 잘 안 붙어서, 내 경우 메모리 추적은 결국 JVM 힙 쪽으로 했다.
 
 정리하면 **앱 메트릭은 Actuator → Prometheus**, **컨테이너 메트릭은 cAdvisor → Prometheus**, 그리고 **둘 다 Grafana로 시각화**하는 구조다. 내 목적은 메모리였는데, mac 개발환경에선 cAdvisor 컨테이너 메트릭이 안 잡혀서 **JVM 힙(서비스별)으로 추적**했고, 나머지(HTTP 지연 등)는 표준 스택을 써보는 김에 함께 봤다.
 
@@ -60,7 +60,7 @@ toc: true
 | Grafana | 3000 |
 | cAdvisor | 8080 |
 
-여기서 신경 쓴 부분은 **외부에 새 포트를 열지 않는 것**이다. Grafana와 Prometheus는 `127.0.0.1`로만 바인딩해서 서버 외부에서 직접 접근하지 못하게 했고(접근이 필요하면 SSH 터널을 쓴다), cAdvisor는 아예 포트를 노출하지 않고 내부 네트워크에서 Prometheus가 긁어가게만 했다. 모니터링을 붙이려다 공격 표면을 넓히면 본말전도이기 때문이다.
+여기서 신경 쓴 부분은 **외부에 새 포트를 열지 않는 것**이다. Grafana와 Prometheus는 `127.0.0.1`로만 바인딩해서 서버 외부에서 직접 접근하지 못하게 했고(접근이 필요하면 SSH 터널을 쓴다), cAdvisor는 아예 포트를 노출하지 않고 내부 네트워크에서 Prometheus가 긁어가게만 했다.
 
 # 3. 무엇을 수집하나 (스크레이프 대상)
 
