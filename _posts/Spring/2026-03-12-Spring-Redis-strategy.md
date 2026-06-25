@@ -6,7 +6,7 @@ Author: Geon Son
 categories: Spring
 tags: [Redis, Cache, Serialization, Spring Boot]
 comments: true
-toc: true    
+toc: true
 ---
 
 운영하던 게시판 서비스에 Redis 캐싱을 적용하면서 직렬화 실패와 레이어 구조 문제로 적지 않게 시간을 썼다.
@@ -31,10 +31,14 @@ public class RedisConfig {
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
         mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+        BasicPolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+            .allowIfSubType("com.example.")
+            .allowIfSubType("java.util.")
+            .build();
         mapper.activateDefaultTyping(
-            BasicPolymorphicTypeValidator.builder()
-                .allowIfBaseType(Object.class).build(), 
-            ObjectMapper.DefaultTyping.NON_FINAL
+            ptv,
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
         );
         return mapper;
     }
@@ -55,6 +59,10 @@ public class RedisConfig {
 - `JavaTimeModule`: `LocalDateTime` 등 날짜/시간 타입 직렬화
 - `activateDefaultTyping`: 타입 정보 포함 (다형성 지원)
 - `disableCachingNullValues`: null 값 캐싱 방지
+
+`activateDefaultTyping`을 쓸 때 `allowIfBaseType(Object.class)`처럼 너무 넓게 열어두면, 신뢰할 수 없는
+타입 정보까지 역직렬화 대상이 될 수 있다. Redis가 내부망에 있더라도 가능하면 캐싱 DTO가 있는 패키지와
+필요한 JDK 컬렉션 정도만 allowlist로 제한한다.
 
 Redis 전용 ObjectMapper를 굳이 별도로 만든 이유는 Redis 직렬화와 REST API 응답이 요구사항이 다르기 때문이다.
 
@@ -180,9 +188,7 @@ public UserDto getUser(Long id) {
 }
 
 // DTO 정의
-public class UserDto implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class UserDto {
     private Long id;
     private String name;
     private String email;
@@ -201,15 +207,13 @@ public class UserDto implements Serializable {
 
 ### 4. 직렬화 가능한 DTO 설계
 
-**필수 요구사항**
+**Jackson JSON 직렬화 기준 요구사항**
 
-모든 캐싱 대상 DTO는 다음을 만족해야 한다.
+`GenericJackson2JsonRedisSerializer`를 쓴다면 캐싱 대상 DTO는 다음 중 하나를 만족해야 한다.
 
 ```java
 // 방법 1: 기본 생성자 + Getter/Setter (가장 안전)
-public class DataDto implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class DataDto {
     private String field1;
     private int field2;
     
@@ -223,9 +227,7 @@ public class DataDto implements Serializable {
 }
 
 // 방법 2: @JsonCreator 사용 (불변 객체)
-public class DataDto implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class DataDto {
     private final String field1;
     private final int field2;
     
@@ -242,18 +244,21 @@ public class DataDto implements Serializable {
 }
 ```
 
-**Serializable 인터페이스 구현 이유**
+**Serializable은 언제 필요한가**
 
-- Java 표준 직렬화 메커니즘 지원
-- Redis 직렬화 방식에 따라 필요할 수 있음
-- `serialVersionUID`를 명시하여 버전 관리
-- 클래스 구조 변경 시 역직렬화 호환성 보장
+`GenericJackson2JsonRedisSerializer`처럼 Jackson JSON 기반 직렬화기를 쓰는 경우 `Serializable` 구현은
+필수가 아니다. Jackson은 기본 생성자/`@JsonCreator`, getter/setter 또는 생성자 파라미터 정보를 보고
+JSON으로 직렬화·역직렬화한다.
+
+`Serializable`과 `serialVersionUID`가 의미 있는 경우는 JDK 직렬화 기반의 `JdkSerializationRedisSerializer`를
+쓸 때다. JSON 직렬화에서는 `serialVersionUID`가 역직렬화 호환성을 보장하지 않으므로, DTO 필드 변경 시에는
+기존 캐시 무효화나 버전이 다른 캐시 키를 사용하는 식으로 대응해야 한다.
 
 **피해야 할 패턴**
 
 ```java
 // 잘못된 예시 1: 기본 생성자 없음
-public class DataDto implements Serializable {
+public class DataDto {
     private final String field;
     
     public DataDto(String field) { // @JsonCreator 없음
@@ -262,22 +267,22 @@ public class DataDto implements Serializable {
 }
 
 // 잘못된 예시 2: Getter 없음
-public class DataDto implements Serializable {
+public class DataDto {
     private String field;
     
     public DataDto() {}
-    // getter가 없으면 직렬화 불가
+    // 기본 설정에서는 Jackson이 속성으로 인식하지 못할 수 있음
 }
 
 // 잘못된 예시 3: 복잡한 객체 포함
-public class DataDto implements Serializable {
+public class DataDto {
     private InputStream stream; // 직렬화 불가능한 타입
     private Connection connection; // 리소스 객체
 }
 
-// 잘못된 예시 4: serialVersionUID 누락
+// 주의 예시 4: JDK 직렬화기를 쓰는데 serialVersionUID 누락
 public class DataDto implements Serializable {
-    // serialVersionUID 없음 - 클래스 변경 시 역직렬화 실패 가능
+    // JdkSerializationRedisSerializer 사용 시 클래스 변경 후 호환성 문제가 생길 수 있음
     private String field;
 }
 ```
@@ -343,9 +348,7 @@ public List<DataDto> getData() {
 }
 
 // 올바른 예시 2: Wrapper 클래스 사용
-public class DataListResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class DataListResponse {
     private List<DataDto> items;
     private int totalCount;
     
@@ -383,9 +386,7 @@ public Page<Entity> getPage(Pageable pageable) {
 
 ```java
 // 페이징 응답 DTO 정의
-public class PageResponse<T> implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class PageResponse<T> {
     private List<T> content;
     private int pageNumber;
     private int pageSize;
@@ -452,22 +453,11 @@ public class DataDto {
 **해결 방법**
 
 ```java
-// 방법 1: Jackson 설정 추가
-@Configuration
-public class JacksonConfig {
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper;
-    }
-}
+// 방법 1: Redis 전용 ObjectMapper에 JavaTimeModule 추가
+// 위 RedisConfig의 redisObjectMapper()처럼 registerModule(new JavaTimeModule())을 적용한다.
 
 // 방법 2: 문자열로 변환
-public class DataDto implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class DataDto {
     private String createdAt; // ISO-8601 형식 문자열
     
     public static DataDto from(Entity entity) {
@@ -478,9 +468,7 @@ public class DataDto implements Serializable {
 }
 
 // 방법 3: 어노테이션 사용
-public class DataDto implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class DataDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }
@@ -505,19 +493,20 @@ Could not read JSON: Cannot construct instance of `com.example.bbs.common.Custom
 - `CustomResponseEntity` 클래스가 Jackson 역직렬화를 위한 적절한 생성자가 없음
 - Redis에서 캐시된 데이터를 읽을 때 `GenericJackson2JsonRedisSerializer`가 객체를 생성할 수 없음
 
-**해결 방법**
+**단기 조치**
 
-`@JsonCreator` 어노테이션을 사용한 생성자 추가:
+당장 구조를 바꾸기 어렵다면 `@JsonCreator` 생성자를 추가해 역직렬화 실패를 막을 수 있다. 다만 이 방법은
+HTTP 응답 객체를 계속 캐싱한다는 한계가 있으므로 최종 해결책으로 두지는 않는다.
 
 ```java
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class CustomResponseEntity<T> extends ResponseEntity {
+public class CustomResponseEntity<T> extends ResponseEntity<T> {
 
     @JsonCreator
-    public CustomResponseEntity(@JsonProperty("body") Object body, 
-                                @JsonProperty("headers") MultiValueMap headers, 
+    public CustomResponseEntity(@JsonProperty("body") T body,
+                                @JsonProperty("headers") MultiValueMap<String, String> headers,
                                 @JsonProperty("statusCode") HttpStatusCode status) {
         super(body, headers, status);
     }
@@ -525,6 +514,11 @@ public class CustomResponseEntity<T> extends ResponseEntity {
     // 기타 생성자들...
 }
 ```
+
+**최종 해결**
+
+캐싱 대상에서 `ResponseEntity`와 커스텀 HTTP 래퍼를 제거하고, Service는 DTO만 반환하게 바꾼다. HTTP 상태
+코드와 헤더는 Controller에서만 만든다.
 
 ### 2. 레이어 분리 문제
 
@@ -575,17 +569,128 @@ private ResponseEntity<OnairCommentArticleListDto> getOnairComment(...) {
 }
 ```
 
+### 3. 폭주 트래픽과 Cache Stampede — "짧은 TTL" 기조와 지터 사이의 고민
+
+게시판 목록이나 실시간 댓글처럼 순간적으로 트래픽이 몰리는 API가 있었다. 여기에 캐시를 적용하면서
+"캐시는 최대한 짧게(최소 5초) 가져간다"는 기조를 세웠는데, 짧은 TTL이 오히려 Cache Stampede를 자주
+유발한다는 게 문제였다. 처음엔 지터를 주고 싶어도 "수명을 늘리는" 방향이라 기조와 충돌한다고 생각했다.
+
+정리하다 보니 Stampede를 두 종류로 나눠서 봐야 했다. 둘은 원인도 해법도 다르다.
+
+| 유형 | 상황 | 대응 |
+| :--- | :--- | :--- |
+| 핫키 동시 미스 | 인기 게시판 한 키에 수천 요청 → 만료 순간 전부 DB로 | `sync = true` |
+| 동시 대량 만료 | 여러 키가 같은 순간 생성 → 동시에 만료 | TTL 지터 |
+
+#### 해결 1: 핫키는 `sync = true`
+
+핫키 하나에 요청이 몰리는 경우는 지터로는 분산이 안 된다(키가 하나라서). 동시 미스를 막아주는
+`sync = true`를 고트래픽 read 메서드에 붙였다.
+
+```java
+@Cacheable(value = "generalArticleList",
+        key = "#bbsId + '_' + #mgtAuth.isBbsMgtMode() + '_' + #pageable.pageNumber + '_' + #pageable.pageSize",
+        condition = "...",
+        sync = true)
+public GeneralArticleListDto getArticleList(...) { ... }
+```
+
+단, `sync = true`는 Spring이 `Cache.get(key, valueLoader)` 경로를 쓰도록 하는 옵션이고, 실제 동기화
+범위는 캐시 구현체와 writer 설정에 따라 달라진다. Redis를 쓰더라도 클러스터 전체에서 항상 한 번만
+DB를 친다고 가정하면 안 된다. `lockingRedisCacheWriter`를 쓰면 Redis lock key로 중복 로드를 줄일 수
+있지만 락 범위가 캐시 이름 단위라 같은 캐시의 다른 키까지 대기할 수 있다(키별 락이 아니다). 이걸로도
+부족하면 별도 분산 락이나 stale-while-revalidate로 넘어가면 된다.
+
+#### 해결 2: 대량 만료는 음수 지터 — 단, TTL을 늘리지 않는 방향으로
+
+지터를 흔히 `TTL = base + random`으로 떠올리는데, 이러면 수명이 늘어 "짧게" 기조와 충돌한다.
+그래서 **빼는 방향(음수)으로만** 적용했다. 실제 TTL을 `[base × (1 - ratio), base]` 범위로
+무작위화하면, 최대 수명은 base를 절대 넘지 않으면서 만료 시점만 흩어진다. 기조와 충돌하지 않는다.
+
+Spring Data Redis 3.1에서는 `entryTtl`이 정적 `Duration`만 받기 때문에(per-entry TTL 함수는 3.2+
+부터 지원) `RedisCacheWriter`를 데코레이터로 감싸 put 시점에 지터를 줬다.
+
+```java
+public class JitterRedisCacheWriter implements RedisCacheWriter {
+    private final RedisCacheWriter delegate;
+    private final double jitterRatio; // 예: 0.2
+
+    private Duration applyJitter(Duration ttl) {
+        if (ttl == null || ttl.isZero() || ttl.isNegative() || jitterRatio <= 0) return ttl;
+        long ttlMillis = ttl.toMillis();
+        long maxJitter = (long) (ttlMillis * jitterRatio);
+        if (maxJitter <= 0) return ttl;
+        long jitter = ThreadLocalRandom.current().nextLong(maxJitter + 1);
+        return Duration.ofMillis(ttlMillis - jitter); // 항상 줄이는 방향
+    }
+
+    @Override
+    public void put(String name, byte[] key, byte[] value, Duration ttl) {
+        delegate.put(name, key, value, applyJitter(ttl));
+    }
+
+    @Override
+    public byte[] putIfAbsent(String name, byte[] key, byte[] value, Duration ttl) {
+        return delegate.putIfAbsent(name, key, value, applyJitter(ttl));
+    }
+
+    // get / remove / clean / 통계 메서드는 모두 delegate 로 위임
+    // Spring Data Redis 버전에 따라 retrieve, withStatisticsCollector 등 추가 메서드도 위임
+}
+```
+
+```java
+@Bean
+RedisCacheWriter redisCacheWriter(RedisConnectionFactory cf) {
+    return new JitterRedisCacheWriter(
+        RedisCacheWriter.lockingRedisCacheWriter(cf), 0.2);
+}
+```
+
+ratio 0.2 기준으로 5초 → `[4.0s, 5.0s]`, 1분 → `[48s, 60s]`가 된다. 캐시별 정적 TTL 매핑
+(5초/1분/10분)은 그대로 두고 writer 한 곳만 바꿔서 전 캐시에 일괄 적용된다. 비율은
+`redis.cache.jitterRatio` 같은 프로퍼티로 빼두면 프로파일별 튜닝도 쉽다.
+
+#### 함정: `sync = true`를 켜자 커스텀 캐시의 변환이 우회됐다
+
+Page 직렬화 문제 때문에 `CustomCache.put()`에서 `Page → RestPage`로 바꿔 저장하고 있었는데,
+`sync = true`로 바꾸자 목록 캐시 역직렬화가 깨졌다. 원인은 sync 여부에 따라 호출 흐름이 다르기 때문이었다.
+
+- **sync=false**: Spring이 `cache.get(key)` → miss면 메서드 실행 → `cache.put(key, value)` → 여기서 변환됨
+- **sync=true**: Spring이 `cache.get(key, valueLoader)` 호출 → 내부 `RedisCache`가 valueLoader 결과를 **자기 자신의 put**으로 저장 → 우리 래퍼의 `put()`을 안 탐 → 변환 누락
+
+그래서 `get(key, valueLoader)` 경로에서도 동일 변환을 하도록 valueLoader를 감쌌다.
+
+```java
+@Override
+public <T> T get(Object key, Callable<T> valueLoader) {
+    // sync=true 경로에서도 Page -> RestPage 변환을 보장
+    return delegate.get(key, () -> {
+        T value = valueLoader.call();
+        if (value instanceof Page) {
+            return (T) new RestPage((Page) value);
+        }
+        return value;
+    });
+}
+```
+
+정리하면 **"짧게 유지"와 stampede 방지는 지터의 방향(음수)만 잡으면 상충하지 않는다.** 핫키는
+sync로 동시 미스를 막고, 음수 지터로 대량 만료를 흩고, 더 줄여야 하면 분산 락이나
+stale-while-revalidate로 넘어가는 단계별 설계가 가능하다. 커스텀 캐시 래퍼를 쓰고 있다면 sync로
+바꿀 때 get/put 양쪽 경로의 변환 일치를 꼭 확인해야 한다.
+
 ## Redis 캐싱 적용 시 주의사항
 
 ### 1. 직렬화 가능한 객체 설계
 
-**필수 요구사항**
+**Jackson JSON 직렬화 기준 요구사항**
 
-캐싱 대상 클래스는 다음 중 하나를 만족해야 한다.
+`GenericJackson2JsonRedisSerializer` 기준으로 캐싱 대상 클래스는 다음 중 하나를 만족해야 한다.
 
 - 기본 생성자(no-args constructor) 제공
 - `@JsonCreator`가 붙은 생성자 제공
-- 모든 필드에 대한 setter 메서드 제공
+- 기본 생성자를 쓴다면 역직렬화에 필요한 setter 또는 필드 접근 설정 제공
 
 **권장 사항**
 
@@ -628,7 +733,6 @@ public class CacheableDto {
 **캐싱해야 하는 것**
 
 - 순수 데이터 DTO
-- 도메인 객체 (직렬화 가능한 경우)
 - 조회 결과 리스트
 - 계산 결과값
 
@@ -734,29 +838,35 @@ spring.cache.redis.time-to-live: 10000    # 10초
 // 스케줄러로 주기적으로 캐시 갱신
 @Scheduled(fixedDelay = 8000) // 8초마다 실행
 public void warmUpCache() {
-    // TTL이 만료되기 전에 미리 캐시 갱신
-    cacheManager.getCache("dataCache").clear();
-    getData(); // 캐시 재생성
+    DataDto data = repository.findData();
+    cacheManager.getCache("dataCache").put("fixedKey", data);
 }
 ```
+
+`@CacheEvict` 후 같은 클래스 내부에서 `@Cacheable` 메서드를 직접 호출하는 방식은 피해야 한다.
+Spring Cache는 프록시 기반이라 self-invocation에서는 캐시 어노테이션이 적용되지 않는다. 스케줄러에서는
+위처럼 `CacheManager`로 직접 넣거나, 캐시 메서드를 다른 빈으로 분리해 프록시를 통해 호출한다.
 
 ## 테스트 가이드
 
 ### 1. 직렬화/역직렬화 테스트
 
 ```java
+@Autowired
+@Qualifier("redisObjectMapper")
+ObjectMapper redisObjectMapper;
+
 @Test
 void testRedisSerialization() {
-    ObjectMapper mapper = new ObjectMapper();
     YourDto original = new YourDto(...);
     
     // 직렬화
-    String json = mapper.writeValueAsString(original);
+    String json = redisObjectMapper.writeValueAsString(original);
     
     // 역직렬화
-    YourDto deserialized = mapper.readValue(json, YourDto.class);
+    YourDto deserialized = redisObjectMapper.readValue(json, YourDto.class);
     
-    assertEquals(original, deserialized);
+    assertThat(deserialized).usingRecursiveComparison().isEqualTo(original);
 }
 ```
 
@@ -771,8 +881,8 @@ void testCaching() {
     // 두 번째 호출 - 캐시에서 조회
     DataDto result2 = service.getCachedData("key");
     
-    // 동일한 객체 반환 확인
-    assertSame(result1, result2);
+    // Redis를 거치면 역직렬화된 새 인스턴스가 반환될 수 있으므로 값 동등성을 확인
+    assertThat(result2).usingRecursiveComparison().isEqualTo(result1);
     
     // DB 호출이 1번만 발생했는지 검증
     verify(repository, times(1)).findData("key");
@@ -788,6 +898,7 @@ void testCaching() {
 - [ ] Service 레이어에서 HTTP 객체를 반환하지 않는가?
 - [ ] 캐시 키가 고유하게 설계되었는가?
 - [ ] 적절한 TTL이 설정되었는가?
+- [ ] Cache Stampede(폭주 트래픽) 대비책이 있는가? (핫키 `sync`, 음수 지터 등)
 - [ ] 민감한 정보가 캐싱되지 않는가?
 - [ ] 직렬화/역직렬화 테스트를 작성했는가?
 - [ ] 캐시 무효화 전략이 수립되었는가?
@@ -856,9 +967,12 @@ public class UserService {
 **동작 방식**
 
 1. 애플리케이션이 데이터 저장 요청
-2. 캐시에 먼저 저장
-3. 캐시가 DB에 저장
+2. DB 저장
+3. 메서드 반환값으로 캐시 갱신
 4. 완료 응답
+
+Spring의 `@CachePut`은 메서드를 실행한 뒤 반환값을 캐시에 넣는다. 트랜잭션 롤백까지 고려한 강한 일관성이
+필요하면 transaction-aware `CacheManager`를 쓰거나 커밋 이후 캐시를 갱신하도록 별도 처리가 필요하다.
 
 **구현 예시**
 
@@ -884,7 +998,7 @@ public class UserService {
 ```
 
 **장점**
-- 캐시와 DB 데이터 일관성 보장
+- 캐시와 DB 데이터 일관성을 유지하기 쉬움
 - 읽기 성능 향상 (항상 최신 데이터가 캐시에 존재)
 
 **단점**
@@ -922,14 +1036,20 @@ public class ViewCountService {
     // 스케줄러로 주기적으로 DB 동기화
     @Scheduled(fixedDelay = 60000) // 1분마다
     public void syncViewCountToDB() {
-        Set<String> keys = redisTemplate.keys("viewCount:*");
-        
-        for (String key : keys) {
-            Long count = redisTemplate.opsForValue().get(key);
-            String articleId = key.replace("viewCount:", "");
-            
-            articleRepository.updateViewCount(articleId, count);
-            redisTemplate.delete(key);
+        ScanOptions options = ScanOptions.scanOptions()
+            .match("viewCount:*")
+            .count(1000)
+            .build();
+
+        try (Cursor<String> keys = redisTemplate.scan(options)) {
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Long count = redisTemplate.opsForValue().get(key);
+                String articleId = key.replace("viewCount:", "");
+
+                articleRepository.updateViewCount(articleId, count);
+                redisTemplate.delete(key);
+            }
         }
     }
 }
@@ -974,10 +1094,12 @@ public class PopularArticleService {
     
     // 스케줄러로 주기적으로 캐시 갱신
     @Scheduled(fixedDelay = 50000) // 50초마다 (TTL 60초 가정)
-    @CacheEvict(value = "popularArticles", key = "'top10'")
     public void refreshPopularArticles() {
-        // 캐시 삭제 후 재조회로 갱신
-        getPopularArticles();
+        List<ArticleDto> articles = articleRepository.findTop10ByOrderByViewCountDesc()
+            .stream()
+            .map(ArticleDto::from)
+            .collect(Collectors.toList());
+        cacheManager.getCache("popularArticles").put("top10", articles);
     }
 }
 ```
@@ -1021,6 +1143,12 @@ public DataDto getData(Long id) {
 }
 ```
 
+단, `sync = true`는 캐시 구현체가 `Cache.get(key, valueLoader)`를 어떻게 구현했는지에 영향을 받는다.
+Redis에서도 writer 설정에 따라 동기화 범위와 효과가 달라지므로, 멀티 인스턴스 환경에서 DB 호출이
+무조건 1건으로 줄어든다고 보면 안 된다. `lockingRedisCacheWriter`는 Redis lock key를 쓰지만 캐시 이름
+단위로 잠그기 때문에 같은 캐시의 다른 키까지 대기할 수 있다. 클러스터 전체를 더 엄격하게 제어하려면
+분산 락(방법 2)을, 만료 시점만 분산하려면 지터(방법 4)를 함께 쓴다.
+
 **해결 방법 2: 분산 락 사용**
 
 ```java
@@ -1039,9 +1167,11 @@ public class DataService {
         
         // 분산 락 획득
         RLock lock = redissonClient.getLock("lock:" + cacheKey);
+        boolean locked = false;
         
         try {
-            if (lock.tryLock(5, 10, TimeUnit.SECONDS)) {
+            locked = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            if (locked) {
                 // 락 획득 후 다시 캐시 확인 (Double-Check)
                 cached = getFromCache(cacheKey);
                 if (cached != null) {
@@ -1056,9 +1186,16 @@ public class DataService {
                 saveToCache(cacheKey, data);
                 return data;
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while acquiring cache rebuild lock: " + cacheKey, e);
         } finally {
-            lock.unlock();
+            if (locked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
+
+        throw new IllegalStateException("Failed to acquire cache rebuild lock: " + cacheKey);
     }
 }
 ```
@@ -1074,8 +1211,8 @@ public DataDto getData(Long id) {
         long remainingTTL = cached.getRemainingTTL();
         long totalTTL = 600; // 10분
         
-        // TTL의 10% 남았을 때 10% 확률로 갱신
-        double refreshProbability = 1.0 - (remainingTTL / totalTTL);
+        // TTL이 임박할수록 갱신 확률이 커진다 (long 나눗셈이 0이 되지 않도록 double 캐스팅)
+        double refreshProbability = 1.0 - ((double) remainingTTL / totalTTL);
         
         if (Math.random() < refreshProbability * 0.1) {
             // 백그라운드에서 비동기 갱신
@@ -1089,6 +1226,26 @@ public DataDto getData(Long id) {
     return loadAndCache(id);
 }
 ```
+
+**해결 방법 4: 음수 지터(TTL Jitter)**
+
+여러 키가 같은 순간에 만료되어 한꺼번에 DB로 몰리는(동시 대량 만료) 경우는 sync로 못 막는다.
+TTL에 약간의 무작위성을 줘서 만료 시점을 흩으면 된다. 이때 **수명을 늘리는 가산 지터 대신
+줄이는 음수 지터**를 쓰면 "TTL은 최대한 짧게"라는 기조를 깨지 않는다. 실제 TTL이
+`[base × (1 - ratio), base]` 범위에서 정해지므로 최대 수명은 base를 넘지 않는다.
+
+```java
+// RedisCacheWriter 데코레이터로 put 시점의 TTL을 줄이는 방향으로 무작위화
+private Duration applyJitter(Duration ttl, double ratio) {
+    if (ttl == null || ttl.isZero() || ttl.isNegative() || ratio <= 0) return ttl;
+    long maxJitter = (long) (ttl.toMillis() * ratio);
+    long jitter = ThreadLocalRandom.current().nextLong(maxJitter + 1);
+    return Duration.ofMillis(ttl.toMillis() - jitter);
+}
+```
+
+Spring Data Redis 3.2+ 라면 `RedisCacheConfiguration.entryTtl(TtlFunction)`으로 같은 효과를 더
+간단히 줄 수 있다. (구현 상세는 위 "발생한 주요 이슈 > 폭주 트래픽과 Cache Stampede" 참고)
 
 ### 6. 패턴 선택 가이드
 
