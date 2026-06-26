@@ -13,7 +13,7 @@ Spring 프로젝트에서 코드 품질을 자동으로 관리하기 위해 Git 
 
 # 1. 배경 및 문제 상황
 
-## 1.1. 왜 Git Hook을 선택했는가?
+## 1.1. Git Hook 선택 이유
 
 회사 프로젝트에서는 Bitbucket과 Bamboo를 사용하여 코드 형상관리와 배포를 진행하고 있다. 처음에는 일반적인 CI/CD 파이프라인에 AI 코드 리뷰를 통합하려고 했으나 다음과 같은 제약사항이 있었다.
 
@@ -30,7 +30,7 @@ Spring 프로젝트에서 코드 품질을 자동으로 관리하기 위해 Git 
 
 결국 **"내가 통제할 수 있는 환경"**에서 코드 품질을 관리하는 것이 가장 현실적인 방법이었다.
 
-## 1.2. 다른 대안은 없었을까?
+## 1.2. 대안 검토
 
 Git Hook 외에도 몇 가지 대안을 검토했으나 각각의 한계가 있었다.
 
@@ -1065,4 +1065,3 @@ Developer → Commit → Bitbucket → Webhook → Bamboo Build
 - [Git Hooks 공식 문서](https://git-scm.com/docs/githooks)
 - [Pre-commit Framework](https://pre-commit.com/)
 - [Bitbucket Code Insights API](https://developer.atlassian.com/server/bitbucket/rest/v810/api-group-code-insights/)
-

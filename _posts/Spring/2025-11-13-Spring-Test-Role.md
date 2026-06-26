@@ -20,7 +20,7 @@ toc: true
 | 도구 | JUnit, Mockito 등 | Postman, Rest Assured, MockMVC 등 |
 
 # API 테스트 (MockMvc, Rest Assured)
-## MockMvc란?
+## MockMvc 개념
 - Spring에서 제공하는 '가짜(Mock)' MVC 환경을 만들어주는 테스트 도구이다
 - 실제 웹 서버를 실행하지 않고도, Controller에 HTTP 요청을 보내고 응답을 받는 과정을 시뮬레이션
 ## MockMvc의 장점
@@ -163,7 +163,7 @@ class PurchaseControllerTest {
 
 ## Rest Assured로 API 테스트하기
 
-### Rest Assured란?
+### Rest Assured 개념
 Java 기반으로 작성된 API 자동화 테스트 라이브러리로  
 실제 HTTP 요청을 보내고 응답을 검증하는 과정을 매우 간결하고 직관적인 코드로 작성할 수 있게 해준다.
 
@@ -792,7 +792,7 @@ test {
 
 ---
 
-# 정리: 어떤 테스트를 얼마나 작성할까
+# 정리: 테스트 작성 범위
 
 마지막으로 테스트 종류를 언제 쓰는지 정리하면 이렇다. 흔히 말하는 **테스트 피라미드**의 형태를 따르는 것이 비용 대비 효율이 좋다.
 

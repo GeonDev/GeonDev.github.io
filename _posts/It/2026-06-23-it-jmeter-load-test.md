@@ -1,6 +1,6 @@
 ---
 layout: post
-title: JMeter로 부하 테스트하기 — 기능 소개와 활용법, 그리고 요즘 대안들
+title: JMeter로 부하 테스트하기 — 기능 소개와 활용법
 date: 2026-06-23
 Author: Geon Son
 categories: IT
@@ -11,7 +11,7 @@ toc: true
 
 > 배포 전에 "트래픽이 몰리면 어디까지 버틸까"를 미리 확인할 때 부하 테스트를 한다. 대표 도구인 JMeter의 기능과 활용법, 그리고 요즘 쓰이는 대안 툴을 정리한다.
 
-# 1. 부하 테스트는 왜 하나
+# 1. 부하 테스트 목적
 
 기능 테스트가 "되느냐"를 본다면, 부하 테스트는 "얼마나 견디느냐"를 본다. 확인하려는 건 대체로 이렇다.
 
@@ -84,7 +84,7 @@ cd apache-jmeter-5.6.3/bin
 ![JMeter GUI Test Plan](/images/it/jmeter-gui.png){: .align-center}
 *JMeter GUI. 왼쪽 트리에 Thread Group → HTTP Request → Listener를 얹어 시나리오를 구성한다.*
 
-> GUI는 결과를 실시간으로 그리느라 무거워 실제 부하에는 권장되지 않는다. 시나리오(`.jmx`) 작성·디버깅만 GUI로 하고, 측정은 CLI로 돌린다.
+> GUI는 결과를 실시간으로 그리느라 무거워 실제 부하에는 권장되지 않는다. 시나리오(`.jmx`) 작성·디버깅만 GUI로 하고, 측정은 CLI로 돌리는 것을 추천한다.
 
 # 5. 실제 부하는 CLI(non-GUI)로
 

@@ -31,7 +31,7 @@ SELECT * FROM table WHERE id LIKE '%' + '${value}' + '%'
 
 이런 방식으로 쿼리를 작성해 주어야 한다. 또한 Statement로 쿼리를 작성할 경우 변경없이 그대로 변수를 넣어주기 때문에 쿼리문을 삽입해 버리는 것 같은 문제가 발생할수도 있다. 그래서 이부분은 Service나 Controller에서 문제점을 확인하고 막아줄수 있는 코드를 작성해야 추후에 문제점을 막을수 있다.
 
-# 4. 의문점 - 강제로 Typecasting을 해주면?
+# 4. 강제 Typecasting 검토
 
 Mybatis 에는 파라미터의 타입을 명시해줄수 있는 기능이 있다. #{value, jdbcType=VARCHAR}
 

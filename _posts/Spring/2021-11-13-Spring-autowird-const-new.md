@@ -102,7 +102,7 @@ logger.info("Start Vision API ImagePath :  "+info.getPath());
 
 의외로 NullPointerException이 발생하지 않았다.
 
-# 3. 그런데... 어디쓰려고...?
+# 3. 사용 배경
 
 원래 이런 기능을 만들면 보통을 별도 프로젝트를 새로 생성해서 작업을 한다. 그럼에도 굳이 이렇게 하나의 프로젝트에 만드는 이유는
 war를 구동시 한번에 모든 기능이 구동될수 있게 하기 위해서 이다.
