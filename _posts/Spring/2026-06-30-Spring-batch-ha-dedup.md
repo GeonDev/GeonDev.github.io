@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 이중화된 배치·스케줄러 중복 실행 막기 (ShedLock / Quartz / SKIP LOCKED)
+title: 이중화된 배치·스케줄러 중복 실행 막기 (ShedLock / SKIP LOCKED)
 date: 2026-06-30
 Author: Geon Son
 categories: Spring
@@ -127,11 +127,9 @@ UPDATE shedlock
 
 > ShedLock은 JDBC 외에 Redis, MongoDB, ZooKeeper 등 다른 백엔드 provider도 지원한다. 이미 Redis를 쓰고 있다면 `shedlock-provider-redis-spring`으로 같은 일을 할 수 있다.
 
-# 3. Spring Batch / Quartz를 쓴다면
+# 3. Spring Batch를 쓴다면
 
-스케줄링 프레임워크를 이미 쓰고 있다면 그쪽 기능을 먼저 검토한다.
-
-## Spring Batch
+Spring Batch를 이미 쓰고 있다면 `JobRepository`가 막아주는 범위부터 정확히 구분해야 한다.
 
 Spring Batch는 `JobRepository`로 **같은 `JobInstance`(잡 이름 + 잡 파라미터)의 중복 완료 실행**을 막아준다.
 이미 성공한 파라미터로 다시 실행하면 `JobInstanceAlreadyCompleteException`이 난다.
@@ -145,12 +143,6 @@ jobLauncher.run(settlementJob, params);
 
 > 다만 이건 "**같은 파라미터의 재실행**"을 막는 것이지, **두 인스턴스가 동시에 기동하는 경쟁**을 막아주진 않는다.
 > 그래서 Spring Batch를 써도 **트리거 단계의 단일 실행은 ShedLock 등으로 따로 보장**해야 한다.
-
-## Quartz 클러스터링
-
-Quartz는 클러스터 모드(`org.quartz.jobStore.isClustered = true`)를 켜면 DB를 공유하며
-**하나의 트리거를 클러스터 내 한 노드에만 할당**한다. 별도 락 코드 없이 단일 실행이 보장된다.
-이미 Quartz를 쓰는 프로젝트라면 가장 자연스러운 선택이다.
 
 # 4. 반대로, 일부러 나눠 돌리고 싶다면 — SKIP LOCKED
 
@@ -183,7 +175,7 @@ A가 1~100번을 잡으면 B는 그 행들을 **건너뛰고** 101~200번을 가
 락 대기 없이 워커들이 큐를 나눠 소비하므로, 작업 큐를 여러 인스턴스로 병렬 처리할 때 유용하다.
 
 > 단순 `FOR UPDATE`(SKIP LOCKED 없이)였다면 B는 A가 커밋할 때까지 **대기**한다.
-> "나눠 처리"가 목적이면 `SKIP LOCKED`, "직렬화"가 목적이면 그냥 `FOR UPDATE`다.
+> "나눠 처리"가 목적이면 `SKIP LOCKED`, "한 번에 하나씩 처리"가 목적이면 그냥 `FOR UPDATE`다.
 
 # 5. 락은 보조일 뿐 — 멱등 배치가 본질
 
@@ -215,7 +207,7 @@ UPDATE settlement
 
 | 목적 | 방법 |
 |---|---|
-| 클러스터에서 **한 번만** 실행 | **ShedLock** (`@SchedulerLock`) / Quartz 클러스터링 |
+| 클러스터에서 **한 번만** 실행 | **ShedLock** (`@SchedulerLock`) |
 | 같은 파라미터 **재실행** 방지 | Spring Batch `JobRepository` |
 | 물량을 **나눠** 병렬 처리 | `SELECT ... FOR UPDATE SKIP LOCKED` |
 | 어떤 경우든 최종 안전망 | **멱등 설계** (UNIQUE 제약 · 조건부 업데이트) |
@@ -223,7 +215,7 @@ UPDATE settlement
 판단은 단순하다.
 
 1. **한 번만 돌면 되는 배치(정산·집계·리포트)** → ShedLock으로 단일 실행 보장. 잡 단위 락이다.
-2. **이미 스케줄링 프레임워크가 있다** → Quartz 클러스터링 / Spring Batch 기능을 먼저 활용.
+2. **Spring Batch를 쓴다** → `JobRepository`는 같은 파라미터의 재실행 방지용이다. 트리거 중복은 ShedLock 등으로 따로 막는다.
 3. **물량이 많아 나눠 돌려야 한다** → 동시 실행을 의도하고 `SKIP LOCKED`로 분배.
 4. **그리고 무조건** → 작업을 멱등하게 짜둔다.
 

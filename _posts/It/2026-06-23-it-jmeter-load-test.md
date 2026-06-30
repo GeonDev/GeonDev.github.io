@@ -1,6 +1,6 @@
 ---
 layout: post
-title: JMeter로 부하 테스트하기 — 기능 소개와 활용법
+title: JMeter로 부하 테스트하기
 date: 2026-06-23
 Author: Geon Son
 categories: IT
