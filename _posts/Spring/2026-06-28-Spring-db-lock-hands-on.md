@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 동시성 제어를 위한 DB 락 (JPA 낙관적·비관적 락 / MySQL Named Lock / Redis 분산 락)
-date: 2026-06-30
+date: 2026-06-28
 Author: Geon Son
 categories: Spring
 tags: [Database, Lock, JPA, Redis, MySQL, Concurrency]

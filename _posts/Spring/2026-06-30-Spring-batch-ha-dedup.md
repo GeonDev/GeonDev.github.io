@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 이중화된 배치·스케줄러 중복 실행 막기 (ShedLock / Quartz / SKIP LOCKED)
-date: 2026-07-01
+date: 2026-06-30
 Author: Geon Son
 categories: Spring
 tags: [Batch, Scheduler, ShedLock, Concurrency, HA]
@@ -14,7 +14,8 @@ toc: true
 정산이 두 번 돌거나, 같은 푸시가 두 번 나가거나, 집계가 중복으로 쌓인다.
 
 [동시성 제어를 위한 DB 락 실전](/Spring-db-lock-hands-on/)에서 다룬 낙관/비관/Named Lock/Redis 분산 락은
-**여러 요청이 같은 데이터(행)를 동시에 갱신**하는 문제를 풀었다.
+**여러 요청이 같은 데이터(행)를 동시에 갱신**하는 문제를 풀었다.  
+
 배치 중복 실행은 결이 다르다 — 보호 대상이 "행"이 아니라 **"잡 실행 그 자체"** 이고,
 "한 클러스터에서 한 번만 돌게 한다"는 leader election에 가까운 문제다.
 그래서 행 락(`FOR UPDATE`)이 아니라 다른 도구가 필요하다.
