@@ -49,7 +49,7 @@ google_analytics: G-G0FD371ZKE
 url: https://geondev.github.io
 
 
-baseurl: /
+baseurl: ""
 
 permalink: /:title/
 paginate_path: /page:num/
