@@ -99,6 +99,11 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 }
 ~~~
 
+여기서 `@Query`를 직접 작성한 것은 낙관적 락의 필수 조건이 아니다.
+실제 UPDATE SQL에는 `WHERE id = ? AND version = ?`처럼 version 조건이 들어가지만, 이 조건을 JPQL에 직접 써야 하는 것은 아니다.
+`@Version` 필드가 있으면 Hibernate가 갱신 시점에 version 조건을 자동으로 붙인다.
+위 예제의 `@Query`는 기존 `findById`와 구분되는 메서드 이름(`findByIdWithOptimisticLock`)을 명시하기 위한 것이고, 파생 쿼리 메서드에도 `@Lock`을 붙일 수 있다.
+
 ## 낙관적 락의 LockModeType 종류
 
 `@Version`만 두면 **수정한 엔티티**는 알아서 버전 검사가 되지만, JPA는 그보다 세밀한 모드를 제공한다.
@@ -110,9 +115,32 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 | `OPTIMISTIC` | 위에 더해 **읽기만 한** 엔티티도 "내가 읽은 뒤 누가 안 바꿨나"를 트랜잭션 끝에 검사 | 안 함 |
 | `OPTIMISTIC_FORCE_INCREMENT` | `OPTIMISTIC` + 내 트랜잭션이 끝날 때 **버전을 강제로 +1** | 함 |
 
-- **`OPTIMISTIC`** : 읽기 전용으로 참조한 값까지 보호한다. 주문 금액 계산에 쓴 상품 가격을 누가 중간에 바꾸면 안 될 때처럼, **반복 읽기를 애플리케이션 레벨에서 보장**하고 싶을 때 쓴다.
-- **`OPTIMISTIC_FORCE_INCREMENT`** : 컬럼 변경이 없어도 버전을 올려 "논리적 변경"을 충돌로 검출한다. (바로 아래에서 다룬다)
-- 참고로 `OPTIMISTIC`은 예전 이름이 `READ`, `OPTIMISTIC_FORCE_INCREMENT`는 `WRITE`였다. 지금은 deprecated 별칭이다.
+## OPTIMISTIC
+
+내가 읽은 뒤 다른 트랜잭션이 먼저 수정해서 버전이 바뀌면, 내 트랜잭션은 커밋 시점에 `OptimisticLockException`으로 실패하고 롤백된다.
+"내가 수정한 걸 되돌린다"기보다, **내 변경 자체가 반영되기 전에 충돌을 감지해 전체 트랜잭션이 실패한다**고 이해하면 된다.
+
+이 모드는 조회한 값을 트랜잭션 끝까지 일관되게 보고 싶을 때 쓴다. 예를 들어 주문 금액 계산에 필요한 상품 가격이 중간에 바뀌면 안 되는 경우다.
+동시에, 실제로 엔티티를 수정할 때는 `@Version`이 붙은 상태에서 버전 조건이 자동으로 검사된다.
+
+> 참고로 `OPTIMISTIC`은 예전 이름이 `READ`였다. 지금은 deprecated 별칭이다.
+
+## OPTIMISTIC_FORCE_INCREMENT
+
+연관 엔티티만 바뀌고 정작 루트 엔티티 컬럼은 그대로일 때, 버전이 올라가지 않아 충돌을 놓치는 경우가 있다.
+예를 들어 게시글(Board)은 그대로 두고 댓글(Comment)만 추가하는데, "댓글 추가 = 게시글의 논리적 변경"으로 취급하고 싶을 때다.
+이때 `OPTIMISTIC_FORCE_INCREMENT`를 쓰면 **컬럼 변경이 없어도 버전을 강제로 올려** 충돌을 검출한다.
+
+읽기만 했는데도 다른 트랜잭션의 수정까지 막고 싶다면 이 모드를 쓴다. 내 트랜잭션이 끝날 때 버전을 +1 하므로, 뒤이어 같은 엔티티를 수정하려는 트랜잭션은 버전 불일치로 실패한다.
+
+> 참고로 `OPTIMISTIC_FORCE_INCREMENT`는 예전 이름이 `WRITE`였다. 지금은 deprecated 별칭이다.
+
+~~~java
+@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+@Query("select b from Board b where b.id = :id")
+Board findByIdForUpdate(@Param("id") Long id);
+~~~
+
 
 ## 재시도(Retry)는 호출하는 쪽의 책임
 
@@ -157,14 +185,16 @@ public class OptimisticLockStockFacade {
 }
 ~~~
 
-매번 facade를 만들기 번거롭다면 Spring Retry의 `@Retryable`로 대체할 수 있다.
-다만 **`@Retryable`은 트랜잭션보다 바깥쪽**에 있어야 한다.
+매번 수동 재시도 루프가 있는 바깥 래퍼를 만들기 번거롭다면 Spring Retry의 `@Retryable`로 대체할 수 있다.
+@Retryable은 트랜잭션 바깥에서 예외를 받아야 재시도할 수 있다.  
+수동 파사드와 마찬가지로, @Transactional 메서드가 예외를 밖으로 던져야 롤백되고, 그 예외를 바깥 래퍼가 잡아 재시도한다.
+
 같은 메서드에 `@Transactional`과 함께 붙이면 어드바이스 순서에 따라 재시도가 트랜잭션 안에서 돌 수 있고,
 그러면 첫 충돌에서 이미 rollback-only로 마킹돼 재시도해도 `UnexpectedRollbackException`으로 계속 실패한다.
-그래서 `@Retryable`은 **Facade(바깥)**, `@Transactional`은 **Service(안쪽)** 로 나눈다.
+그래서 `@Retryable` 예제도 구조상 **Facade(바깥)**, `@Transactional`은 **Service(안쪽)** 로 나눈 것과 같다.
 
 ~~~java
-// 바깥: 재시도만 담당 (트랜잭션 없음). 위의 수동 Facade를 이걸로 대체한다
+// 바깥: 재시도만 담당 (트랜잭션 없음). 위의 수동 래퍼 구현을 이걸로 대체한다
 @Component
 @RequiredArgsConstructor
 public class OptimisticLockStockRetryFacade {
@@ -188,29 +218,17 @@ public class OptimisticLockStockRetryFacade {
 }
 ~~~
 
-> 고정 간격(`delay`만)보다 **지수 백오프(`multiplier`)** 가 낫다. 경합이 심할 때 같은 간격으로 재시도하면
-> 또 같이 부딪히지만, 간격을 점점 벌리면 충돌이 흩어져 성공률이 올라간다.
+`delay`만 두면 매번 같은 시간만 쉬고 다시 시도하는 **고정 간격 재시도**가 된다.
+예를 들어 50ms마다 계속 다시 시도하면, 동시에 실패한 요청들이 또 동시에 재시도해서 같은 충돌을 반복하기 쉽다.  
+`multiplier`를 주면 실패할수록 대기 시간을 늘리는 **지수 백오프**가 된다. 여기서는 50ms → 100ms → 200ms처럼 간격을 벌려서, 재시도 타이밍이 겹치는 것을 줄인다.
 
-## OPTIMISTIC_FORCE_INCREMENT
-
-연관 엔티티만 바뀌고 정작 루트 엔티티 컬럼은 그대로일 때, 버전이 올라가지 않아 충돌을 놓치는 경우가 있다.
-예를 들어 게시글(Board)은 그대로 두고 댓글(Comment)만 추가하는데, "댓글 추가 = 게시글의 논리적 변경"으로 취급하고 싶을 때다.
-이때 `OPTIMISTIC_FORCE_INCREMENT`를 쓰면 **컬럼 변경이 없어도 버전을 강제로 올려** 충돌을 검출한다.
-
-~~~java
-@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
-@Query("select b from Board b where b.id = :id")
-Board findByIdForUpdate(@Param("id") Long id);
-~~~
-
-> **낙관적 락은 이럴 때** : 충돌 빈도가 낮고, 읽기가 많은 환경. 락 대기가 없어 동시성이 좋다.
-> 단, 충돌이 잦으면 재시도 비용이 커지므로 비관적 락을 검토한다.
+실무에서는 보통 재시도를 **3회 안팎**으로 두고, 고정 간격보다는 **지수 백오프에 약간의 jitter**를 섞어 같은 타이밍에 다시 부딪히는 걸 줄인다.
 
 # 2. JPA 비관적 락 (Pessimistic Lock)
 
 비관적 락은 반대로 **"충돌이 자주 난다"** 고 가정하고, 조회 시점에 아예 DB 락을 건다.
-`SELECT ... FOR UPDATE`로 행에 배타 락을 걸어, 락이 풀릴 때까지 다른 트랜잭션을 대기시킨다.
-재시도 로직이 필요 없는 대신, 락 대기와 데드락을 신경 써야 한다.
+`SELECT ... FOR UPDATE`로 행에 배타 락을 걸어, 락이 풀릴 때까지 다른 트랜잭션을 대기시킨다.  
+그래서 충돌이 잦고 반드시 한 번에 하나씩 처리해야 하는 결제·재고 차감 같은 로직에 잘 맞는다. 재시도 로직이 필요 없는 대신, 락 대기와 데드락을 신경 써야 하므로 트랜잭션 범위는 짧게 가져간다.
 
 ## @Lock(PESSIMISTIC_WRITE)
 
@@ -222,6 +240,11 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
     Stock findByIdWithPessimisticLock(@Param("id") Long id);
 }
 ~~~
+
+여기서도 `@Query`는 비관적 락을 걸기 위해 반드시 필요한 코드는 아니다.
+실제 SQL에는 `FOR UPDATE`가 붙지만, JPQL에 `for update`를 직접 작성해야 하는 것은 아니다.  
+조회 메서드에 `@Lock(LockModeType.PESSIMISTIC_WRITE)`를 붙이면 JPA/Hibernate가 DB 방언에 맞는 잠금 SQL을 생성한다.  
+위 예제의 `@Query`는 기존 JPA 기본 메서드와 다른 이름의 예제용 메서드를 보여 주기 위해 명시한 것이다.
 
 ~~~java
 @Service
@@ -277,8 +300,8 @@ Stock findByIdWithPessimisticLock(@Param("id") Long id);
 > 타임아웃 동작은 DBMS마다 다르다. MySQL InnoDB는 `innodb_lock_wait_timeout`(기본 50초)의 영향을 받고,
 > `SKIP LOCKED` / `NOWAIT`(MySQL 8.0+) 같은 옵션은 JPA 표준 힌트로는 직접 표현하기 어려워 네이티브 쿼리가 필요할 수 있다.
 
-> **비관적 락은 이럴 때** : 충돌이 잦고 반드시 한 번에 하나씩 처리해야 하는 결제·재고 차감 같은 로직.
-> 단, 락을 오래 잡으면 처리량이 급감하고 데드락 위험이 있으니 트랜잭션 범위를 최소화한다.
+실무에서는 보통 `PESSIMISTIC_WRITE`를 쓰고, 락 타임아웃은 **3초 안팎**처럼 짧게 둔다.
+그리고 `FOR UPDATE`를 거는 조회 컬럼에는 **인덱스**가 있어야 한다. 없으면 락이 불필요하게 넓어지거나 풀스캔으로 번져 다른 행까지 묶을 수 있다.
 
 ## 데드락(Deadlock) — 락을 잡는 순서가 다를 때
 
@@ -306,12 +329,15 @@ public class TransferService {
 }
 ~~~
 
-A는 `transfer(1, 2, ...)`, B는 `transfer(2, 1, ...)`를 동시에 호출하면:
+예를 들어 두 트랜잭션이 동시에 실행된다고 하자.
+
+- T1은 1번 계좌를 먼저 잠그고 2번 계좌를 나중에 잠근다.
+- T2는 2번 계좌를 먼저 잠그고 1번 계좌를 나중에 잠근다.
 
 ~~~
 시간 →
-A: 1번 락 획득 ──── 2번 락 요청 ⏳ (B가 잡고 있어 대기)
-B: 2번 락 획득 ──── 1번 락 요청 ⏳ (A가 잡고 있어 대기)
+T1: 1번 락 획득 ──── 2번 락 요청 ⏳ (T2가 잡고 있어 대기)
+T2: 2번 락 획득 ──── 1번 락 요청 ⏳ (T1이 잡고 있어 대기)
                               └─ 서로 상대를 기다림 → 데드락
 ~~~
 
@@ -323,12 +349,13 @@ com.mysql.cj.jdbc.exceptions.MySQLTransactionRollbackException:
 ~~~
 
 **해결은 락을 잡는 순서를 항상 똑같이 맞추는 것**이다.
-ID가 작은 쪽부터 잠그도록 정렬하면, 두 트랜잭션 모두 `1번 → 2번` 순으로 잡으므로 교착이 생기지 않는다.
+같은 테이블 안에서는 ID가 작은 쪽부터 잠그도록 정렬하면, 두 트랜잭션 모두 `1번 → 2번` 순으로 잡으므로 교착이 생기지 않는다.
+테이블이 여러 개면 ID 숫자만으로는 순서를 정할 수 없으니, 먼저 **테이블 순서**를 고정하고 그다음 각 테이블 안에서 **ID 순서**를 맞춘다.
 
 ~~~java
 @Transactional
 public void transfer(Long fromId, Long toId, Long amount) {
-    // 항상 작은 ID부터 락을 건다 → 모든 트랜잭션이 같은 순서로 진행
+    // 같은 테이블 안에서는 항상 작은 ID부터 락을 건다
     Long firstId  = Math.min(fromId, toId);
     Long secondId = Math.max(fromId, toId);
     accountRepository.findByIdWithPessimisticLock(firstId);
@@ -452,6 +479,9 @@ public class RedissonLockStockFacade {
 - **waitTime** : 락을 얻으려고 기다리는 최대 시간 (Redisson은 pub/sub 기반이라 무의미한 스핀이 적다)
 - **leaseTime** : 락 점유 시간. 이 시간이 지나면 자동 해제되어 **데드락을 방지**한다.
 
+실무에서는 `waitTime`을 **3~5초처럼 짧게** 두고, `leaseTime`은 **watchdog(-1)** 을 쓰거나 작업 최대 시간보다 조금 길게 잡는다.
+작업 시간이 예측되면 명시 값을 주는 편이 단순하고, 길이가 들쭉날쭉하면 watchdog이 더 안전하다.
+
 ## 4-2. 직접 구현한다면 (SETNX + Lua)
 
 Redisson 없이 원리를 이해하려면 직접 구현해 볼 수 있다. 두 가지가 핵심이다.
@@ -506,48 +536,6 @@ public void decrease(Long id, Long count) {
 > **분산 락의 한계** : Redis 단일 노드 락은 **마스터 장애 + 복제 지연** 시 두 클라이언트가 동시에 락을 잡을 수 있다.
 > 이를 줄이려는 Redlock 알고리즘이 있지만 논쟁이 있다. **강한 정합성이 절대적으로 필요하면 DB 락(비관적 락)을 우선 검토**하고,
 > Redis 분산 락은 처리량이 중요하고 짧은 중복을 비즈니스적으로 감내할 수 있을 때 쓴다.
-
-# 5. 실무에서 보통 주는 옵션
-
-기법을 골랐다면, 옵션값을 어떻게 잡는지가 다음 고민이다. 실무에서 흔히 쓰는 기본값을 정리한다.
-
-## 낙관적 락
-
-~~~java
-@Version
-private Long version;   // 타입은 Long/Integer (Timestamp는 비권장)
-~~~
-
-- **재시도 횟수** : 보통 **3회** 안팎. 무한 루프는 쓰지 않는다.
-- **백오프** : 고정 50ms보다 **지수 + jitter**(50 → 100 → 200ms에 난수를 섞음)가 낫다. 경합 시 같이 재충돌하는 걸 흩기 위함이다.
-- 3회를 넘겨야 성공한다면 충돌이 잦다는 신호다 → **비관적 락으로 전환**을 검토하는 게 정석이다.
-
-## 비관적 락
-
-~~~java
-@Lock(LockModeType.PESSIMISTIC_WRITE)   // 실무는 거의 항상 WRITE
-@QueryHints(@QueryHint(
-    name = "jakarta.persistence.lock.timeout", value = "3000"))   // 3초
-~~~
-
-- **모드** : `PESSIMISTIC_WRITE`가 9할. `READ`는 거의 안 쓴다.
-- **타임아웃** : **3초 내외**로 짧게. MySQL 기본 `innodb_lock_wait_timeout`(50초)은 너무 길어 줄인다.
-- **트랜잭션 길이** : 락을 잡은 뒤 **외부 API 호출·무거운 연산 금지**. 락 구간을 최소화한다.
-- **인덱스 필수** : `FOR UPDATE` 조회 컬럼에 인덱스가 없으면 갭 락/풀스캔 락으로 번져 엉뚱한 행까지 잠근다. (가장 흔한 운영 사고)
-
-## 분산 락 (Redisson)
-
-~~~java
-lock.tryLock(waitTime, leaseTime, unit);
-~~~
-
-- **waitTime(대기)** : 사용자 응답 경로면 **3~5초**처럼 짧게. 못 잡으면 빠르게 실패 응답한다.
-- **leaseTime(점유)** : 두 방식이 있다.
-  - **명시**(예: 3초) : 단순하고 예측 가능하지만, 로직이 그보다 오래 걸리면 락이 먼저 풀려 위험하다.
-  - **`-1` (watchdog)** : 기본 30초 점유 + 10초마다 자동 연장. 수행시간 예측이 어려운 작업에 안전하다. 단 **unlock을 반드시 호출**해야 한다(안 하면 최대 30초까지 점유).
-- 실무 기본값은 **"waitTime은 짧게, leaseTime은 watchdog(-1) 또는 로직 최대시간보다 약간 길게"**.
-
-> 한 줄 요약 — **낙관적**: 재시도 3회 + 지수 백오프 / **비관적**: WRITE + 타임아웃 3초 + 인덱스 / **분산**: waitTime 짧게 + leaseTime은 watchdog.
 
 # 6. 실전 사례: 중복 결제 막기
 
