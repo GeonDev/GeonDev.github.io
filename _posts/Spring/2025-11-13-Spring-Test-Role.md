@@ -331,7 +331,8 @@ public class PurchaseProcessService {
 }
 ```
 
-- 테스트 케이스 초기 설정
+#### 테스트 케이스 초기 설정  
+
 ```java
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
