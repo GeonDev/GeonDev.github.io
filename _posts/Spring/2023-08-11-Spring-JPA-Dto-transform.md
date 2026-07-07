@@ -59,14 +59,14 @@ Portfolio 엔티티에서 필요한 필드만 가져 오고 싶다면 아래 처
 위에서 만든 인터페이스를 반환하는 리포지토리 메소드를 만들면 끝난다.
 
 ```java
-public interface PortfolioRepository extends JpaRepository<Portfolio, String> {
+public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
-    TradingMapping findByPortfolioId(String id);
+    TradingMapping findByPortfolioId(Long id);
 
 
-    @Query(value = "SELECT PO.trading_type as trading, PO.trading_dt as tradingDt,  FROM TB_STOCK_PORTFOLIO PO " +
+    @Query(value = "SELECT PO.trading_type as trading, PO.trading_dt as tradingDt FROM TB_STOCK_PORTFOLIO PO " +
             "WHERE PO.portfolio_id = :id" , nativeQuery = true)
-    TradingMapping findByPortfolioQuery(String id);
+    TradingMapping findByPortfolioQuery(Long id);
 }
 
 ```
@@ -82,7 +82,7 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, String> {
 ```java
 public interface TagMapping {
         @Value("#{target.portfolioId + ' ' + target.trading}")
-        String getTag
+        String getTag();
 }
 ```
 
@@ -231,6 +231,7 @@ queryDsl의 메소드에서 Projections로 내가 원하는 데이터를 바로 
                 .select(
                         Projections.constructor(CorpFinanceSimpleDto.class,
                                 corpFinance.financeId,
+                                corpFinance.rceptNo,
                                 corpFinance.corpCode,
                                 corpFinance.stockCode,
                                 corpFinance.capital,
@@ -252,7 +253,8 @@ queryDsl의 메소드에서 Projections로 내가 원하는 데이터를 바로 
 
 Projections.constructor를 활용하여 corpFinance값의 일부만 DTO에 매핑 시켰다. 예제에서는 interface를 활용한 Open Projection과 비교해서 큰 이점이 없어 보일 수도 있다.  
 하지만 조인이 포함되어 여러 Entity의 값을 하나의 DTO로 합치는 경우 Open Projection을 사용하는 것이 힘들 수도 있고   
-as()를 활용하여 DTO의 필드명을 자유롭게 변경할 수도 있다. (operatingProfit -> operating)   
+constructor 방식에서는 **생성자 파라미터의 순서와 타입이 정확히 맞아야 한다.**  
+필드 이름을 기준으로 느슨하게 매핑하고 싶다면 `Projections.fields` 또는 `Projections.bean`을 사용하는 편이 낫다.  
 또 CASE문을 활용하여 프론트에서 작업하던 연산을 쿼리 단에서 바로 처리할 수도 있게 한다. 
 
 
@@ -266,11 +268,13 @@ as()를 활용하여 DTO의 필드명을 자유롭게 변경할 수도 있다. (
                 .select(
                         Projections.constructor(CorpFinanceSimpleDto.class,
                                 corpFinance.financeId,
+                                corpFinance.rceptNo,
                                 new CaseBuilder()
-                                        .when(corpFinance.corpCode.eq("Q1")).then("1분기")
-                                        .when(corpFinance.corpCode.eq("Q2")).then("2분기")
-                                        .when(corpFinance.corpCode.eq("Q3")).then("3분기")
+                                        .when(corpFinance.rceptNo.eq("Q1")).then("1분기")
+                                        .when(corpFinance.rceptNo.eq("Q2")).then("2분기")
+                                        .when(corpFinance.rceptNo.eq("Q3")).then("3분기")
                                         .otherwise("4분기"),
+                                corpFinance.corpCode,
                                 corpFinance.stockCode,
                                 corpFinance.capital,
                                 corpFinance.totalAssets,
@@ -289,7 +293,5 @@ as()를 활용하여 DTO의 필드명을 자유롭게 변경할 수도 있다. (
 
 Case 문 쿼리를 사용하는 것과 방법은 똑같다. when() 메소드에 내가 원하는 조건을 넣고 만족하면 then()의 값을 반환하게 된다.  
 이런 식으로 DTO에 들어가는 값을 직접 수정하면서 Projections을 유용하게 사용할 수 있다.
-
-
 
 
