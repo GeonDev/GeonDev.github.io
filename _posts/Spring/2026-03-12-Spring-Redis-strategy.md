@@ -111,7 +111,316 @@ public ObjectMapper objectMapper() {
 
 그래서 `@Qualifier("redisObjectMapper")`로 Redis 설정에만 이 매퍼를 주입한다.
 
-### 2. 캐싱 메서드는 데이터 DTO를 반환하기
+### 2. Redis 연결과 Spring Cache 설정
+
+`ObjectMapper`만 만들어서는 Spring Cache가 Redis를 쓰지 않는다. 실제 프로젝트에서는 Redis 연결,
+`RedisTemplate`, `RedisCacheManager`까지 명시적으로 묶었다.
+
+Spring Boot 자동설정을 쓰면 `spring.data.redis.*`, `spring.cache.redis.*` 프로퍼티만으로도 기본
+`RedisConnectionFactory`와 `RedisCacheManager`를 만들 수 있다. 단순히 모든 캐시에 같은 TTL을 적용하고,
+기본 직렬화와 기본 prefix 정책을 써도 되는 서비스라면 자동설정이 더 낫다.
+
+이 프로젝트에서 수동 설정을 선택한 이유는 요구사항이 기본값을 넘어섰기 때문이다.
+
+- Redis 전용 `ObjectMapper`로 값 직렬화 방식을 통제해야 했다.
+- 캐시 이름별로 5초, 1분, 10분처럼 TTL을 다르게 가져가야 했다.
+- 운영 프로파일을 포함한 Redis key prefix가 필요했다.
+- 운영에서는 Redis Cluster를 사용하지만, 개발기에는 클러스터 구성이 없어 standalone Redis로 실행해야 했다.
+- Lettuce의 replica read, cluster topology refresh 옵션을 직접 설정해야 했다.
+- Cache Stampede를 줄이기 위해 TTL jitter를 적용해야 했다.
+- `Page` 같은 캐싱하기 까다로운 타입을 `RestPage` 형태로 보정하는 커스텀 캐시 계층이 필요했다.
+
+
+핵심 구성은 다음과 같다.
+
+- `@EnableCaching`: `@Cacheable`, `@CacheEvict`, `@CachePut` 활성화
+- `RedisConnectionFactory`: 운영은 Redis Cluster, 개발기는 standalone Redis로 연결 생성
+- `RedisTemplate`: 수동 Redis 접근 시 사용할 key/value/hash 직렬화 방식 지정
+- `RedisCacheWriter`: Spring Cache가 Redis에 값을 쓰는 방식 지정
+- `RedisCacheManager`: 캐시 이름별 TTL과 직렬화 설정 적용
+
+아래 코드는 실제 설정에서 핵심만 추린 예시다. 운영 환경은 Redis Cluster로 구성되어 있지만,
+개발기에는 클러스터 구성이 없어서 `redis.clusterMode=false`일 때 standalone Redis로 붙도록 분기했다.
+운영 코드에서는 cluster node를 `host1`부터 `host6`까지 순회하며 추가했다. 아래 예시는 길이를 줄이기 위해
+`host3`까지만 표시했고, 실제 코드에서는 캐시 그룹 배열이 비어 있는 경우도 방어했다.
+
+```java
+@Slf4j
+@EnableCaching
+@Configuration
+public class RedisConfig {
+
+    @Value("${redis.cache.second}")
+    private String[] redisCacheSecond;
+
+    @Value("${redis.cache.minutes.1}")
+    private String[] redisCacheMinutes1;
+
+    @Value("${redis.cache.minutes.10}")
+    private String[] redisCacheMinutes10;
+
+    @Value("${redis.clusterMode}")
+    private Boolean clusterMode;
+
+    @Value("${redis.host1}")
+    private String host1;
+
+    @Value("${redis.port1}")
+    private String port1;
+
+    @Value("${redis.host2:}")
+    private String host2;
+
+    @Value("${redis.port2:}")
+    private String port2;
+
+    @Value("${redis.host3:}")
+    private String host3;
+
+    @Value("${redis.port3:}")
+    private String port3;
+
+    @Value("${redis.username}")
+    private String username;
+
+    @Value("${redis.password}")
+    private String password;
+
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
+
+    @Bean
+    RedisConnectionFactory connectionFactory() {
+        if (!clusterMode) {
+            // 개발기: Redis Cluster 구성이 없으므로 standalone Redis로 연결한다.
+            RedisStandaloneConfiguration config =
+                new RedisStandaloneConfiguration(host1, Integer.parseInt(port1));
+            config.setUsername(username);
+            config.setPassword(password);
+
+            return new LettuceConnectionFactory(config);
+        }
+
+        // 운영: Redis Cluster node들을 등록하고 topology refresh를 활성화한다.
+        RedisClusterConfiguration config = new RedisClusterConfiguration();
+        addClusterNodeIfPresent(config, host1, port1);
+        addClusterNodeIfPresent(config, host2, port2);
+        addClusterNodeIfPresent(config, host3, port3);
+        config.setMaxRedirects(30);
+        config.setUsername(username);
+        config.setPassword(password);
+
+        ClusterTopologyRefreshOptions refreshOptions = ClusterTopologyRefreshOptions.builder()
+            .enablePeriodicRefresh(true)
+            .enableAdaptiveRefreshTrigger(
+                RefreshTrigger.MOVED_REDIRECT,
+                RefreshTrigger.PERSISTENT_RECONNECTS
+            )
+            .build();
+
+        ClusterClientOptions clientOptions = ClusterClientOptions.builder()
+            .topologyRefreshOptions(refreshOptions)
+            .build();
+
+        LettuceClientConfiguration lettuceConfig = LettuceClientConfiguration.builder()
+            .clientOptions(clientOptions)
+            .readFrom(ReadFrom.REPLICA_PREFERRED)
+            .build();
+
+        return new LettuceConnectionFactory(config, lettuceConfig);
+    }
+
+    // 수동 Redis 작업에서도 Spring Cache와 같은 직렬화 정책을 사용한다.
+    @Bean
+    RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory connectionFactory,
+            @Qualifier("redisObjectMapper") ObjectMapper redisObjectMapper) {
+
+        GenericJackson2JsonRedisSerializer jsonSerializer =
+            new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(jsonSerializer);
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(jsonSerializer);
+        template.setDefaultSerializer(jsonSerializer);
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    // 기본 non-locking writer보다 느릴 수 있지만,
+    // putIfAbsent/clear 같은 복합 캐시 작업의 동시성 경쟁을 줄이기 위해 사용한다.
+    @Bean
+    RedisCacheWriter redisCacheWriter(RedisConnectionFactory connectionFactory) {
+        return RedisCacheWriter.lockingRedisCacheWriter(connectionFactory);
+    }
+
+    @Bean
+    RedisCacheConfiguration defaultRedisCacheConfiguration(
+            @Qualifier("redisObjectMapper") ObjectMapper redisObjectMapper) {
+        return jitterRedisCacheConfiguration(redisObjectMapper, Duration.ofSeconds(60), 10);
+    }
+
+    // @Cacheable에서 사용할 캐시 이름별 TTL, jitter, 직렬화 정책을 정의한다.
+    @Bean
+    CacheManager cacheManager(
+            RedisCacheWriter redisCacheWriter,
+            @Qualifier("redisObjectMapper") ObjectMapper redisObjectMapper) {
+
+        Map<String, RedisCacheConfiguration> cacheConfigMap = new HashMap<>();
+
+        for (String cacheName : redisCacheSecond) {
+            cacheConfigMap.put(cacheName,
+                jitterRedisCacheConfiguration(redisObjectMapper, Duration.ofSeconds(5), 2));
+        }
+
+        for (String cacheName : redisCacheMinutes1) {
+            cacheConfigMap.put(cacheName,
+                jitterRedisCacheConfiguration(redisObjectMapper, Duration.ofMinutes(1), 10));
+        }
+
+        for (String cacheName : redisCacheMinutes10) {
+            cacheConfigMap.put(cacheName,
+                jitterRedisCacheConfiguration(redisObjectMapper, Duration.ofMinutes(10), 60));
+        }
+
+        return new CustomCacheManager(RedisCacheManager.builder()
+            .cacheWriter(redisCacheWriter)
+            .cacheDefaults(defaultRedisCacheConfiguration(redisObjectMapper))
+            .withInitialCacheConfigurations(cacheConfigMap)
+            .build());
+    }
+
+    // 캐시 설정시 jitter를 적용한 RedisCacheConfiguration을 생성한다.
+    private RedisCacheConfiguration jitterRedisCacheConfiguration(
+            ObjectMapper redisObjectMapper,
+            Duration ttl,
+            long jitterSeconds) {
+
+        return RedisCacheConfiguration.defaultCacheConfig()
+            .computePrefixWith(cacheName -> activeProfile + "::" + cacheName + "::")
+            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
+                new GenericJackson2JsonRedisSerializer(redisObjectMapper)
+            ))
+            .disableCachingNullValues()
+            .entryTtl(ttl.plusSeconds(ThreadLocalRandom.current().nextLong(jitterSeconds + 1)));
+    }
+
+    private void addClusterNodeIfPresent(
+            RedisClusterConfiguration config,
+            String host,
+            String port) {
+
+        if (StringUtils.hasText(host) && StringUtils.hasText(port)) {
+            config.addClusterNode(new RedisNode(host, Integer.parseInt(port)));
+        }
+    }
+}
+```
+
+여기서 `clusterMode`는 운영 Redis가 cluster로 구성되어 있고, 개발 Redis는 단일 인스턴스라서 같은
+애플리케이션 코드를 두 환경에서 모두 실행하기 위한 분기다.
+
+`RedisTemplate`은 `@Cacheable` 동작에 필수는 아니다. Spring Cache 어노테이션은 `RedisCacheManager`를
+통해 Redis를 사용한다. 여기서 `RedisTemplate`을 따로 둔 이유는 캐시 warm-up, 수동 key 삭제, hash/set/zset
+조작처럼 어노테이션으로 표현하기 어려운 Redis 작업에서도 같은 직렬화 정책을 쓰기 위해서다.
+
+운영 cluster 설정에서 특히 신경 쓴 부분은 topology refresh다.
+
+```java
+ClusterTopologyRefreshOptions refreshOptions = ClusterTopologyRefreshOptions.builder()
+    .enablePeriodicRefresh(true)
+    .enableAdaptiveRefreshTrigger(
+        RefreshTrigger.MOVED_REDIRECT,
+        RefreshTrigger.PERSISTENT_RECONNECTS
+    )
+    .build();
+```
+
+Redis Cluster에서는 slot 이동이나 node 장애/복구가 발생할 수 있다. 이때 Lettuce가 오래된 topology를
+계속 들고 있으면 `MOVED` redirect가 반복되거나 재연결 이후에도 잘못된 node로 요청을 보낼 수 있다.
+그래서 주기적 refresh와 `MOVED_REDIRECT`, `PERSISTENT_RECONNECTS` 기반 adaptive refresh를 함께 켰다.
+
+운영 cluster 쪽의 `ReadFrom.REPLICA_PREFERRED`는 읽기 요청을 가능하면 replica로 보내 읽기 부하를
+분산하려는 설정이다.
+단, replica lag가 허용되지 않는 강한 정합성 데이터라면 master에서 읽는 전략을 별도로 검토해야 한다.
+
+위 설정에서 중요한 부분은 `RedisCacheManager`다. `@Cacheable(value = "cacheName")`으로 지정한
+캐시 이름이 `redis.cache.second`, `redis.cache.minutes.1`, `redis.cache.minutes.10` 중 어디에
+들어 있느냐에 따라 TTL이 달라진다. 목록성 API처럼 짧게 가져갈 캐시는 5초, 변경 빈도가 낮은 캐시는
+1분이나 10분으로 분리했다.
+
+`jitterRedisCacheConfiguration`은 같은 시점에 만들어진 캐시들이 한 번에 만료되는 상황을 줄이기 위한
+설정이다. 참고 프로젝트에서는 `TTL = base + random(0..jitterSeconds)` 방식으로 적용했다.
+
+| 캐시 그룹 | base TTL | jitter | 실제 TTL 범위 |
+| :--- | :--- | :--- | :--- |
+| 기본값 | 60초 | 0~10초 | 60~70초 |
+| `redis.cache.second` | 5초 | 0~2초 | 5~7초 |
+| `redis.cache.minutes.1` | 1분 | 0~10초 | 60~70초 |
+| `redis.cache.minutes.10` | 10분 | 0~60초 | 600~660초 |
+
+이 방식은 구현이 단순하고 만료 시점을 흩는 데 효과가 있다. 단, 최대 TTL이 base보다 길어진다.
+최대 수명을 넘기면 안 되는 데이터라면 뒤의 Cache Stampede 섹션처럼 `base - random` 방식의 음수 지터를
+쓰는 편이 더 적합하다.
+
+개발기 설정 예시는 다음과 같다.
+
+```yaml
+redis:
+  clusterMode: false
+  host1: localhost
+  port1: 6379
+  username:
+  password:
+```
+
+운영 설정에서는 `clusterMode=true`로 두고 cluster node들을 등록한다.
+
+```yaml
+redis:
+  clusterMode: true
+  host1: redis-cluster-1.example.com
+  port1: 6379
+  host2: redis-cluster-2.example.com
+  port2: 6379
+  host3: redis-cluster-3.example.com
+  port3: 6379
+  username:
+  password:
+  cache:
+    second:
+      - getCacheableOnairCommentArticle
+      - getCacheableBoardList
+    minutes:
+      1:
+        - getCacheableArticle
+      10:
+        - getCacheableCodeList
+```
+
+`computePrefixWith`는 운영과 개발기의 키 분리를 통하여 캐시가 섞이는 것을 방지한다.
+
+```java
+.computePrefixWith(cacheName -> activeProfile + "::" + cacheName + "::")
+```
+
+이렇게 prefix를 두면 같은 Redis를 여러 프로파일이 함께 쓰더라도 키 충돌을 줄일 수 있다.
+예를 들어 `prod::getCacheableBoardList::`와 `stage::getCacheableBoardList::`가 분리된다.
+
+`RedisCacheWriter.lockingRedisCacheWriter`는 캐시 쓰기 시 lock key를 사용해 같은 캐시에 대한 동시 쓰기를
+조금 더 보수적으로 처리한다. 다만 이것만으로 모든 Cache Stampede가 해결되는 것은 아니다. 특히 여러 서버가
+동시에 같은 hot key를 조회하는 문제는 별도 분산 락이나 stale-while-revalidate 전략을 검토해야 한다.
+
+참고 프로젝트에서는 `CustomCacheManager`로 `RedisCacheManager`를 한 번 감싸서, 캐시에 `Page` 객체가
+들어오면 `RestPage` 같은 직렬화 가능한 응답 DTO로 변환했다. 다만 캐시 계층에서 보정하기보다 처음부터
+`PageResponse` 같은 DTO를 반환하게 만드는 편이 더 명확하다. 아래 페이징 처리 섹션도 이 기준으로 정리했다.
+
+### 3. 캐싱 메서드는 데이터 DTO를 반환하기
 
 Redis에 저장되는 값은 가능한 한 순수 데이터 DTO로 제한한다. `ResponseEntity`, `HttpHeaders`,
 `HttpStatus` 같은 HTTP 응답 객체는 Redis 직렬화 대상에 넣지 않는 편이 낫다.
@@ -132,7 +441,7 @@ public ResponseEntity<DataDto> getData() {
 }
 ```
 
-### 3. Entity를 직접 반환하지 않기
+### 4. Entity를 직접 반환하지 않기
 
 ```java
 // 잘못된 예시
@@ -177,7 +486,7 @@ public class UserDto {
 }
 ```
 
-### 4. 직렬화 가능한 DTO 설계
+### 5. 직렬화 가능한 DTO 설계
 
 **Jackson JSON 직렬화 기준 요구사항**
 
@@ -216,11 +525,11 @@ public class DataDto {
 }
 ```
 
-**Serializable은 언제 필요한가**
+**`Serializable`을 구현해야 할까?**
 
-`GenericJackson2JsonRedisSerializer`처럼 Jackson JSON 기반 직렬화기를 쓰는 경우 `Serializable` 구현은
-필수가 아니다. Jackson은 기본 생성자/`@JsonCreator`, getter/setter 또는 생성자 파라미터 정보를 보고
-JSON으로 직렬화·역직렬화한다.
+Redis에 저장한다고 해서 DTO가 항상 `Serializable`을 구현해야 하는 것은 아니다. 이 설정처럼
+`GenericJackson2JsonRedisSerializer`를 쓰는 경우에는 Jackson이 기본 생성자/`@JsonCreator`, getter/setter
+또는 생성자 파라미터 정보를 보고 JSON으로 직렬화·역직렬화한다.
 
 `Serializable`과 `serialVersionUID`가 의미 있는 경우는 JDK 직렬화 기반의 `JdkSerializationRedisSerializer`를
 쓸 때다. JSON 직렬화에서는 `serialVersionUID`가 역직렬화 호환성을 보장하지 않으므로, DTO 필드 변경 시에는
@@ -259,7 +568,7 @@ public class DataDto implements Serializable {
 }
 ```
 
-### 5. 컬렉션 타입 처리
+### 6. 컬렉션 타입 처리
 
 목록 응답도 Entity 컬렉션을 그대로 캐싱하지 말고, DTO 컬렉션이나 목록 응답 DTO로 변환해서 저장한다.
 캐시에서 꺼낸 뒤에도 타입을 예측할 수 있도록 반환 타입은 구체적으로 둔다.
@@ -294,7 +603,7 @@ public DataListResponse getData() {
 }
 ```
 
-### 6. 페이징 처리
+### 7. 페이징 처리
 
 **문제 상황**
 
@@ -341,7 +650,7 @@ public PageResponse<DataDto> getPage(int page, int size) {
 }
 ```
 
-### 7. 캐싱 조건 처리
+### 8. 캐싱 조건 처리
 
 **결과나 파라미터에 따라 캐싱에서 제외해야 할 경우**
 
@@ -363,7 +672,7 @@ public DataDto getData(Long id) {
 }
 ```
 
-### 8. 날짜/시간 타입 처리
+### 9. 날짜/시간 타입 처리
 
 **문제 상황**
 
@@ -508,10 +817,12 @@ private ResponseEntity<OnairCommentArticleListDto> getOnairComment(...) {
 인스턴스마다 DB 조회가 발생할 수 있다. 실제 프로젝트도 이중화된 환경이었기 때문에, 전체 클러스터 기준의
 해결책으로 보기는 어려웠다.
 
-#### 해결: 대량 만료는 음수 지터 — 단, TTL을 늘리지 않는 방향으로
+#### 개선: 대량 만료는 음수 지터 — 단, TTL을 늘리지 않는 방향으로
 
 지터를 흔히 `TTL = base + random`으로 떠올리는데, 이러면 수명이 늘어 "짧게" 기조와 충돌한다.
-그래서 **빼는 방향(음수)으로만** 적용했다. 실제 TTL을 `[base × (1 - ratio), base]` 범위로
+앞의 `RedisConfig` 예시도 실제 프로젝트 기준으로는 `base + random` 방식이었다. 운영상 큰 문제는 없었지만,
+최대 TTL을 넘기지 않는다는 기준까지 지키려면 **빼는 방향(음수)으로만** 적용하는 편이 더 낫다.
+실제 TTL을 `[base × (1 - ratio), base]` 범위로
 무작위화하면, 최대 수명은 base를 절대 넘지 않으면서 만료 시점만 흩어진다. 기조와 충돌하지 않는다.
 
 Spring Data Redis 3.2부터는 `RedisCacheConfiguration.entryTtl(TtlFunction)`으로 캐시 쓰기 시점마다
@@ -567,17 +878,28 @@ public DataDto getData(String param1, String param2) {
 
 ### 2. 캐시 만료 시간 설정
 
-기본 TTL은 다음처럼 설정한다.
+이 프로젝트처럼 `RedisCacheManager`를 직접 구성한다면 `spring.cache.redis.time-to-live` 하나로
+전체 TTL을 잡기보다, 캐시 이름을 그룹으로 나눠 TTL을 다르게 가져가는 편이 운영하기 쉽다.
 
 ```yaml
-spring:
+redis:
   cache:
-    redis:
-      time-to-live: 600000  # 10분 (밀리초)
+    second:
+      - getCacheableOnairCommentArticle
+      - getCacheableBoardList
+    minutes:
+      1:
+        - getCacheableArticle
+      10:
+        - getCacheableCodeList
 ```
 
+위 설정은 `RedisConfig.cacheManager()`에서 캐시 이름별 `RedisCacheConfiguration`으로 변환된다.
+`@Cacheable(value = "getCacheableBoardList")`처럼 사용한 캐시 이름이 `redis.cache.second`에 있으면
+5초 TTL 그룹으로 들어가고, `redis.cache.minutes.10`에 있으면 10분 TTL 그룹으로 들어간다.
+
 TTL은 데이터 변경 빈도에 맞춰 정하면 된다. 실시간성이 중요한 데이터는 짧게 가져가거나 캐싱에서 빼고,
-메모리 사용량과 성능 사이에서 적당히 타협한다.
+메모리 사용량과 성능 사이에서 타협한다.
 
 최소 TTL 권장
 
@@ -585,24 +907,14 @@ TTL을 1~2초처럼 너무 짧게 잡으면 캐시 히트율이 낮아 캐싱을
 만료 순간에 요청이 DB로 몰리는 Cache Stampede가 생기기 쉽다. Redis와의 통신과 직렬화/역직렬화도
 계속 반복되어 오히려 손해다. 실시간성이 필요한 데이터라도 최소 5~10초 정도는 두는 편이 낫다고 본다.
 
-TTL 설정 예시
+TTL 분류 예시
 
-```yaml
-# 정적 데이터 (거의 변경되지 않음)
-spring.cache.redis.time-to-live: 3600000  # 1시간
-
-# 준정적 데이터 (하루 1~2회 변경)
-spring.cache.redis.time-to-live: 600000   # 10분
-
-# 동적 데이터 (자주 변경되지만 실시간성 불필요)
-spring.cache.redis.time-to-live: 60000    # 1분
-
-# 실시간성 필요 데이터 (최소 권장)
-spring.cache.redis.time-to-live: 10000    # 10초
-
-# 실시간 데이터
-# 캐싱하지 않거나 Cache-Aside 패턴으로 수동 관리
-```
+| 데이터 성격 | 권장 TTL | 비고 |
+| :--- | :--- | :--- |
+| 정적 데이터 | 10분 이상 | 코드, 카테고리처럼 변경 빈도가 낮은 데이터 |
+| 준정적 데이터 | 1~10분 | 게시판 설정, 공통 메타 정보 |
+| 동적 목록 데이터 | 5초~1분 | 목록, 댓글, 인기 글처럼 조회가 많고 변경도 있는 데이터 |
+| 강한 실시간 데이터 | 캐싱 제외 또는 수동 관리 | 정확도가 더 중요하면 Cache-Aside나 직접 무효화 사용 |
 
 짧은 TTL을 써야 한다면 스케줄러로 미리 캐시를 갱신해 두는 방법도 있다.
 
@@ -660,26 +972,6 @@ void testCaching() {
     verify(repository, times(1)).findData("key");
 }
 ```
-
-## 체크리스트
-
-프로젝트에 Redis 캐싱을 적용하기 전 다음 사항을 확인하세요:
-
-- [ ] 캐싱 대상 클래스가 직렬화 가능한가?
-- [ ] 기본 생성자 또는 `@JsonCreator` 생성자가 있는가?
-- [ ] `@Cacheable` 메서드가 HTTP 응답 객체가 아닌 데이터 DTO를 반환하는가?
-- [ ] 캐시 키가 고유하게 설계되었는가?
-- [ ] 적절한 TTL이 설정되었는가?
-- [ ] Cache Stampede(폭주 트래픽) 대비책이 있는가? (분산 락, 음수 지터 등)
-- [ ] 민감한 정보가 캐싱되지 않는가?
-- [ ] 직렬화/역직렬화 테스트를 작성했는가?
-- [ ] 캐시 무효화 전략이 수립되었는가?
-
-## 참고 자료
-
-- Spring Cache Abstraction: https://docs.spring.io/spring-framework/reference/integration/cache.html
-- Spring Data Redis: https://docs.spring.io/spring-data/redis/reference/
-- Jackson Annotations: https://github.com/FasterXML/jackson-annotations
 
 ---
 
