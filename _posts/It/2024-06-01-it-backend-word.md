@@ -132,6 +132,8 @@ toc: true
 * **MVCC(Multi-Version Concurrency Control, 다중 버전 동시성 제어)** : 데이터를 변경할 때 이전 버전(스냅샷)을 함께 보관해, **읽기 작업이 쓰기 락을 기다리지 않도록** 하는 동시성 제어 기법.  
   읽는 트랜잭션은 자신의 시점에 맞는 스냅샷을 보고, 쓰는 트랜잭션은 새로운 버전을 만든다. 이로써 읽기-쓰기 간 블로킹을 줄여 동시성을 높인다. (MySQL InnoDB, PostgreSQL, Oracle 등이 사용)
 
+![MVCC 스냅샷 읽기와 비관적 락·낙관적 락의 동작을 시간 순서로 비교한 흐름](/images/it/database-mvcc-lock-timeline.png)
+
 
 * **락 선택 기준** : 충돌이 많고 반드시 직렬화가 필요하면 DB의 비관적 락(`SELECT ... FOR UPDATE`)이나 원자적 조건 업데이트가 단순하고 안전하다. 충돌이 적으면 버전 컬럼 기반 낙관적 락으로 재시도한다. Redis 분산 락도 사용할 수 있지만 락 만료, 락 소유자 검증, 네트워크 장애를 함께 고려해야 하므로 강한 정합성이 필요하면 DB 락을 우선 검토한다.
 
@@ -145,6 +147,8 @@ toc: true
   * **리프 노드 연결 구조** : B+Tree는 검색 키와 행을 찾기 위한 정보(행 위치 또는 PK 등)를 리프 노드에 저장하고, 리프 노드를 순차 탐색할 수 있도록 서로 연결한다. 세부 저장 방식은 DBMS와 인덱스 종류에 따라 다르다.
     덕분에 한 지점을 찾은 뒤 옆으로 순차 이동하며 읽을 수 있어 **범위 검색(BETWEEN, 부등호)과 정렬(ORDER BY)에 매우 유리**하다.
   * **왜 빠른가** : 정렬된 상태로 유지되므로 이진 탐색처럼 범위를 좁혀가며 찾고, 디스크 I/O 횟수(트리 깊이)가 적기 때문이다.
+
+![B+Tree 탐색과 리프 노드 범위 스캔, 복합 인덱스 A·B·C의 사전식 정렬 구조](/images/it/database-btree-composite-index.png)
 
 
 * **인덱스가 동작하지 않는 경우 / 주의점** : 인덱스를 걸어도 옵티마이저가 사용하지 않거나 효율이 떨어지는 대표 케이스
@@ -409,6 +413,8 @@ toc: true
 * **전파 옵션의 비용과 함정** : `REQUIRES_NEW`는 외부 트랜잭션을 잠시 멈추고 별도 커넥션을 사용한다.  
   반복 호출하거나 커넥션 풀이 작은 환경에서 사용하면 기존 트랜잭션이 커넥션을 잡은 채 새 커넥션을 기다려 풀 고갈 또는 데드락 위험을 키울 수 있다. `NESTED`는 savepoint 기반이며 JPA·DB·트랜잭션 매니저 조합에 따라 지원 여부가 다르다. 전파 옵션은 독립 커밋이 반드시 필요한지, 실패가 외부 작업에 전파돼야 하는지를 먼저 정한 뒤 사용한다.
 
+![Spring 트랜잭션 프록시 호출과 self-invocation 우회, REQUIRED와 REQUIRES_NEW 전파 방식 비교](/images/it/spring-transaction-proxy-propagation.png)
+
 
 * **AOP(Aspect Oriented Programming)** : 로깅, 트랜잭션, 보안처럼 여러 곳에 반복되는 공통 관심사를 핵심 로직과 분리하는 방식이다.  
   Spring에서는 주로 프록시 기반으로 메서드 호출을 가로채 부가 기능을 적용한다.
@@ -514,6 +520,17 @@ toc: true
 * **Spring Interceptor** : DispatcherServlet 내부에서 컨트롤러 실행 전후에 공통 로직을 처리한다. 인증, 로깅,  
   권한 체크처럼 Spring MVC 핸들러 정보가 필요한 작업에 적합하다.
   * **Interceptor 에러 처리** : DispatcherServlet의 예외 처리 흐름을 타는 예외는 `@ControllerAdvice`로 처리할 수 있다.
+
+
+* **MVC 요청 흐름에서 AOP의 위치** : AOP는 Filter나 Interceptor처럼 모든 요청이 순서대로 통과하는 고정 단계가 아니다.
+  AOP가 적용된 Spring Bean 대신 등록된 **프록시의 메서드 호출 경계**에서 동작한다. 예를 들어 Controller가 `@Transactional` Service를 호출하면
+  `Controller → Service Proxy(AOP) → 실제 Service` 순서로 실행되며, 프록시가 메서드 실행 전 트랜잭션을 시작하고 정상 반환 시 커밋하거나 예외 시 롤백한다.
+  Repository나 Controller에도 AOP가 적용되어 프록시로 등록됐다면 각각의 호출 경계에서 같은 방식으로 동작할 수 있다.
+  * **Filter** : Servlet 컨테이너의 요청·응답 경계
+  * **Interceptor** : DispatcherServlet 내부의 Handler 실행 경계
+  * **AOP** : 프록시가 적용된 Spring Bean의 메서드 호출 경계
+
+![Servlet Filter와 Interceptor를 거쳐 Controller가 Service·Repository AOP 프록시를 호출하는 Spring MVC 요청 생명주기](/images/it/spring-mvc-request-lifecycle.png)
 
 
 ## Spring Security와 인증
@@ -812,6 +829,8 @@ toc: true
 * **Pool 고갈 대응** : 대기 시간 증가, timeout, active connection/thread 수, queue size를 함께 본다. 원인은 느린 쿼리,  
   외부 API 지연, 락 경합, 트래픽 급증일 수 있으므로 지표와 trace로 병목 구간을 먼저 좁힌다.
 
+![HTTP 요청이 스레드 풀과 커넥션 풀을 거쳐 DB로 전달되는 흐름과 풀 고갈 시 대기·타임아웃](/images/it/thread-connection-pool-flow.png)
+
 ## Redis와 캐시 전략
 
 * **Redis (Remote Dictionary Server)** : 인메모리 기반 Key-Value 저장소. 캐시, 세션 저장소, 분산 락, 랭킹 등에 사용된다.  
@@ -853,6 +872,8 @@ toc: true
 * **캐시 도입 시 판단 기준** : 캐시는 성능을 높이지만 정합성과 장애 전파 문제를 만든다. TTL, 무효화 정책, 캐시 미스 시 DB 보호 전략을 함께 설계해야 한다.  
   인기 키 동시 만료는 Cache Stampede로 이어질 수 있으므로 TTL jitter, 분산 락, 비동기 재계산을 고려하고, 캐시 장애 시 DB가 버틸 수 있도록 circuit breaker, rate limit, fallback을 준비한다.
 
+![Redis Cache Aside의 Hit·Miss 조회 흐름과 인기 키 만료에 따른 Cache Stampede 및 방지 방법](/images/it/redis-cache-aside-stampede.png)
+
 
 * **Redis 자료구조** : String, List, Set, Sorted Set(ZSet), Hash, Bitmap, HyperLogLog, Geo,  
   Stream 등을 지원한다.
@@ -882,6 +903,8 @@ toc: true
 
 
 * **Fencing Token(펜싱 토큰)** : 락을 획득할 때마다 단조 증가하는 번호를 함께 발급하고, 실제 데이터를 저장하는 시스템이 마지막으로 처리한 번호보다 작은 요청을 거부하는 방식이다. 락이 만료된 이전 보유자의 작업이 늦게 도착해도 더 작은 번호를 가지므로 쓰기가 차단된다. Redis 락이 자동으로 제공하는 기능은 아니며, 보호 대상 DB나 저장소가 토큰을 비교하고 거부하도록 함께 구현해야 한다.
+
+![Redis 분산 락의 고유 토큰 기반 안전한 해제와 TTL 만료 뒤 Fencing Token으로 늦은 쓰기를 거부하는 흐름](/images/it/redis-distributed-lock-fencing-token.png)
 
 
 * **Redis 영속성(Persistence)** : 인메모리지만 재시작 시 데이터 복구를 위해 디스크 저장 옵션을 제공한다.
@@ -1355,6 +1378,8 @@ toc: true
       대표적으로 **은행원 알고리즘(Banker's Algorithm)**이 있다. (자원 요청 시 할당 후에도 안전 상태가 유지되는지 미리 검사)
     * **탐지(Detection)** : 교착을 허용하되 자원 할당 그래프 등으로 발생 여부를 주기적으로 검사.
     * **회복(Recovery)** : 교착이 탐지되면 프로세스 강제 종료나 자원 선점(Preemption)으로 해소.
+
+![두 스레드의 순환 대기로 발생하는 교착상태와 동일한 락 획득 순서로 예방하는 방법](/images/it/os-deadlock-lock-order.png)
 
 
 * **컨텍스트 스위칭(Context Switching)** : CPU가 현재 실행 중인 프로세스/스레드를 잠시 멈추고 다른 것을 실행하기 위해 상태를 교체하는 작업.
