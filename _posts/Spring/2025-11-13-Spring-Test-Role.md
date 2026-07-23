@@ -4,7 +4,7 @@ title: 단위 테스트, 슬라이스 테스트, 통합 테스트
 date: 2025-11-13
 Author: Geon Son
 categories: Spring
-tags: [Testing, JUnit, Mockito, MockMvc, Rest Assured]
+tags: [Testing, JUnit, Mockito, MockMvc, Rest Assured, Testcontainers]
 comments: true
 toc: true
 ---
@@ -869,10 +869,90 @@ userId가 누락된 요청을 보냈을 때, 400 Bad Request와 함께 올바른
 Rest Assured를 사용하면 마치 Postman을 코드로 자동화하는 것처럼, 실제 네트워크 통신을 포함한 통합 테스트를 수행할 수 있다.
 즉, MockMvc와 Rest Assured는 둘 다 API를 검증하지만 실제 환경을 얼마나 재현하느냐에서 차이가 난다.
 
-## Testcontainers - 진짜 DB로 통합 테스트
-Mock이나 H2로는 잡히지 않는 문제(실제 DB의 방언, 인덱스, 동시성 등)가 있다.
-**Testcontainers**는 테스트 실행 시점에 도커로 실제 DB(MySQL, PostgreSQL 등) 컨테이너를 띄우고, 끝나면 정리한다.
-Spring Boot 3.1+의 **`@ServiceConnection`** 을 쓰면 컨테이너 접속 정보(url, username 등)를 스프링이 자동으로 연결해 줘서 설정이 매우 간단해졌다.
+## Testcontainers - 운영 환경과 가까운 인프라로 테스트하기
+
+### Testcontainers란?
+이름을 풀어보면 **테스트(Test)를 위한 컨테이너(Containers)** 다.
+Java 테스트 코드에서 Docker 컨테이너를 실행하고 종료할 수 있게 해주는 라이브러리로, 주로 통합 테스트에서 사용한다.
+
+여기서 컨테이너는 애플리케이션 내부에서 만드는 Mock 객체가 아니다.
+MySQL, PostgreSQL, Redis, Kafka 같은 소프트웨어가 실제로 실행되는 **격리된 프로세스 환경**이다.
+예를 들어 MySQL Testcontainer를 사용하면 MySQL처럼 동작하는 가짜 객체가 아니라, 지정한 Docker 이미지의 MySQL 서버 자체가 실행된다.
+
+Testcontainers가 테스트를 대신 작성하거나 검증해 주는 것은 아니다.
+테스트에 필요한 외부 인프라를 준비하고 정리하는 역할을 하며, 요청 실행과 결과 검증은 기존처럼 JUnit, AssertJ, MockMvc, Rest Assured 등으로 작성한다.
+
+### 왜 필요한가?
+Repository 테스트에서 실제 운영 DB 대신 H2 같은 인메모리 DB를 사용할 수도 있다.
+H2는 가볍고 빠르지만, 운영 환경이 MySQL이라면 서로 다른 DB 제품을 테스트하는 셈이다.
+DB마다 SQL 문법, 자료형, 예약어, 대소문자 처리, 제약 조건과 트랜잭션 동작 등이 조금씩 다르기 때문에 H2에서는 성공한 코드가 MySQL에서는 실패할 수 있다.
+
+반대로 개발자가 직접 설치한 로컬 MySQL을 테스트에 사용하면 다음 문제가 생긴다.
+
+- 개발자마다 DB 버전과 설정이 다를 수 있다.
+- 이전 테스트가 남긴 데이터 때문에 결과가 달라질 수 있다.
+- CI 서버에도 같은 DB와 계정, 스키마를 별도로 준비해야 한다.
+- 테스트가 공유 DB를 사용하면 동시에 실행될 때 서로 영향을 줄 수 있다.
+
+Testcontainers는 테스트가 요구하는 DB 종류와 버전을 코드에 명시하고, 테스트용 인스턴스를 필요할 때 실행한다.
+그래서 로컬 개발 환경과 CI에서 비교적 동일하고 재현 가능한 환경을 만들 수 있다.
+
+### 실행 흐름
+MySQL을 사용하는 Spring 통합 테스트를 예로 들면 다음 순서로 동작한다.
+
+1. JUnit 테스트가 시작된다.
+2. Testcontainers가 로컬 또는 CI의 Docker 환경에 MySQL 이미지가 있는지 확인하고, 필요하면 내려받는다.
+3. 격리된 MySQL 컨테이너를 실행하고 임의의 호스트 포트를 연결한다.
+4. Spring Boot가 컨테이너의 JDBC URL, 사용자 이름, 비밀번호를 전달받아 `DataSource`를 구성한다.
+5. 애플리케이션이 이 DB를 사용하여 Repository와 Service 로직을 실행한다.
+6. JUnit과 AssertJ 등이 저장 결과나 조회 결과를 검증한다.
+7. 테스트가 끝나면 컨테이너가 종료된다.
+
+즉, 애플리케이션 입장에서는 아래처럼 실제 DB에 연결하는 것과 같다.
+
+```text
+JUnit 테스트 → Spring 애플리케이션 → JDBC 드라이버 → 컨테이너 안의 실제 MySQL
+```
+
+### Mock, H2, Testcontainers의 차이
+
+| 방식 | 실제 SQL 실행 | 운영 DB와 유사성 | 속도 | 적합한 목적 |
+|------|-------------|-----------------|------|------------|
+| Repository Mock | 실행하지 않음 | 낮음 | 매우 빠름 | Service의 분기와 계산 같은 단위 테스트 |
+| H2 인메모리 DB | H2에서 실행 | 중간 | 빠름 | 간단한 JPA 매핑과 Repository 테스트 |
+| Testcontainers | 지정한 DB에서 실행 | 높음 | 상대적으로 느림 | DB 방언, 제약 조건, 마이그레이션을 포함한 통합 테스트 |
+
+세 방식은 서로 대체 관계라기보다 검증 목적이 다르다.
+Service의 할인 계산을 확인하는 데 MySQL 컨테이너를 띄울 필요는 없다.
+반대로 MySQL 전용 쿼리가 올바른지 확인하면서 Repository를 Mock으로 바꾸면 실제 SQL은 전혀 검증되지 않는다.
+
+### 장점과 한계
+
+Testcontainers의 가장 큰 장점은 **운영 환경과 같은 종류·버전의 인프라를 사용하여 재현 가능한 테스트를 만들 수 있다는 점**이다.
+빈 DB에서 시작할 수 있어 테스트 격리가 쉬우며, 개발자 PC에 DB를 직접 설치하거나 CI용 공유 DB를 관리할 필요도 줄어든다.
+DB뿐 아니라 Redis, Kafka 같은 외부 인프라에도 같은 방식을 적용할 수 있다.
+
+다만 다음 비용도 있다.
+
+- Docker 또는 Testcontainers가 지원하는 컨테이너 실행 환경이 필요하다.
+- 처음 사용하는 이미지는 내려받는 시간이 들고, 컨테이너 시작 때문에 단위 테스트보다 느리다.
+- 실제 DB를 사용해도 운영 서버의 데이터 양, 네트워크 상태, 하드웨어, 모든 설정까지 똑같아지는 것은 아니다.
+- 테스트마다 컨테이너를 무분별하게 새로 만들면 전체 테스트 시간이 크게 늘 수 있다.
+
+따라서 모든 테스트를 Testcontainers로 작성하기보다, 빠른 단위 테스트를 기본으로 두고 **실제 인프라와의 호환성이 중요한 핵심 경로**에 사용하는 것이 좋다.
+
+### Spring Boot에서 연결하는 원리
+일반적으로 컨테이너는 실행할 때마다 JDBC URL과 포트가 달라질 수 있다.
+예전에는 `@DynamicPropertySource`로 이 값을 `spring.datasource.*` 속성에 직접 등록했다.
+
+Spring Boot 3.1 이상에서는 **`@ServiceConnection`** 을 사용할 수 있다.
+이 어노테이션을 컨테이너 필드에 붙이면 Spring Boot가 컨테이너의 연결 정보를 읽어 `DataSource` 구성에 사용한다.
+이를 사용하려면 `spring-boot-testcontainers` 테스트 의존성이 필요하다.
+
+`@Testcontainers`와 `@Container`는 JUnit 5가 컨테이너의 시작과 종료 시점을 관리하게 한다.
+아래처럼 `@Container` 필드를 `static`으로 선언하면 일반적으로 테스트 메서드마다 새로 띄우지 않고, 해당 테스트 클래스에서 하나의 컨테이너를 공유한다.
+
+### 최소 설정 예시
 
 ```groovy
 dependencies {
@@ -888,12 +968,38 @@ dependencies {
 class PurchaseIntegrationTest {
 
   @Container
-  @ServiceConnection                       // 컨테이너 접속 정보를 스프링에 자동 연결
+  @ServiceConnection // 컨테이너 접속 정보를 스프링에 자동 연결
   static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0");
 
-  // 별도 datasource 설정 없이 실제 MySQL로 테스트가 돈다
+  // 테스트 메서드에서는 Repository나 API를 호출하고 결과를 검증한다.
 }
 ```
+
+각 어노테이션의 역할을 분리해서 보면 이해하기 쉽다.
+
+| 어노테이션 | 역할 |
+|-----------|------|
+| `@SpringBootTest` | 전체 Spring 애플리케이션 컨텍스트를 실행한다. |
+| `@Testcontainers` | JUnit 5에서 Testcontainers 확장 기능을 활성화한다. |
+| `@Container` | Testcontainers가 해당 컨테이너의 생명주기를 관리하게 한다. |
+| `@ServiceConnection` | 컨테이너 접속 정보를 Spring Boot 자동 구성에 연결한다. |
+
+이 예제에서는 테스트가 시작될 때 MySQL 8.0 컨테이너가 실행되고, Spring의 `DataSource`가 그 MySQL을 바라본다.
+따라서 실제 테스트에서는 `PurchaseRepository`로 데이터를 저장한 뒤 다시 조회하거나, MockMvc·Rest Assured로 API를 호출한 후 DB 상태를 확인할 수 있다.
+
+Testcontainers가 빈 DB를 제공하는 것과 테이블을 자동으로 만들어 주는 것은 별개의 문제다.
+테이블 생성은 테스트 설정의 Hibernate DDL 옵션을 사용하거나, 운영 환경과 동일하게 Flyway 또는 Liquibase 마이그레이션을 실행해서 처리해야 한다.
+특히 마이그레이션 스크립트가 실제 MySQL에서도 처음부터 정상 적용되는지를 검증하는 용도로 Testcontainers가 유용하다.
+
+### 언제 사용하면 좋을까?
+
+- MySQL, PostgreSQL 등 특정 DB에 의존하는 쿼리를 검증할 때
+- JPA 엔티티의 매핑, 제약 조건, 트랜잭션 동작을 실제 DB에서 확인할 때
+- Flyway나 Liquibase 마이그레이션이 빈 DB에 정상 적용되는지 확인할 때
+- Redis, Kafka 등 외부 인프라와 연결되는 핵심 흐름을 통합 테스트할 때
+- 로컬과 CI가 같은 버전의 인프라를 사용해야 할 때
+
+반면 순수 계산, 조건 분기, 예외 발생 여부처럼 외부 인프라와 관계없는 비즈니스 규칙은 Mockito를 사용한 단위 테스트가 더 빠르고 원인도 쉽게 파악된다.
 
 ---
 
