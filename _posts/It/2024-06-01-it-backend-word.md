@@ -542,7 +542,7 @@ toc: true
 * **Spring Security 구조**
   * **SecurityFilterChain** : 여러 보안 필터(Filter)들의 모음. 요청은 이 필터 체인을 거쳐 인증/인가가 처리된다.  
     (과거 `WebSecurityConfigurerAdapter`는 deprecated → 현재는 `SecurityFilterChain` 빈으로 설정)
-  * **SecurityContextHolder** : 인증된 사용자 정보(Authentication)를 보관하는 곳. 기본적으로 ThreadLocal에 저장된다.
+  * **SecurityContextHolder** : 인증된 사용자 정보(Authentication)를 보관하는 곳. 기본 전략에서는 `ThreadLocal`을 사용하므로 같은 요청 처리 스레드 어디서든 인증 정보에 접근할 수 있다. 요청 처리가 끝나면 Spring Security의 필터가 컨텍스트를 정리한다.
   * **PasswordEncoder** : 비밀번호를 단방향 해시로 암호화 (BCrypt 권장)
 
 
@@ -597,6 +597,7 @@ toc: true
 
 * **@Async** : Spring AOP를 통해 구현되어 있다. `@Async`가 선언되면 스프링이 프록시 객체를 만들어 비동기 실행을 위임한다.
   프록시 기반이기 때문에 `private 메서드`, `final 메서드`, self-invocation(같은 클래스 내부 호출)에서는 동작하지 않는다. 반드시 `@EnableAsync`가 필요하며, 운영 환경에서는 명시적인 Executor 설정이 권장된다.
+  `@Async`는 별도 스레드에서 실행되므로 호출 스레드의 `ThreadLocal`, `SecurityContext`, MDC 등의 값이 자동으로 전달된다고 가정하면 안 된다. 필요한 값은 메서드 인자로 명시하거나, 목적에 맞는 컨텍스트 전파 기능을 설정해야 한다.
 
 
 * **@Async의 Thread Pool**
@@ -648,6 +649,14 @@ toc: true
 
 * **동시성 제어 선택 기준** : 단순 상태 변경 전파처럼 가시성만 필요하면 `volatile`을 사용할 수 있지만, `count++` 같은 복합 연산에는 적합하지 않다.  
   임계 영역 전체의 원자성과 가시성이 필요하면 `synchronized`가 명확하고, 단순 카운터나 누적값처럼 짧은 원자 연산은 `AtomicInteger` 같은 atomic 계열이 락 경합을 줄이는 데 유리하다.
+
+
+* **ThreadLocal** : 하나의 변수를 여러 스레드가 공유하는 대신, 각 스레드가 독립된 값을 보관하도록 하는 저장 공간이다. 요청마다 전달하기 번거로운 인증 정보, 트랜잭션·요청 컨텍스트, 로그 추적 ID(MDC) 등에 활용된다.
+  * **동기화와의 차이** : 공유 데이터를 락으로 보호하는 기능이 아니라 스레드별로 데이터를 분리해 공유 자체를 피한다. 저장한 값이 가변 객체이고 다른 스레드에도 전달된다면 그 객체의 스레드 안전성은 별도로 보장해야 한다.
+  * **스레드 풀과 `remove()`** : 스레드 풀은 작업이 끝난 스레드를 다음 요청에서 재사용한다. 직접 `ThreadLocal`을 사용했다면 `try-finally`에서 `remove()`를 호출해야 이전 요청의 값이 다음 요청에 노출되거나 오래 남는 문제를 막을 수 있다.
+  * **비동기 실행과 컨텍스트 전파** : `@Async`, `CompletableFuture`, 별도 Executor처럼 실행 스레드가 바뀌면 기존 스레드의 값은 기본적으로 전달되지 않는다. 필요한 값은 인자로 전달하거나 Executor의 TaskDecorator 등 명시적인 전파 방식을 사용한다.
+  * **InheritableThreadLocal의 한계** : 자식 스레드를 새로 만들 때 부모 값을 복사하지만, 이미 만들어진 스레드를 재사용하는 스레드 풀에서는 기대한 값이 전달되지 않을 수 있어 일반적인 컨텍스트 전파 수단으로 사용하기 어렵다.
+  * **Spring의 활용 사례** : `SecurityContextHolder`, `TransactionSynchronizationManager`, `RequestContextHolder` 등이 현재 스레드에 연결된 컨텍스트를 관리한다. 프레임워크가 생성·정리를 담당하는 값과 애플리케이션이 직접 만든 `ThreadLocal`의 생명주기를 구분해야 한다.
 
 
 * **CAS와 ABA 문제** : CAS는 값이 예상값과 같을 때만 변경하는 낙관적 방식이다.  
