@@ -100,13 +100,12 @@ toc: true
   * **READ UNCOMMITTED**: 어떤 트랜잭션의 변경내용이 COMMIT이나 ROLLBACK에 상관없이 모두 노출된다. Dirty Read가 발생할 수 있다.
 
 
+![두 트랜잭션의 시간 흐름으로 비교한 Dirty Read, Non-Repeatable Read, Phantom Read와 격리 수준](/images/it/database-isolation-anomalies.png)
+
 * **트랜잭션 부정합 종류**:
   * **Phantom Read(유령 읽기)** : 같은 트랜잭션에서 동일한 범위 조건으로 다시 조회했을 때, 다른 트랜잭션의 삽입·삭제로 결과 행 집합이 달라지는 현상
   * **Non-Repeatable Read(반복 읽기 불가능)** : 같은 트랜잭션에서 동일한 행을 다시 읽었을 때, 다른 트랜잭션이 커밋한 수정·삭제로 결과가 달라지는 현상
   * **Dirty Read** : 다른 트랜잭션이 아직 커밋하지 않은 데이터를 읽는 현상. 해당 트랜잭션이 롤백하면 실제로 확정되지 않은 값을 읽은 셈이 된다.
-
-![두 트랜잭션의 시간 흐름으로 비교한 Dirty Read, Non-Repeatable Read, Phantom Read와 격리 수준](/images/it/database-isolation-anomalies.png)
-
 
 * **격리 수준과 이상 현상 정리**
 
@@ -131,11 +130,9 @@ toc: true
     보통 **버전(version) 컬럼**으로 갱신 시점에 충돌 여부를 검사한다. 변경 전후 버전이 다르면 예외를 던져 재시도한다. 동시성은 좋으나 충돌이 잦으면 재시도 비용이 크다.
 
 
-* **MVCC(Multi-Version Concurrency Control, 다중 버전 동시성 제어)** : 데이터를 변경할 때 이전 버전(스냅샷)을 함께 보관해, **읽기 작업이 쓰기 락을 기다리지 않도록** 하는 동시성 제어 기법.  
-  읽는 트랜잭션은 자신의 시점에 맞는 스냅샷을 보고, 쓰는 트랜잭션은 새로운 버전을 만든다. 이로써 읽기-쓰기 간 블로킹을 줄여 동시성을 높인다. (MySQL InnoDB, PostgreSQL, Oracle 등이 사용)
-
 ![MVCC 스냅샷 읽기와 비관적 락·낙관적 락의 동작을 시간 순서로 비교한 흐름](/images/it/database-mvcc-lock-timeline.png)
 
+* **MVCC(Multi-Version Concurrency Control, 다중 버전 동시성 제어)** : 데이터를 변경할 때 이전 버전(스냅샷)을 함께 보관해, **읽기 작업이 쓰기 락을 기다리지 않도록** 하는 동시성 제어 기법. 읽는 트랜잭션은 자신의 시점에 맞는 스냅샷을 보고, 쓰는 트랜잭션은 새로운 버전을 만든다. 이로써 읽기-쓰기 간 블로킹을 줄여 동시성을 높인다. (MySQL InnoDB, PostgreSQL, Oracle 등이 사용)
 
 * **락 선택 기준** : 충돌이 많고 반드시 직렬화가 필요하면 DB의 비관적 락(`SELECT ... FOR UPDATE`)이나 원자적 조건 업데이트가 단순하고 안전하다. 충돌이 적으면 버전 컬럼 기반 낙관적 락으로 재시도한다. Redis 분산 락도 사용할 수 있지만 락 만료, 락 소유자 검증, 네트워크 장애를 함께 고려해야 하므로 강한 정합성이 필요하면 DB 락을 우선 검토한다.
 
@@ -144,14 +141,13 @@ toc: true
 * **인덱스(Index)** : 테이블 검색 속도를 높이기 위한 자료구조다. 조건에 맞는 데이터를 찾을 때 전체 테이블을 스캔하지 않고 정렬된 구조를 탐색하므로 조회 성능을 높일 수 있지만, 쓰기 시 인덱스 갱신 비용과 저장 공간이 추가로 든다.
 
 
+![B+Tree 탐색과 리프 노드 범위 스캔, 복합 인덱스 A·B·C의 사전식 정렬 구조](/images/it/database-btree-composite-index.png)
+
 * **B-Tree / B+Tree 인덱스 구조** : 대부분의 RDBMS 인덱스는 B+Tree 기반이다.  
   루트에서 리프까지의 깊이가 일정한 균형 트리라 일반적으로 O(log n) 수준의 검색 성능을 내며, 리프 노드가 정렬되어 있어 범위 검색과 정렬에도 유리하다.
   * **리프 노드 연결 구조** : B+Tree는 검색 키와 행을 찾기 위한 정보(행 위치 또는 PK 등)를 리프 노드에 저장하고, 리프 노드를 순차 탐색할 수 있도록 서로 연결한다. 세부 저장 방식은 DBMS와 인덱스 종류에 따라 다르다.
     덕분에 한 지점을 찾은 뒤 옆으로 순차 이동하며 읽을 수 있어 **범위 검색(BETWEEN, 부등호)과 정렬(ORDER BY)에 매우 유리**하다.
   * **왜 빠른가** : 정렬된 상태로 유지되므로 이진 탐색처럼 범위를 좁혀가며 찾고, 디스크 I/O 횟수(트리 깊이)가 적기 때문이다.
-
-![B+Tree 탐색과 리프 노드 범위 스캔, 복합 인덱스 A·B·C의 사전식 정렬 구조](/images/it/database-btree-composite-index.png)
-
 
 * **인덱스가 동작하지 않는 경우 / 주의점** : 인덱스를 걸어도 옵티마이저가 사용하지 않거나 효율이 떨어지는 대표 케이스
   * **선두 컬럼 미사용** : 복합 인덱스 (A, B)에서 선두 컬럼 A가 조건절에 없으면 인덱스를 제대로 타기 어렵다.
@@ -295,15 +291,14 @@ toc: true
 * **영속성 컨텍스트** : 엔티티를 관리하는 JPA의 1차 캐시 공간. 엔티티 조회, 변경 감지, 쓰기 지연, 동일성 보장을 제공한다.
 
 
+![JPA 영속성 컨텍스트의 구성과 동작 흐름](/images/it/jpa-persistence-context.png)
+
 * **영속성 컨텍스트의 이점**
   * **1차 캐시** : 조회가 가능하며 1차 캐시에 없으면 DB에서 조회하여 1차 캐시에 올려 놓는다.
   * **동일성 보장** : 같은 트랜잭션/영속성 컨텍스트 안에서는 같은 식별자의 엔티티에 대해 동일성 비교(`==`)가 가능하다.
   * **쓰기 지연** : 트랜잭션 커밋하기 전까지 SQL을 바로 보내지 않고 모아서 보낼 수 있다.
   * **변경 감지** : commit 되는 시점에 Entity와 스냅샷을 비교하여 update SQL을 생성한다.
   * **지연 로딩** : 연관 엔티티를 실제 사용하는 시점에 SQL을 실행하여 데이터를 가져온다.
-
-![JPA 영속성 컨텍스트의 구성과 동작 흐름](/images/it/jpa-persistence-context.png)
-
 
 * **변경 감지(Dirty Checking)** : 영속 상태의 엔티티 값을 변경하면,  
   트랜잭션 커밋 시점에 영속성 컨텍스트가 최초 스냅샷과 비교해 변경된 부분에 대한 UPDATE SQL을 자동 생성/실행한다. 영속 상태에서는 별도의 `save()` 호출이 필요 없다. 단, 준영속(detached) 엔티티는 변경 감지가 동작하지 않는다.
@@ -344,13 +339,12 @@ toc: true
     **실무에서는 모든 연관관계를 LAZY로 설정하고 필요 시 Fetch Join으로 해결하는 것을 권장.** (`@OneToMany`, `@ManyToMany`의 기본값)
 
 
+![JPA N+1 문제의 반복 쿼리와 Fetch Join, Batch Size를 이용한 조회 최적화 비교](/images/it/jpa-n-plus-one-optimization.png)
+
 * **N + 1 문제** : 연관 관계가 설정된 엔티티를 조회할 경우 조회된 데이터 개수(N)만큼 연관관계 조회 쿼리가 추가로 발생하는 문제.  
   1개의 쿼리를 예상했지만 연관 엔티티 조회 때문에 N개의 쿼리가 더 실행된다.
   * **즉시 로딩에서 발생** : JPQL은 작성된 쿼리를 먼저 실행한 뒤 페치 전략을 적용한다. 연관 엔티티가 원래 쿼리에 포함되지 않았다면 JPA 구현체가 즉시 로딩을 맞추기 위해 엔티티별 추가 조회를 실행할 수 있다.
   * **지연 로딩에서 발생** : 지연 로딩으로 설정된 연관 엔티티를 실제로 사용하는 순간 프록시가 초기화되며 추가 조회가 실행된다. 이 과정이 조회된 엔티티마다 반복되면 N개의 쿼리가 추가된다.
-
-![JPA N+1 문제의 반복 쿼리와 Fetch Join, Batch Size를 이용한 조회 최적화 비교](/images/it/jpa-n-plus-one-optimization.png)
-
 
 * **N + 1 해결**
   * **패치 조인(Fetch Join)** : 미리 JOIN하여 한 번에 데이터를 가져오면 N+1을 방지할 수 있다.
@@ -414,11 +408,9 @@ toc: true
   * **논리 트랜잭션** : 스프링이 트랜잭션 매니저를 통해 트랜잭션을 처리하는 단위
 
 
-* **전파 옵션의 비용과 함정** : `REQUIRES_NEW`는 외부 트랜잭션을 잠시 멈추고 별도 커넥션을 사용한다.  
-  반복 호출하거나 커넥션 풀이 작은 환경에서 사용하면 기존 트랜잭션이 커넥션을 잡은 채 새 커넥션을 기다려 풀 고갈 또는 데드락 위험을 키울 수 있다. `NESTED`는 savepoint 기반이며 JPA·DB·트랜잭션 매니저 조합에 따라 지원 여부가 다르다. 전파 옵션은 독립 커밋이 반드시 필요한지, 실패가 외부 작업에 전파돼야 하는지를 먼저 정한 뒤 사용한다.
-
 ![Spring 트랜잭션 프록시 호출과 self-invocation 우회, REQUIRED와 REQUIRES_NEW 전파 방식 비교](/images/it/spring-transaction-proxy-propagation.png)
 
+* **전파 옵션의 비용과 함정** : `REQUIRES_NEW`는 외부 트랜잭션을 잠시 멈추고 별도 커넥션을 사용한다. 반복 호출하거나 커넥션 풀이 작은 환경에서 사용하면 기존 트랜잭션이 커넥션을 잡은 채 새 커넥션을 기다려 풀 고갈 또는 데드락 위험을 키울 수 있다. `NESTED`는 savepoint 기반이며 JPA·DB·트랜잭션 매니저 조합에 따라 지원 여부가 다르다. 전파 옵션은 독립 커밋이 반드시 필요한지, 실패가 외부 작업에 전파돼야 하는지를 먼저 정한 뒤 사용한다.
 
 * **AOP(Aspect Oriented Programming)** : 로깅, 트랜잭션, 보안처럼 여러 곳에 반복되는 공통 관심사를 핵심 로직과 분리하는 방식이다.  
   Spring에서는 주로 프록시 기반으로 메서드 호출을 가로채 부가 기능을 적용한다.
@@ -526,6 +518,8 @@ toc: true
   * **Interceptor 에러 처리** : DispatcherServlet의 예외 처리 흐름을 타는 예외는 `@ControllerAdvice`로 처리할 수 있다.
 
 
+![Servlet Filter와 Interceptor를 거쳐 Controller가 Service·Repository AOP 프록시를 호출하는 Spring MVC 요청 생명주기](/images/it/spring-mvc-request-lifecycle.png)
+
 * **MVC 요청 흐름에서 AOP의 위치** : AOP는 Filter나 Interceptor처럼 모든 요청이 순서대로 통과하는 고정 단계가 아니다.
   AOP가 적용된 Spring Bean 대신 등록된 **프록시의 메서드 호출 경계**에서 동작한다. 예를 들어 Controller가 `@Transactional` Service를 호출하면
   `Controller → Service Proxy(AOP) → 실제 Service` 순서로 실행되며, 프록시가 메서드 실행 전 트랜잭션을 시작하고 정상 반환 시 커밋하거나 예외 시 롤백한다.
@@ -533,9 +527,6 @@ toc: true
   * **Filter** : Servlet 컨테이너의 요청·응답 경계
   * **Interceptor** : DispatcherServlet 내부의 Handler 실행 경계
   * **AOP** : 프록시가 적용된 Spring Bean의 메서드 호출 경계
-
-![Servlet Filter와 Interceptor를 거쳐 Controller가 Service·Repository AOP 프록시를 호출하는 Spring MVC 요청 생명주기](/images/it/spring-mvc-request-lifecycle.png)
-
 
 ## Spring Security와 인증
 
@@ -679,6 +670,8 @@ toc: true
 
 ## JVM과 메모리
 
+![JVM 메모리 구조와 세대별 GC 흐름](/images/it/jvm-memory-gc.png)
+
 * **JVM** : 자바 바이트코드를 실행하는 가상 머신. 클래스 로딩, 바이트코드 실행, 메모리 관리(GC)를 담당한다.
   * **Class Loader** : VM내로 클래스를 로드하고, 링크를 통해 배치하는 작업을 수행하는 모듈
   * **Execution engine(실행 엔진)** : 바이트 코드를 실행시키는 역할
@@ -690,9 +683,6 @@ toc: true
   * **JNI(Java Native Interface)**: 자바 애플리케이션에서 C, C++, 어셈블리어로 작성된 함수를 사용할 수 있는 방법을 제공,  
     Native 키워드를 사용하여 메서드를 호출 (대표적인 메서드는 Thread의 currentThread())
   * **Native Method Library**: C, C++로 작성된 라이브러리
-
-![JVM 메모리 구조와 세대별 GC 흐름](/images/it/jvm-memory-gc.png)
-
 
 * **GC(Garbage Collector)** : Heap에서 더 이상 도달할 수 없는 객체의 메모리를 회수하는 JVM 기능이다. 수집 범위와 알고리즘, Stop-the-world 구간은 사용하는 GC에 따라 다르다.
   * **Young GC(Minor GC)** : 전통적인 세대별 GC에서는 Young 영역을 주로 Eden과 두 Survivor 공간으로 구성한다. 살아남은 객체를 Survivor 공간으로 복사하고, 일정 조건을 만족한 객체는 Old 영역으로 승격한다. 세부 구조와 동작은 GC 구현에 따라 다르다.
@@ -823,6 +813,8 @@ toc: true
 
 ## 커넥션 풀과 스레드 풀
 
+![HTTP 요청이 스레드 풀과 커넥션 풀을 거쳐 DB로 전달되는 흐름과 풀 고갈 시 대기·타임아웃](/images/it/thread-connection-pool-flow.png)
+
 * **Connection Pool** : DB 연결을 매 요청마다 새로 만들지 않고 미리 만들어 둔 연결을 재사용하는 방식. 풀 크기가 너무 작으면 대기 시간이 늘고,  
   너무 크면 DB가 감당하지 못한다. 애플리케이션 인스턴스 수까지 고려해 전체 DB 커넥션 수를 계산해야 한다.
 
@@ -837,9 +829,9 @@ toc: true
 * **Pool 고갈 대응** : 대기 시간 증가, timeout, active connection/thread 수, queue size를 함께 본다. 원인은 느린 쿼리,  
   외부 API 지연, 락 경합, 트래픽 급증일 수 있으므로 지표와 trace로 병목 구간을 먼저 좁힌다.
 
-![HTTP 요청이 스레드 풀과 커넥션 풀을 거쳐 DB로 전달되는 흐름과 풀 고갈 시 대기·타임아웃](/images/it/thread-connection-pool-flow.png)
-
 ## Redis와 캐시 전략
+
+![Redis Cache Aside의 Hit·Miss 조회 흐름과 인기 키 만료에 따른 Cache Stampede 및 방지 방법](/images/it/redis-cache-aside-stampede.png)
 
 * **Redis (Remote Dictionary Server)** : 인메모리 기반 Key-Value 저장소. 캐시, 세션 저장소, 분산 락, 랭킹 등에 사용된다.  
   명령 처리는 주로 단일 이벤트 루프에서 실행되므로 무거운 명령(`KEYS *`, 큰 범위 `SORT`)은 피해야 한다.
@@ -880,15 +872,14 @@ toc: true
 * **캐시 도입 시 판단 기준** : 캐시는 성능을 높이지만 정합성과 장애 전파 문제를 만든다. TTL, 무효화 정책, 캐시 미스 시 DB 보호 전략을 함께 설계해야 한다.  
   인기 키 동시 만료는 Cache Stampede로 이어질 수 있으므로 TTL jitter, 분산 락, 비동기 재계산을 고려하고, 캐시 장애 시 DB가 버틸 수 있도록 circuit breaker, rate limit, fallback을 준비한다.
 
-![Redis Cache Aside의 Hit·Miss 조회 흐름과 인기 키 만료에 따른 Cache Stampede 및 방지 방법](/images/it/redis-cache-aside-stampede.png)
-
-
 * **Redis 자료구조** : String, List, Set, Sorted Set(ZSet), Hash, Bitmap, HyperLogLog, Geo,  
   Stream 등을 지원한다.
   * **Sorted Set** : score 기반 정렬 → 실시간 랭킹/리더보드에 활용
   * **Hash** : 객체(필드-값) 저장에 적합
   * **Set** : 중복 제거, 교집합/합집합 연산 (공통 관심사, 태그)
 
+
+![Redis 분산 락의 고유 토큰 기반 안전한 해제와 TTL 만료 뒤 Fencing Token으로 늦은 쓰기를 거부하는 흐름](/images/it/redis-distributed-lock-fencing-token.png)
 
 * **Redis 분산 락 (Distributed Lock)** : 여러 서버/인스턴스가 공유 자원에 동시에 접근하는 것을 막기 위해 사용.  
   단일 Redis에서는 보통 `SET key value NX PX ttl` 형태로 락 획득과 만료 시간 설정을 원자적으로 처리한다. `value`에는 예측 불가능한 고유 토큰을 넣고, 해제 시에는 **토큰이 일치할 때만 삭제**하는 Lua Script를 사용한다. TTL이 지난 뒤 다른 요청이 같은 키를 획득할 수 있으므로 단순 `DEL`은 이전 보유자가 새 보유자의 락을 지우는 오류를 만든다.
@@ -911,9 +902,6 @@ toc: true
 
 
 * **Fencing Token(펜싱 토큰)** : 락을 획득할 때마다 단조 증가하는 번호를 함께 발급하고, 실제 데이터를 저장하는 시스템이 마지막으로 처리한 번호보다 작은 요청을 거부하는 방식이다. 락이 만료된 이전 보유자의 작업이 늦게 도착해도 더 작은 번호를 가지므로 쓰기가 차단된다. Redis 락이 자동으로 제공하는 기능은 아니며, 보호 대상 DB나 저장소가 토큰을 비교하고 거부하도록 함께 구현해야 한다.
-
-![Redis 분산 락의 고유 토큰 기반 안전한 해제와 TTL 만료 뒤 Fencing Token으로 늦은 쓰기를 거부하는 흐름](/images/it/redis-distributed-lock-fencing-token.png)
-
 
 * **Redis 영속성(Persistence)** : 인메모리지만 재시작 시 데이터 복구를 위해 디스크 저장 옵션을 제공한다.
   * **RDB (Snapshot)** : 특정 시점의 메모리 전체를 스냅샷으로 저장. 파일이 작고 복구가 빠르지만, 스냅샷 사이의 데이터는 유실될 수 있다.
@@ -943,15 +931,14 @@ toc: true
 * **의존성 역전 원칙(DIP)** : 상위 수준의 업무 정책이 DB, 메시지 브로커, 외부 API 같은 구체 기술에 직접 의존하지 않고 추상화에 의존하게 하는 원칙이다. 추상화는 사용하는 쪽의 필요에 맞춰 정의하며, 인터페이스를 만들었다는 사실만으로 의존성이 역전되는 것은 아니다.
 
 
+![헥사고날 아키텍처의 Inbound·Outbound Port와 Adapter, 실행 흐름 및 코드 의존 방향](/images/it/hexagonal-architecture.png)
+
 * **헥사고날 아키텍처(Ports and Adapters)** : 애플리케이션 핵심 로직을 외부 환경에서 분리하기 위해 Port와 Adapter를 사용하는 구조다.
   * **Inbound Port** : 외부에서 애플리케이션이 제공하는 기능을 호출하는 진입 계약이다. Use Case 인터페이스가 대표적이다.
   * **Outbound Port** : 애플리케이션이 저장소나 외부 서비스에 요구하는 기능을 정의한 계약이다.
   * **Adapter** : HTTP Controller, JPA Repository 구현, 메시지 Consumer처럼 Port를 외부 기술과 연결한다.
   * **의존 방향** : 외부 Adapter가 내부 Port와 업무 규칙에 의존하며, 핵심 로직은 구체적인 프레임워크나 인프라 구현을 알지 않도록 한다.
   * **주의점** : 모든 CRUD에 Port와 Adapter를 기계적으로 추가하면 구조만 복잡해질 수 있다. 외부 기술 교체 가능성, 테스트 격리와 업무 규칙의 복잡성이 실제로 경계를 필요로 하는지 판단한다.
-
-![헥사고날 아키텍처의 Inbound·Outbound Port와 Adapter, 실행 흐름 및 코드 의존 방향](/images/it/hexagonal-architecture.png)
-
 
 * **클린 아키텍처와의 관계** : 클린 아키텍처도 업무 규칙을 중심에 두고 의존성이 안쪽으로 향하게 한다. 헥사고날 아키텍처는 Port와 Adapter를 중심으로 경계를 설명하고, 클린 아키텍처는 Entity·Use Case·Interface Adapter 같은 계층으로 설명하지만 핵심 지향점은 유사하다.
 
@@ -1080,6 +1067,8 @@ toc: true
 
 * **핵심 판단 질문** : “모든 데이터가 항상 같은가?”보다 “어떤 규칙을 즉시 지켜야 하는가, 어느 정도 지연을 허용하는가, 실패하면 누가 어떤 상태로 복구하는가?”를 먼저 정의해야 한다. MSA의 정합성은 단일 기술이 아니라 로컬 트랜잭션, 데이터 소유권, 이벤트 전달, 멱등성, 보상과 운영 복구를 연결한 결과다.
 
+![메시지 기반 Saga에서 오케스트레이터가 명령과 결과 이벤트로 실행 순서와 보상을 결정하는 흐름](/images/it/saga-compensation-flow.png)
+
 * **분산 트랜잭션과 데이터 정합성**
   * **2PC (Two-Phase Commit)** : 코디네이터가 Prepare(준비) → Commit(확정) 두 단계로 모든 참여 노드의 커밋을 동기적으로 보장.  
     원자적 커밋을 제공하지만 장애 시 블로킹 가능성과 참여자의 자원·락 유지로 성능과 가용성 비용이 크다. 참여 시스템과 트랜잭션 매니저가 지원하고 강한 원자성이 반드시 필요한 제한된 범위에서 검토한다.
@@ -1094,9 +1083,6 @@ toc: true
       Command를 발행하고 서비스가 `결제 완료`, `재고 차감 실패` 같은 결과 이벤트를 발행한다.
       오케스트레이터는 전역 DB 트랜잭션이나 락을 유지하지 않으며, timeout·중복 응답·재시작에 대비해 상태 저장, 멱등성, 재시도와 수동 복구가 필요하다.
       전체 흐름은 한곳에서 확인하기 쉽지만 업무 순서와 실패 처리 로직이 오케스트레이터에 집중되는 단점이 있다.
-
-![메시지 기반 Saga에서 오케스트레이터가 명령과 결과 이벤트로 실행 순서와 보상을 결정하는 흐름](/images/it/saga-compensation-flow.png)
-
 
 * **분산 트랜잭션 처리 판단 기준** : 2PC는 강한 일관성을 제공하지만 락 유지, 코디네이터 장애, 가용성 저하 부담이 크다.  
   일반적인 MSA에서는 각 서비스의 로컬 트랜잭션과 이벤트를 조합하고, 실패 시 보상 트랜잭션을 수행하는 Saga 패턴을 더 자주 사용한다. DB 변경과 이벤트 발행의 이중 쓰기 문제는 Transactional Outbox로 줄인다.
@@ -1169,11 +1155,9 @@ toc: true
     메시징은 발행 후 즉시 반환되어 느슨하게 결합되고 장애 격리에 유리하다.
 
 
-* **Kafka (Apache Kafka)** : 대용량 실시간 데이터 스트리밍을 위한 **분산 이벤트 스트리밍 플랫폼**.  
-  메시지를 디스크에 로그(Append-only Log) 형태로 영구 저장하고, 높은 처리량(High Throughput)과 수평 확장에 강점이 있다. 단순 큐를 넘어 이벤트 소싱/로그 수집/스트림 처리에 널리 쓰인다.
-
 ![Kafka 파티션과 Consumer Group의 메시지 처리 구조](/images/it/kafka-consumer-group.png)
 
+* **Kafka (Apache Kafka)** : 대용량 실시간 데이터 스트리밍을 위한 **분산 이벤트 스트리밍 플랫폼**. 메시지를 디스크에 로그(Append-only Log) 형태로 영구 저장하고, 높은 처리량(High Throughput)과 수평 확장에 강점이 있다. 단순 큐를 넘어 이벤트 소싱/로그 수집/스트림 처리에 널리 쓰인다.
 
 ### 메시지 저장과 순서
 
@@ -1374,6 +1358,8 @@ toc: true
   * **세마포어(Semaphore)** : permit 개수만큼 접근을 허용하는 카운터 기반 동기화 도구. permit이 1개인 binary semaphore는 뮤텍스처럼 사용할 수 있고, 여러 개면 제한된 자원을 동시에 사용할 수 있다.
 
 
+![두 스레드의 순환 대기로 발생하는 교착상태와 동일한 락 획득 순서로 예방하는 방법](/images/it/os-deadlock-lock-order.png)
+
 * **교착상태(Deadlock)** : 둘 이상의 프로세스들이 자원을 점유한 상태에서 서로 다른 프로세스가 점유하고 있는 자원을 요구하며 무한정 기다리는 상황
   * **교착상태(Deadlock) 발생 조건** : 아래 4가지가 모두 만족될 때 발생한다.
     * 상호 배제(Mutual Exclusion) : 한 번에 한 프로세스만 공유 자원에 접근 가능하며, 접근 권한이 제한적일 경우.
@@ -1386,9 +1372,6 @@ toc: true
       대표적으로 **은행원 알고리즘(Banker's Algorithm)**이 있다. (자원 요청 시 할당 후에도 안전 상태가 유지되는지 미리 검사)
     * **탐지(Detection)** : 교착을 허용하되 자원 할당 그래프 등으로 발생 여부를 주기적으로 검사.
     * **회복(Recovery)** : 교착이 탐지되면 프로세스 강제 종료나 자원 선점(Preemption)으로 해소.
-
-![두 스레드의 순환 대기로 발생하는 교착상태와 동일한 락 획득 순서로 예방하는 방법](/images/it/os-deadlock-lock-order.png)
-
 
 * **컨텍스트 스위칭(Context Switching)** : CPU가 현재 실행 중인 프로세스/스레드를 잠시 멈추고 다른 것을 실행하기 위해 상태를 교체하는 작업.
   * **과정** : 실행 중이던 작업의 상태(레지스터, 프로그램 카운터 등)를 PCB(Process Control Block)에 저장하고,  
@@ -1444,9 +1427,9 @@ toc: true
 
 ## Docker
 
-* **Docker** : 애플리케이션과 실행 환경을 컨테이너로 패키징해 어디서나 동일하게 실행하도록 돕는 플랫폼이다.
-
 ![Dockerfile로 이미지 레이어를 빌드하고 Registry에서 내려받아 컨테이너, 볼륨, 네트워크로 실행하는 구조](/images/it/docker-image-container-runtime.png)
+
+* **Docker** : 애플리케이션과 실행 환경을 컨테이너로 패키징해 어디서나 동일하게 실행하도록 돕는 플랫폼이다.
 
 
 * **컨테이너 vs 가상머신(VM)** : VM은 Hypervisor 위에 Guest OS 전체를 띄우는 반면,  
@@ -1514,6 +1497,8 @@ toc: true
   * **Harbor** : 이미지 저장, 접근 제어와 취약점 스캔 등을 제공하는 사설 컨테이너 이미지 레지스트리다.
 
 
+![Kubernetes Control Plane과 Worker Node, Deployment, Service 및 Pod의 전체 구조](/images/it/kubernetes-architecture.png)
+
 * **K8s 아키텍처**
   * **Control Plane** : 클러스터의 상태와 제어 요청을 관리하는 영역
     * **API Server** : 모든 요청의 단일 진입점, 클러스터와의 통신 창구
@@ -1524,9 +1509,6 @@ toc: true
     * **Kubelet** : 노드에서 Pod가 정상 동작하도록 관리하는 에이전트
     * **Kube-proxy** : Pod 간/외부 네트워크 통신 및 로드밸런싱 처리
     * **Container Runtime** : 실제 컨테이너를 실행 (containerd 등)
-
-![Kubernetes Control Plane과 Worker Node, Deployment, Service 및 Pod의 전체 구조](/images/it/kubernetes-architecture.png)
-
 
 * **K8s 운영 기능**
   * **HPA (Horizontal Pod Autoscaler)** : CPU/메모리 등 메트릭에 따라 Pod 수를 자동으로 늘리고 줄임(수평 확장)
@@ -1571,11 +1553,10 @@ toc: true
 * **Context Engineering(컨텍스트 엔지니어링)** : 모델이 작업하는 순간에 필요한 지시, 대화 기록, 검색 문서, 도구 설명, 사용자 상태를 선택하고 배치하는 작업이다. 모든 정보를 무조건 넣으면 토큰 비용과 잡음이 커지므로 관련성, 최신성, 신뢰도를 기준으로 컨텍스트를 구성한다.
 
 
-* **RAG (Retrieval-Augmented Generation, 검색 증강 생성)** :
-  LLM이 학습하지 않은 최신·사내 데이터를 외부 저장소에서 검색해 프롬프트에 함께 제공하는 기법이다. 문서 수집·분할 → 임베딩·저장 → 질문과 관련된 문서 검색 → 검색 결과를 컨텍스트로 전달하는 흐름이다. 근거를 제공해 환각을 줄일 수 있지만 검색 실패, 오래된 문서, 부적절한 분할 때문에 틀린 답을 만들 수도 있다.
-
 ![문서 분할과 임베딩을 저장하는 오프라인 인덱싱부터 질문과 관련 문서를 검색해 답변 근거로 제공하는 RAG 흐름](/images/it/ai-rag-pipeline.png)
 
+* **RAG (Retrieval-Augmented Generation, 검색 증강 생성)** :
+  LLM이 학습하지 않은 최신·사내 데이터를 외부 저장소에서 검색해 프롬프트에 함께 제공하는 기법이다. 문서 수집·분할 → 임베딩·저장 → 질문과 관련된 문서 검색 → 검색 결과를 컨텍스트로 전달하는 흐름이다. 근거를 제공해 환각을 줄일 수 있지만 검색 실패, 오래된 문서, 부적절한 분할 때문에 틀린 답을 만들 수도 있다.
 
 * **Embedding(임베딩)** : 텍스트, 이미지 등의 의미적 특징을 벡터로 변환한 값이다. 벡터 간 거리를 이용해 유사한 문서를 검색할 수 있지만, 유사도가 사실의 정확성이나 업무상 정답을 보장하지는 않는다.
 
