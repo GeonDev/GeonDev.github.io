@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960" role="img" aria-labelledby="title desc">
+  <title id="title">TCP/IP 계층별 주요 네트워크 프로토콜과 대표 연결 조합</title>
+  <desc id="desc">응용, 전송, 인터넷, 네트워크 접속 계층에 속하는 프로토콜과 HTTP 및 DNS 요청이 하위 계층을 통과하는 관계를 보여준다.</desc>
+  <defs>
+    <style>
+      .title { font: 700 36px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #102a43; }
+      .subtitle { font: 400 19px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #526777; }
+      .layer-no { font: 700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #fff; }
+      .layer-name { font: 700 25px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #102a43; }
+      .layer-role { font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #526777; }
+      .badge { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #12314d; text-anchor: middle; dominant-baseline: middle; }
+      .badge-sub { font: 500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #526777; text-anchor: middle; dominant-baseline: middle; }
+      .route-title { font: 700 22px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #102a43; }
+      .route-label { font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #12314d; text-anchor: middle; dominant-baseline: middle; }
+      .note { font: 500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; fill: #526777; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2474c6"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="960" rx="28" fill="#f8fafc"/>
+  <text x="64" y="64" class="title">TCP/IP 계층별 프로토콜 맵</text>
+  <text x="64" y="98" class="subtitle">각 프로토콜의 위치와 실제 요청이 통과하는 조합을 함께 본다</text>
+
+  <!-- Application layer -->
+  <rect x="56" y="132" width="1060" height="230" rx="22" fill="#eaf4ff" stroke="#9bc6ee" stroke-width="2"/>
+  <circle cx="98" cy="177" r="24" fill="#2474c6"/>
+  <text x="98" y="184" class="layer-no" text-anchor="middle">4</text>
+  <text x="136" y="178" class="layer-name">응용 계층</text>
+  <text x="136" y="207" class="layer-role">사용자 기능과 메시지 형식</text>
+
+  <g>
+    <rect x="82" y="235" width="162" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="163" y="259" class="badge">HTTP/1.1 · 2</text>
+    <rect x="258" y="235" width="134" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="325" y="259" class="badge">HTTP/3</text>
+    <rect x="406" y="235" width="120" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="466" y="259" class="badge">TLS</text>
+    <rect x="540" y="235" width="120" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="600" y="259" class="badge">DNS</text>
+    <rect x="674" y="235" width="206" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="777" y="259" class="badge">SMTP · POP3 · IMAP</text>
+    <rect x="894" y="235" width="190" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="989" y="259" class="badge">FTP · TFTP · SFTP</text>
+
+    <rect x="82" y="297" width="156" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="160" y="321" class="badge">SSH · Telnet</text>
+    <rect x="252" y="297" width="130" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="317" y="321" class="badge">SNMP</text>
+    <rect x="396" y="297" width="156" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="474" y="321" class="badge">NFS · RPC</text>
+    <rect x="566" y="297" width="205" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="668" y="321" class="badge">파일 · 원격 접속</text>
+    <rect x="785" y="297" width="299" height="48" rx="13" fill="#fff" stroke="#78aede"/>
+    <text x="934" y="321" class="badge">웹 · 메일 · 이름 해석 · 관리</text>
+  </g>
+
+  <!-- Transport layer -->
+  <rect x="56" y="382" width="1060" height="150" rx="22" fill="#e9faf7" stroke="#79c9bd" stroke-width="2"/>
+  <circle cx="98" cy="427" r="24" fill="#16877b"/>
+  <text x="98" y="434" class="layer-no" text-anchor="middle">3</text>
+  <text x="136" y="428" class="layer-name">전송 계층</text>
+  <text x="136" y="457" class="layer-role">포트 기반 종단 간 전송</text>
+  <rect x="470" y="408" width="270" height="92" rx="16" fill="#fff" stroke="#5cb7aa" stroke-width="2"/>
+  <text x="605" y="442" class="badge">TCP</text>
+  <text x="605" y="474" class="badge-sub">연결 · 순서 · 재전송 · 흐름 제어</text>
+  <rect x="760" y="408" width="270" height="92" rx="16" fill="#fff" stroke="#5cb7aa" stroke-width="2"/>
+  <text x="895" y="442" class="badge">UDP</text>
+  <text x="895" y="474" class="badge-sub">비연결 · 낮은 지연 · 작은 헤더</text>
+
+  <!-- Internet layer -->
+  <rect x="56" y="552" width="1060" height="150" rx="22" fill="#f0ecff" stroke="#ae9ce1" stroke-width="2"/>
+  <circle cx="98" cy="597" r="24" fill="#6f56b3"/>
+  <text x="98" y="604" class="layer-no" text-anchor="middle">2</text>
+  <text x="136" y="598" class="layer-name">인터넷 계층</text>
+  <text x="136" y="627" class="layer-role">IP 주소와 네트워크 간 라우팅</text>
+  <rect x="434" y="580" width="145" height="76" rx="15" fill="#fff" stroke="#9d8bd2"/>
+  <text x="506" y="618" class="badge">IP</text>
+  <rect x="595" y="580" width="145" height="76" rx="15" fill="#fff" stroke="#9d8bd2"/>
+  <text x="667" y="606" class="badge">ICMP</text>
+  <text x="667" y="634" class="badge-sub">오류 · 진단</text>
+  <rect x="756" y="580" width="145" height="76" rx="15" fill="#fff" stroke="#9d8bd2"/>
+  <text x="828" y="606" class="badge">IGMP</text>
+  <text x="828" y="634" class="badge-sub">멀티캐스트</text>
+  <rect x="917" y="580" width="145" height="76" rx="15" fill="#fff" stroke="#9d8bd2"/>
+  <text x="989" y="606" class="badge">ARP · RARP</text>
+  <text x="989" y="634" class="badge-sub">IP ↔ MAC</text>
+
+  <!-- Network access layer -->
+  <rect x="56" y="722" width="1060" height="150" rx="22" fill="#fff3e8" stroke="#efb77e" stroke-width="2"/>
+  <circle cx="98" cy="767" r="24" fill="#d87c27"/>
+  <text x="98" y="774" class="layer-no" text-anchor="middle">1</text>
+  <text x="136" y="768" class="layer-name">네트워크 접속 계층</text>
+  <text x="136" y="797" class="layer-role">프레임과 인접 링크 전송</text>
+  <rect x="434" y="750" width="145" height="76" rx="15" fill="#fff" stroke="#e5a566"/>
+  <text x="506" y="788" class="badge">Ethernet</text>
+  <rect x="595" y="750" width="145" height="76" rx="15" fill="#fff" stroke="#e5a566"/>
+  <text x="667" y="776" class="badge">PPP</text>
+  <text x="667" y="804" class="badge-sub">CHAP 인증</text>
+  <rect x="756" y="750" width="145" height="76" rx="15" fill="#fff" stroke="#e5a566"/>
+  <text x="828" y="788" class="badge">FDDI</text>
+  <rect x="917" y="750" width="145" height="76" rx="15" fill="#fff" stroke="#e5a566"/>
+  <text x="989" y="788" class="badge">SLIP</text>
+
+  <!-- Typical protocol stacks -->
+  <rect x="1140" y="132" width="404" height="740" rx="22" fill="#fff" stroke="#cad5df" stroke-width="2"/>
+  <text x="1174" y="178" class="route-title">대표 연결 조합</text>
+  <text x="1174" y="207" class="note">위에서 아래로 캡슐화</text>
+
+  <text x="1174" y="256" class="route-title">웹: HTTP/1.1 · HTTP/2</text>
+  <g>
+    <rect x="1180" y="276" width="150" height="42" rx="12" fill="#eaf4ff" stroke="#78aede"/>
+    <text x="1255" y="297" class="route-label">HTTP + TLS</text>
+    <line x1="1338" y1="297" x2="1370" y2="297" stroke="#2474c6" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="1382" y="276" width="118" height="42" rx="12" fill="#e9faf7" stroke="#5cb7aa"/>
+    <text x="1441" y="297" class="route-label">TCP</text>
+    <line x1="1441" y1="324" x2="1441" y2="348" stroke="#2474c6" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="1382" y="358" width="118" height="42" rx="12" fill="#f0ecff" stroke="#9d8bd2"/>
+    <text x="1441" y="379" class="route-label">IP</text>
+  </g>
+
+  <text x="1174" y="452" class="route-title">웹: HTTP/3</text>
+  <g>
+    <rect x="1180" y="472" width="150" height="42" rx="12" fill="#eaf4ff" stroke="#78aede"/>
+    <text x="1255" y="493" class="route-label">HTTP/3</text>
+    <line x1="1338" y1="493" x2="1370" y2="493" stroke="#2474c6" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="1382" y="472" width="118" height="42" rx="12" fill="#e9faf7" stroke="#5cb7aa"/>
+    <text x="1441" y="493" class="route-label">QUIC · UDP</text>
+    <line x1="1441" y1="520" x2="1441" y2="544" stroke="#2474c6" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="1382" y="554" width="118" height="42" rx="12" fill="#f0ecff" stroke="#9d8bd2"/>
+    <text x="1441" y="575" class="route-label">IP</text>
+  </g>
+
+  <text x="1174" y="648" class="route-title">이름 해석: DNS</text>
+  <g>
+    <rect x="1180" y="668" width="150" height="42" rx="12" fill="#eaf4ff" stroke="#78aede"/>
+    <text x="1255" y="689" class="route-label">DNS</text>
+    <line x1="1338" y1="689" x2="1370" y2="689" stroke="#2474c6" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="1382" y="668" width="118" height="42" rx="12" fill="#e9faf7" stroke="#5cb7aa"/>
+    <text x="1441" y="689" class="route-label">UDP / TCP</text>
+    <line x1="1441" y1="716" x2="1441" y2="740" stroke="#2474c6" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="1382" y="750" width="118" height="42" rx="12" fill="#f0ecff" stroke="#9d8bd2"/>
+    <text x="1441" y="771" class="route-label">IP</text>
+  </g>
+
+  <text x="64" y="920" class="note">수신 측에서는 프레임 → IP 패킷 → TCP 세그먼트/UDP 데이터그램 → 응용 메시지 순서로 역캡슐화한다.</text>
+</svg>
