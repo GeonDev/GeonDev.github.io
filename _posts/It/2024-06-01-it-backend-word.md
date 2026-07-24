@@ -105,6 +105,8 @@ toc: true
   * **Non-Repeatable Read(반복 읽기 불가능)** : 같은 트랜잭션에서 동일한 행을 다시 읽었을 때, 다른 트랜잭션이 커밋한 수정·삭제로 결과가 달라지는 현상
   * **Dirty Read** : 다른 트랜잭션이 아직 커밋하지 않은 데이터를 읽는 현상. 해당 트랜잭션이 롤백하면 실제로 확정되지 않은 값을 읽은 셈이 된다.
 
+![두 트랜잭션의 시간 흐름으로 비교한 Dirty Read, Non-Repeatable Read, Phantom Read와 격리 수준](/images/it/database-isolation-anomalies.png)
+
 
 * **격리 수준과 이상 현상 정리**
 
@@ -347,6 +349,8 @@ toc: true
   * **즉시 로딩에서 발생** : JPQL은 작성된 쿼리를 먼저 실행한 뒤 페치 전략을 적용한다. 연관 엔티티가 원래 쿼리에 포함되지 않았다면 JPA 구현체가 즉시 로딩을 맞추기 위해 엔티티별 추가 조회를 실행할 수 있다.
   * **지연 로딩에서 발생** : 지연 로딩으로 설정된 연관 엔티티를 실제로 사용하는 순간 프록시가 초기화되며 추가 조회가 실행된다. 이 과정이 조회된 엔티티마다 반복되면 N개의 쿼리가 추가된다.
 
+![JPA N+1 문제의 반복 쿼리와 Fetch Join, Batch Size를 이용한 조회 최적화 비교](/images/it/jpa-n-plus-one-optimization.png)
+
 
 * **N + 1 해결**
   * **패치 조인(Fetch Join)** : 미리 JOIN하여 한 번에 데이터를 가져오면 N+1을 방지할 수 있다.
@@ -535,6 +539,8 @@ toc: true
 
 ## Spring Security와 인증
 
+![로그인 인증부터 JWT 발급, 보호 API 요청의 토큰 검증과 권한 확인까지의 Spring Security 흐름](/images/it/spring-security-jwt-flow.png)
+
 * **인증(Authentication)과 인가(Authorization)** : **인증**은 "누구인지"를 확인하는 것(로그인),  
   **인가**는 "무엇을 할 수 있는지" 권한을 확인하는 것(접근 제어).
 
@@ -637,6 +643,8 @@ toc: true
 # 용어정리 – Java
 
 ## Java 동시성
+
+![두 스레드가 공유 값을 변경할 때 synchronized, volatile, AtomicInteger가 보장하는 가시성과 원자성 비교](/images/it/java-concurrency-control.png)
 
 * **동시성 키워드: synchronized / volatile / atomic** : 멀티스레드 환경에서 가시성(Visibility)과 원자성(Atomicity)을 다룬다.
   * **synchronized** : 임계 영역에 한 번에 하나의 스레드만 진입하도록 락(lock)을 거는 키워드.  
@@ -1438,6 +1446,8 @@ toc: true
 
 * **Docker** : 애플리케이션과 실행 환경을 컨테이너로 패키징해 어디서나 동일하게 실행하도록 돕는 플랫폼이다.
 
+![Dockerfile로 이미지 레이어를 빌드하고 Registry에서 내려받아 컨테이너, 볼륨, 네트워크로 실행하는 구조](/images/it/docker-image-container-runtime.png)
+
 
 * **컨테이너 vs 가상머신(VM)** : VM은 Hypervisor 위에 Guest OS 전체를 띄우는 반면,  
   컨테이너는 **호스트 OS의 커널을 공유**하고 프로세스 수준으로 격리한다. 따라서 컨테이너는 OS를 포함하지 않아 가볍고, 부팅이 빠르며, 자원 효율이 높다.
@@ -1563,6 +1573,8 @@ toc: true
 
 * **RAG (Retrieval-Augmented Generation, 검색 증강 생성)** :
   LLM이 학습하지 않은 최신·사내 데이터를 외부 저장소에서 검색해 프롬프트에 함께 제공하는 기법이다. 문서 수집·분할 → 임베딩·저장 → 질문과 관련된 문서 검색 → 검색 결과를 컨텍스트로 전달하는 흐름이다. 근거를 제공해 환각을 줄일 수 있지만 검색 실패, 오래된 문서, 부적절한 분할 때문에 틀린 답을 만들 수도 있다.
+
+![문서 분할과 임베딩을 저장하는 오프라인 인덱싱부터 질문과 관련 문서를 검색해 답변 근거로 제공하는 RAG 흐름](/images/it/ai-rag-pipeline.png)
 
 
 * **Embedding(임베딩)** : 텍스트, 이미지 등의 의미적 특징을 벡터로 변환한 값이다. 벡터 간 거리를 이용해 유사한 문서를 검색할 수 있지만, 유사도가 사실의 정확성이나 업무상 정답을 보장하지는 않는다.

@@ -203,6 +203,13 @@ table {
   width: 100%;
   border: 1px solid $table-border-color;
   border-collapse: collapse;
+
+  @media screen and (max-width: 600px) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 td, th {
