@@ -9,7 +9,7 @@ comments: true
 toc: true    
 ---
 
-신규 시스템의 API를 만들면서 오류 처리나 반환값에 대해서 고민하게 되었다. 어떻게 전달하는게 가장 깔끔한 방법일지 고민 했다.  
+신규 시스템의 API를 만들면서 오류 처리와 반환값 구성을 고민하게 됐다. 어떻게 전달하는 게 가장 깔끔한지 정리해 봤다.
 이전 프로젝트에서는 AOP를 이용하여 컨트롤러에서 특정값을 반환하면 해당 값에 따라 메세지를 던지는 방식으로 반환값을 일관되게 처리하였다.  
 이렇게 반환값을 지정하였을때 문제점은 잘못된 값을 반환하더라도 HTTP 상태 코드가 200으로 내려오는 경우가 발생한다는 것이다.  
 메세지는 잘못되었다고 하는데 반환은 200인 상황이 마음에 들지 않아 방법을 찾아봤다.
@@ -92,7 +92,7 @@ public abstract class BaseException extends RuntimeException{
 이 BaseException 클래스는 RuntimeException을 상속받아 코드 실행중 에러가 발생할 만한 상황에 맞춰서 클래스가 생성되면서
 에러를 처리할수 있다.  
 그런데 public abstract HttpStatus getHttpStatus()를 보면 에러는 발생 시킬수 있지만 어떤 HTTP CODE를 반환할지는 결정되어 있지 않다.  
-따라서 이 BaseException를 상속 받는 클래스를 만들어서 원하는 HTTP CODE를 반환하게 생성하면 된다.  
+이 `BaseException`을 상속받는 클래스를 만들어 원하는 HTTP CODE를 반환하게 하면 된다.
 물론 클래스 이름은 어떻게 지정하여도 상관은 없다.
 
 ## 2.1. BaseException을 상속받아 HTTP CODE를 반환
@@ -190,7 +190,7 @@ public class NoFoundException extends BaseException{
 
 ## 2.2. 기타 공통 Exception을 처리할 AOP 설정
 당연한 이야기 이지만 모든 Exception를 처리할 클래스를 만든다는 것은 쉽지도 않고  
-효율적인 선택도 아니다. 따라서 공통으로 Exception을 처리할수 있는 기능을 만들어 두는 것이 가장 편리하다  
+효율적인 선택도 아니다. 공통으로 Exception을 처리할 기능을 만들어 두는 편이 더 낫다.
 스프링에서 이런 기능은 Interceptor나 AOP로 처리하는 것이 편리한데 여기서는 클래스 실행 전후에 처리할 과정이 있어 AOP로 처리하였다.
 
 
@@ -235,7 +235,7 @@ public ResponseEntity addResponseAccAdvice(ProceedingJoinPoint joinPoint) {
 세션에 있는 로그인 정보를 체크한다. @Around에서는 joinPoint.proceed() 이전이 @Before 와 동일하고 이후는 @After로 적용된다.
 
 코드의 try ~ catch를 보면 위에서 생성하지 않는 나머지 Exception의 경우 모두 INTERNAL_SERVER_ERROR(500)으로 반환하는 것을 확인할수 있다.  
-물론 상황에 따라서 좀더 세밀하게 분류하는 것도 가능하지만 일단 일관성을 유지하는 정도에서 끝냈다.
+물론 상황에 따라 더 세밀하게 분류할 수도 있지만, 여기서는 일관성을 맞추는 선에서 정리했다.
 
 
 ~~~java

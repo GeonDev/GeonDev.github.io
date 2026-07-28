@@ -326,7 +326,7 @@ public class RedisConfig {
 애플리케이션 코드를 두 환경에서 모두 실행하기 위한 분기다.
 
 `RedisTemplate`은 `@Cacheable` 동작에 필수는 아니다. Spring Cache 어노테이션은 `RedisCacheManager`를
-통해 Redis를 사용한다. 여기서 `RedisTemplate`을 따로 둔 이유는 캐시 warm-up, 수동 key 삭제, hash/set/zset
+`RedisCacheManager`로 Redis를 사용한다. 여기서 `RedisTemplate`을 따로 둔 이유는 캐시 warm-up, 수동 key 삭제, hash/set/zset
 조작처럼 어노테이션으로 표현하기 어려운 Redis 작업에서도 같은 직렬화 정책을 쓰기 위해서다.
 
 운영 cluster 설정에서 특히 신경 쓴 부분은 topology refresh다.
@@ -349,7 +349,7 @@ Redis Cluster에서는 slot 이동이나 node 장애/복구가 발생할 수 있
 분산하려는 설정이다.
 단, replica lag가 허용되지 않는 강한 정합성 데이터라면 master에서 읽는 전략을 별도로 검토해야 한다.
 
-위 설정에서 중요한 부분은 `RedisCacheManager`다. `@Cacheable(value = "cacheName")`으로 지정한
+위 설정에서 핵심은 `RedisCacheManager`다. `@Cacheable(value = "cacheName")`으로 지정한
 캐시 이름이 `redis.cache.second`, `redis.cache.minutes.1`, `redis.cache.minutes.10` 중 어디에
 들어 있느냐에 따라 TTL이 달라진다. 목록성 API처럼 짧게 가져갈 캐시는 5초, 변경 빈도가 낮은 캐시는
 1분이나 10분으로 분리했다.
@@ -855,7 +855,7 @@ ratio 0.2 기준으로 5초 → `[4.0s, 5.0s]`, 1분 → `[48s, 60s]`가 된다.
 ## 운영 기준
 
 앞에서 다룬 직렬화, 캐싱 DTO 분리 원칙을 지켰다면 운영 단계에서는 캐시 키, TTL, 무효화 전략을
-명확히 정하는 것이 중요하다.
+명확히 정해 두는 편이 낫다.
 
 ### 1. 캐시 키 설계
 
@@ -898,7 +898,7 @@ redis:
 `@Cacheable(value = "getCacheableBoardList")`처럼 사용한 캐시 이름이 `redis.cache.second`에 있으면
 5초 TTL 그룹으로 들어가고, `redis.cache.minutes.10`에 있으면 10분 TTL 그룹으로 들어간다.
 
-TTL은 데이터 변경 빈도에 맞춰 정하면 된다. 실시간성이 중요한 데이터는 짧게 가져가거나 캐싱에서 빼고,
+TTL은 데이터 변경 빈도에 맞춰 정하면 된다. 실시간성이 큰 데이터는 짧게 가져가거나 캐싱에서 빼고,
 메모리 사용량과 성능 사이에서 타협한다.
 
 최소 TTL 권장
@@ -929,7 +929,7 @@ public void warmUpCache() {
 
 `@CacheEvict` 후 같은 클래스 내부에서 `@Cacheable` 메서드를 직접 호출하는 방식은 피해야 한다.
 Spring Cache는 프록시 기반이라 self-invocation에서는 캐시 어노테이션이 적용되지 않는다. 스케줄러에서는
-위처럼 `CacheManager`로 직접 넣거나, 캐시 메서드를 다른 빈으로 분리해 프록시를 통해 호출한다.
+위처럼 `CacheManager`로 직접 넣거나, 캐시 메서드를 다른 빈으로 분리해 프록시를 거쳐 호출한다.
 
 ## 테스트 가이드
 

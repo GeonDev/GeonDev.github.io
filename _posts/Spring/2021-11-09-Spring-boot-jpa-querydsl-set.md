@@ -95,7 +95,7 @@ public class QuerydslConfiguration {
 
 # 3. RepositorySupport 생성
 기존에 JPA에서 사용하던 Repository 인터페이스와 다르게 Querydsl을 이용하여 쿼리를 생성하는 QuerydslRepositorySupport를 상속받는 별도의 클래스를 만든다.
-이름은 중요하지 않지만 QuerydslRepositorySupport를 상속받아 만들었기 때문에 RepositorySupport라고 지정하였고 패키지는 Repository 패키지 하위에 support라는 위치에 새로 생성하였다. 당연히 위치도 중요한 것은 아니다.
+이름 자체는 중요하지 않아서 `QuerydslRepositorySupport`를 상속받는다는 의미로 `RepositorySupport`라고 붙였고, 패키지는 `Repository` 하위의 `support`에 새로 만들었다. 위치도 고정 규칙은 아니다.
 
 
 ```java
@@ -171,7 +171,7 @@ public class UserRepositorySupport extends QuerydslRepositorySupport {
     }
 }
 ```
-내가 만든 UserRepositorySupport의 목적은 주어진 이름, 시작일, 종료일에 따라서 등록일을 기준으로 해당 이름을 포함하고 있는 between 또는 lessThan을 구하는 것이다. 이 과정에서 스트링으로 전달받은 값을 다른 형태로 변경하거나 특정 값이 있으면, 없으면 같은 조건을 분기로 나누어야 하는데 이때 QueryDsl로 만들어진 쿼리 where()에 원하는 조건을 생성하는 함수를 만들면 된다.
+내가 만든 `UserRepositorySupport`의 목적은 주어진 이름, 시작일, 종료일을 기준으로 등록일 조건을 조합해 `between` 또는 `lessThan`을 구하는 것이다. 이 과정에서는 문자열로 받은 값을 다른 형태로 바꾸거나, 특정 값의 유무에 따라 조건을 나눠야 한다. 이럴 때 QueryDsl의 `where()`에 넣을 조건 생성 함수를 따로 만들면 된다.
 
 BooleanExpression 을 이용하여 주어진 조건이 내가 원하는 경우 일때 (ex 시작일 종료일이 모두 다 주어졌을때) 연산을 수행하고 아니라면 null을 리턴하게 만든다. 이렇게 null이 리턴되면 해당조건을 체크하지 않고 넘어가게 되기 때문에 분기 처리를 하지 않아도 동적으로 쿼리를 생성해 준다.
 

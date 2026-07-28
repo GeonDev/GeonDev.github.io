@@ -264,11 +264,10 @@ public class SharedConfiguration {
 ```
 
 jobExecutionContext는 서로 다른 Step끼리 데이터를 공유할 수 있고  
-stepExecutionContext는 같은 Step 내부에서만 데이터를 공유할 수 있다. 따라서 위 코드를 실행하면
+`stepExecutionContext`는 같은 Step 내부에서만 데이터를 공유할 수 있다. 위 코드를 실행하면
 ```
 JobName : shareJob, stepName : shareStep, parameter : 1
 JobKey : job execution context, stepKey : 
 ```
 
 이렇게 jobExecutionContext의 데이터만 공유되어 출력된 결과를 확인할 수 있다.
-

@@ -135,7 +135,7 @@ public class WebServiceConfig implements WebMvcConfigurer {
 ~~~
 
 
-시큐리티를 통해서는 아래 처럼 설정할수도 있다. disable 설정을 하면 헤더에서 캐시 전략 자체가 사라진다.   
+시큐리티 설정으로도 아래처럼 처리할 수 있다. `disable`을 주면 헤더에서 캐시 전략 자체가 사라진다.
 **Cache-Control:max-age=0**
 
 ~~~
@@ -210,7 +210,7 @@ server:
 http로 접근하더라도 브라우저가 다음부터는 https로만 접속하도록 강제하는 헤더다.  
 **Strict-Transport-Security: max-age=31536000; includeSubDomains**
 
-스프링 시큐리티는 secure(https) 요청에 대해 기본으로 HSTS를 추가한다. 적용 기간이나 서브도메인 포함 여부를 조정하려면 아래처럼 설정한다.
+스프링 시큐리티는 secure(https) 요청에 기본으로 HSTS를 추가한다. 적용 기간이나 서브도메인 포함 여부를 조정하려면 아래처럼 설정한다.
 ~~~
 http.headers(headers -> headers.httpStrictTransportSecurity(hsts ->
         hsts.includeSubDomains(true).maxAgeInSeconds(31536000)));

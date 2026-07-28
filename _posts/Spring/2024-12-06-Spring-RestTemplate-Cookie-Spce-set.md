@@ -94,7 +94,7 @@ public final class CookieSpecs {
 }
 ~~~
 
-CookieSpecs 클래스는 Apache HttpClient 라이브러리의 일부로, HTTP 요청 및 응답에서 쿠키를 처리할 때 사용되는 여러 가지 쿠키 처리 규격(cookie specification)을 정의한 클래스이며 GPT를 통해 확인하면 각 상수는 아래 같은 기능을 하고 있다. 
+`CookieSpecs` 클래스는 Apache HttpClient 라이브러리의 일부로, HTTP 요청과 응답에서 쿠키를 처리할 때 쓰는 여러 쿠키 처리 규격(cookie specification)을 정의한 클래스다. 각 상수의 기능은 아래와 같다.
 
 *  BROWSER_COMPATIBILITY (deprecated)
 이전에는 "브라우저 호환성" 규격으로 사용되었으나, 이제는 deprecated로 더 이상 사용되지 않는 규격입니다. 이 규격은 오래된 웹 브라우저들과의 호환성 문제를 해결하려는 목적이 있었으나, 최신 표준에서는 사용되지 않습니다.
@@ -103,7 +103,7 @@ Netscape 쿠키 규격을 따르는 처리 방식입니다. 이 규격은 Netsca
 *  STANDARD
 표준 쿠키 규격을 따르는 처리 방식입니다. 이는 기본적인 쿠키 처리 규격으로, 현재 RFC 6265 규격에 근거한 동작 방식을 제공합니다.
 *  STANDARD_STRICT
-STANDARD 규격의 엄격한 버전입니다. 이 규격은 쿠키 처리에 대해 더 엄격한 검사를 수행하며, 예를 들어 도메인이나 경로(path)에 대한 처리가 더욱 제한적입니다.
+STANDARD 규격의 엄격한 버전이다. 쿠키 처리에서 더 엄격한 검사를 수행하며, 예를 들어 도메인이나 경로(path) 처리도 더 제한적이다.
 *  DEFAULT
 기본 쿠키 처리 규격을 의미합니다. 일반적으로 STANDARD와 동일하지만, 사용 환경에 따라 다를 수 있습니다. HttpClient의 기본 설정으로 사용됩니다.
 *  IGNORE_COOKIES

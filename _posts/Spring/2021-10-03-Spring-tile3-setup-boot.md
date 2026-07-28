@@ -189,7 +189,7 @@ public class ConfigurationForTiles {
 
 타일즈의 구성요소(attribute)는 정해진 개수가 있는 것이 아니라 직접 정의해서 사용한다. 이 예제에서는 6개(title, gnb, header, page-title, body, footer)로 구성했다. 각각의 구성요소는 고정으로 배치할 수도 있고 Controller를 통하여 변경하면서 사용할수도 있다.
 타일즈를 통하여 화면을 구성하게 되면 미리 정해진 레이아웃 안에 각각 요소를 추가하는 형태로 구성된다.
-설정에 따라서 구성요소가 모두 없어도 상관은 없다. 필요에 따라서 구성요소를 적절하게 조합하여 작성하면 된다.
+설정에 따라 구성요소가 전부 있지 않아도 상관없다. 필요한 요소만 골라 조합하면 된다.
 
 ```xml
 <definition name="Main" template="/WEB-INF/tiles/layout/Main.jsp">
@@ -295,7 +295,7 @@ if (request.getProtocol().equals("HTTP/1.1"))
 
 레이아웃 구성 파일을 보면 head 부분은 기존의 JSP에서 보는 것과 동일하게 화면 구성에 필요한 스크립트나 설정을 불러오는 부분이다.
 주목할 것은 tiles:insertAttribute 부분인데 이 부분은 tiles.xml에서 설정한 각 요소에 실제 페이지를 불러오는 기능을 담당한다.
- 이러한 구성요소를 사용하여 타일즈는 반복작업 없이 동일한 페이지에 요소를 바꾸어 가면서 화면을 구성할수 있게 된다.
+이 구성요소를 쓰면 타일즈는 반복 작업 없이 같은 페이지 틀 안에서 요소만 바꿔 화면을 구성할 수 있다.
 
 # 4. Controller 호출
 

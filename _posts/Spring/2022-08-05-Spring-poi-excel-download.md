@@ -43,7 +43,7 @@ poi 와 poi-ooxml를 dependency에 추가 하면 된다. 나는 poi-scratchpad�
 # 2. Controller 구현
 
 보통 스프링에서 대부분의 연산은 Controller에서 실행되지만 파일 다운로드는 view 단에서 이루어 진다고 한다.  
-따라서 Controller에서는 필요한 Service를 호출하여 model에 값만 넣어주면 된다.  
+Controller에서는 필요한 Service를 호출해 model에 값만 넣어주면 된다.
 조금 특이한 점은 진짜 뷰(?)인 .html, jsp 파일을 return하는게 아니라 AbstractView 를 상속받는 클래스를 리턴한다는 것이다. AbstractView를 상속 받으면 해당 클래스는 뷰로 취급된다고 한다.
 
 ```java

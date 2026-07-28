@@ -30,7 +30,7 @@ toc: true
 서비스 코드에서 추가 작업을 이어 붙이고 싶었다.
 
 먼저 같은 클래스 안에 있는 메소드를 여러 단계로 부르면서 AOP를 활용한 트랜젝션은 기대한 방식으로 적용되지 않았다.
-`@Transactional`은 프록시를 통해 호출될 때 동작하기 때문에, 같은 클래스 내부에서 메소드를 직접 호출하면
+`@Transactional`은 프록시를 거쳐 호출될 때 동작하기 때문에, 같은 클래스 내부에서 메소드를 직접 호출하면
 트랜젝션 경계가 새로 적용되지 않는다.
 
 또 특정 작업이 실패했을 때 전체를 무조건 롤백하는 것이 아니라, 구간에 따라 롤백 범위나 실패 로그 저장 방식을
@@ -50,7 +50,7 @@ toc: true
 조금씩 다른데, 이 차이를 추상화한 것이 TransactionManager다.
 
 개발자가 각각의 방식에 맞춰 Transaction을 직접 구현하는 것이 아니라, 기술에 맞는 TransactionManager를 주입받아
-사용하면 된다. 그리고 실제 코드에서는 `PlatformTransactionManager` 인터페이스를 통해 동일한 메소드로
+사용하면 된다. 실제 코드에서는 `PlatformTransactionManager` 인터페이스로 같은 메소드 호출 방식에서
 트랜젝션을 시작하고 commit/rollback을 수행한다.
 
 ~~~java
@@ -168,7 +168,7 @@ Spring 트랜젝션 종료
 이 목표를 만족하려면 프로시저와 서비스 코드가 같은 트랜젝션 경계 안에서 실행되어야 한다. 즉, 프로시저는
 작업만 수행하고 최종 `COMMIT/ROLLBACK`은 Spring이 관리해야 한다.
 
-Spring의 `PlatformTransactionManager`나 `TransactionTemplate`은 애플리케이션이 사용하는 커넥션에 대해
+Spring의 `PlatformTransactionManager`나 `TransactionTemplate`은 애플리케이션이 사용하는 커넥션 기준으로
 트랜젝션 경계를 만든다. 서비스 코드에서 같은 DataSource/Connection을 사용하고, 프로시저도 그 커넥션 안에서
 실행되면 하나의 트랜젝션처럼 묶을 수 있다. 하지만 프로시저 내부에서 `COMMIT`이 실행되면 그 시점에 DB 작업이
 확정된다. 이후 서비스 코드에서 예외가 발생해 Spring이 rollback을 호출하더라도 이미 commit된 프로시저 작업은
@@ -200,7 +200,7 @@ transactionTemplate.executeWithoutResult(status -> {
 });
 ```
 
-따라서 하나의 트랜젝션으로 묶는 것이 목표라면 프로시저의 역할을 바꾸는 편이 낫다. 프로시저 내부에서
+하나의 트랜젝션으로 묶는 것이 목표라면 프로시저 역할을 바꾸는 편이 낫다. 프로시저 내부에서
 `COMMIT/ROLLBACK`을 직접 수행하지 않고, 실패 시 예외만 던지게 만든 뒤 최종 commit/rollback은 Spring이
 관리하게 하는 구조다.
 
@@ -250,7 +250,7 @@ Spring이 전체 rollback을 수행한다.
 - 프로시저를 수정할 수 없다면 서비스 코드에서 트랜젝션을 잡아도 완전한 원자성을 보장하기 어렵다.
 - 이런 경우에는 보상 트랜젝션, 재처리 로직, 실패 로그 적재 같은 별도 정합성 전략이 필요하다.
 
-이 상황에서 중요한 점은 전파 속성 선택이다. 프로시저 작업과 서비스 코드 작업을 하나로 묶는 것이 목적이면
+이 상황에서 핵심은 전파 속성 선택이다. 프로시저 작업과 서비스 코드 작업을 하나로 묶는 것이 목적이면
 `PROPAGATION_REQUIRED`가 자연스럽고, 실패 로그처럼 본 작업과 별도로 남겨야 하는 작업만 `REQUIRES_NEW`로
 분리한다.
 

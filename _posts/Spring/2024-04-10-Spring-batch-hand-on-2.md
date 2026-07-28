@@ -188,7 +188,7 @@ processor에서 INPUT을 받아 processing 후 OUPUT을 return (INPUT, OUTPUT은
 writer에서 List<OUTPUT>을 받아 write
 
 # 2. JobParameters 
-배치를 실행에 필요한 값을 parameter를 통해 외부에서 주입  
+배치 실행에 필요한 값을 parameter로 외부에서 주입
 배치 실행 시 조금 더 유연한 세팅을 위하여 사용 
 
 ## 2.1 JobParameters 객체를 활용하여 데이터를 전달하는 방법

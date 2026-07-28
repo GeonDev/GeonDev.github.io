@@ -47,7 +47,7 @@ public class TestController {
 ```
 
 만약 롬복을 사용한다면 이런식으로도 코드를 작성할 수도 있다.
-RequiredArgsConstructor는 final로 선언된 필드에 대해 생성자로 만들어 준다.
+`RequiredArgsConstructor`는 `final`로 선언한 필드를 기준으로 생성자를 만들어 준다.
 ```java
 @Controller
 @RequestMapping("/test")
@@ -83,7 +83,7 @@ public class TestController {
 ```
 
 ## 2.3. Setter 주입
-솔직히 회사에 처음 들어와서 사용하는 걸 봤다. setter를 통해 의존성 주입을 하는 방식으로 주입받는 객체를 변경할 수 있는 장점이 있다고 한다.
+회사에 처음 들어와서 이 방식을 실제로 봤다. setter로 의존성을 주입하면 주입받는 객체를 바꿀 수 있다는 장점이 있다.
 Setter 주입은 필드 주입과 마찬가지로 순환 참조를 감지하지 않는다. 생성자 주입 이전에 많이 사용하던 방법이라고 한다.
 
 ```java

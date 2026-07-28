@@ -105,7 +105,7 @@ pattern 같은 경우에는 자세히 알지도 못하고 다른 사람들이 �
 
 상대경로로 ./위치는 이클립스의 실행 경로 이기 때문에 프로젝트 폴더 아래로 이동 시키려면 ./workspace/VIG/ 로 지정하여야 했다.
 
-파일크기에 따라서 롤링을 지정하려면
+파일 크기에 맞춰 롤링을 지정하려면
 ```xml
 <!-- Rolling File Appender -->
 <RollingFile name="RollingFile">

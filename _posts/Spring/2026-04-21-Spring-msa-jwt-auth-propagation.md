@@ -241,7 +241,7 @@ if (internalSecret.equals(internalRequest)) {
 }
 ```
 
-여기서 중요한 건 **`"true"` 같은 단순 리터럴이 아니라 실제 비밀키 값과 정확히 일치할 때만 신뢰**한다는 점이다.
+여기서 봐야 할 점은 **`"true"` 같은 단순 리터럴이 아니라 실제 비밀키 값과 정확히 일치할 때만 신뢰**한다는 것이다.
 Docker 내부 네트워크에 침투한 공격자가 헤더만 흉내 내 측면 이동(lateral movement)하는 것을 막는다.
 
 # 5. /internal 전용 엔드포인트 가드
@@ -270,7 +270,7 @@ public class InternalEndpointGuardFilter extends OncePerRequestFilter {
 
 # 6. 이 패턴의 보안 포인트 정리
 
-| 항목 | 왜 중요한가 |
+| 항목 | 왜 필요한가 |
 |------|-------------|
 | **외부 신뢰 헤더 선제거** | 게이트웨이가 `X-User-*`/`X-Gateway-Request`를 무조건 지운 뒤 자기가 다시 세팅 → 외부 스푸핑 원천 차단 |
 | **비밀키 정확 매칭만 신뢰** | `"true"` 같은 값 거부, `INTERNAL_SECRET` 정확 일치만 통과 → 내부망 침투자의 측면 이동 차단 |

@@ -87,7 +87,7 @@ Gemini와 Ollama 두 가지를 둔 이유는, 평소엔 빠르고 저렴한 Gemi
 └─────────────────────────┘
 ```
 
-흐름을 풀어 쓰면 이렇다. 사용자의 자연어 요청이 Spring AI의 `ChatClient`를 통해 LLM으로 전달되고, LLM은 "지금 navigate 도구를 호출해야겠다"는 식으로 도구 호출을 결정한다. 그 호출은 MCP Client를 거쳐 STDIO(표준 입출력) 기반 JSON 메시지로 MCP Server(Playwright 등)에 전달되어 실제 브라우저 조작이 일어난다. 결과(페이지 스냅샷 등)는 다시 LLM에게 돌아가 다음 행동의 근거가 된다.
+흐름을 풀어 쓰면 이렇다. 사용자의 자연어 요청은 Spring AI의 `ChatClient`에서 LLM으로 전달된다. LLM은 "지금 navigate 도구를 호출해야겠다"는 식으로 도구 호출을 결정한다. 그 호출은 MCP Client를 거쳐 STDIO(표준 입출력) 기반 JSON 메시지로 MCP Server(Playwright 등)에 전달되고, 실제 브라우저 조작이 일어난다. 결과(페이지 스냅샷 등)는 다시 LLM에게 돌아가 다음 행동의 근거가 된다.
 
 ## 2.1 Spring AI
 
@@ -117,7 +117,7 @@ Spring AI → MCP Client → [STDIO] → MCP Server → Playwright/Filesystem
 
 Ollama는 로컬 PC나 온프레미스 서버에서 오픈소스 LLM을 손쉽게 실행하게 해주는 도구다. Docker처럼 모델을 받아 관리하며, `ollama run llama3.2`처럼 간단한 명령으로 모델을 다운로드하고 실행한다. 이 프로젝트에서는 Gemini 대신 선택할 수 있는 로컬 LLM 옵션으로 썼다.
 
-내부망이나 민감 데이터를 테스트할 때 내용이 외부 API로 나가지 않는다는 점, 호출 비용이 들지 않는다는 점이 장점이다. 다만 로컬 모델은 같은 작업에서도 Gemini보다 도구 호출 판단이 부정확할 때가 있어, 정확도가 중요한 시나리오에는 Gemini를 썼다.
+내부망이나 민감 데이터를 테스트할 때 내용이 외부 API로 나가지 않고, 호출 비용도 들지 않는다. 다만 로컬 모델은 같은 작업에서도 Gemini보다 도구 호출 판단이 부정확할 때가 있어, 정확도가 필요한 시나리오에는 Gemini를 썼다.
 
 ---
 

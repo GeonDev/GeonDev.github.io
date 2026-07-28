@@ -212,7 +212,7 @@ id,이름,나이,거주지
 ### 1.2.1 Cursor 개념
 JDBC의 ResultSet은 Cursor를 구현한 클래스로 쿼리를 실행하기 위해서 Connection이 연결된 상태에서 Cursor의 위치를 한개씩 이동시키면서 데이터를 불러오게 되어 있다. 
 
-Cursor도 ItemStream(open() -> update() -> close())을 사용하지만, 실제 데이터 읽기는 ItemReader의 read()로 수행한다. open() 이후 read()를 반복 호출하며 한 건씩 읽고, update()는 진행 상태를 ExecutionContext에 기록(체크포인트)하는 역할이다. 모든 데이터를 읽었다는 기준은 **read()가 null을 반환**하는 것이다(update()가 아니다). 따라서 아래와 같은 특징을 갖고 있다.
+Cursor도 `ItemStream(open() -> update() -> close())`을 사용하지만, 실제 데이터 읽기는 `ItemReader`의 `read()`로 수행한다. `open()` 이후 `read()`를 반복 호출하며 한 건씩 읽고, `update()`는 진행 상태를 `ExecutionContext`에 기록하는 역할이다. 모든 데이터를 읽었다는 기준은 **`read()`가 null을 반환하는 시점**이다. 아래처럼 이해하면 된다.
 
 * 배치 처리가 완료될 때 까지 DB Connection이 연결  
 * DB Connection 빈도가 낮아 성능이 좋은 반면, 긴 Connection 유지 시간 필요  

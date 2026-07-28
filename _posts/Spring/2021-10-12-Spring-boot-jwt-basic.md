@@ -378,7 +378,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 # 5. JwtAuthorizationFilter 필터 생성
 
 JwtAuthorizationFilter는 생성된 JWT 토큰을 판단하는 기능을 수행합니다.
-전달 받은 JWT토큰에서 데이터를 확인하고 비밀키를 통해 정보를 해석한 후에 principalDetails을 생성하고
+전달받은 JWT 토큰에서 데이터를 확인하고 비밀키로 정보를 해석한 뒤 `principalDetails`를 생성하고
 생성된 principalDetails을 Authentication객체에 넣어 데이터를 저장하게 합니다.
 
 Authentication객체는 세션을 사용하게 되고  반드시 Authentication객체에 데이터를 넣을 필요는 없습니다.

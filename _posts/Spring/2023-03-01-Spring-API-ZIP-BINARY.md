@@ -191,6 +191,6 @@ DocumentBuilderFactory에 setIgnoringElementContentWhitespace를 생성하면 no
 
 document.getElementsByTagName()를 사용하여 NodeList를 받아온다. 이렇게 받아온 리스트에서 원하는 값을 출력하면 된다. 특이한 점은 NodeList 타입은 인터페이스여서 stream으로 처리가 안된다는 점, for 문을 이용하여 원하는 데이터를 뽑았다.
 
-Dart의 고유 번호에는 증권상장이 되지 않는 리스트도 포함되어 있기 때문에 빈값이 출력되는 것은 무시하고 stock_code를 저장할때도 [공공데이터포탈 - 주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) API에서는 앞자리에 A를 붙여서 반환 하기 때문에 DB 저장할때 이러한 점만 주의 하면 된다.
+Dart의 고유 번호에는 증권 상장이 되지 않은 리스트도 포함되어 있어 빈값이 출력될 수 있다. 이 값은 무시해도 된다. `stock_code`를 저장할 때도 [공공데이터포탈 - 주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) API는 앞자리에 `A`를 붙여 반환하므로 DB 저장 시 이 점만 주의하면 된다.
 
 전체 코드는 [github](https://github.com/GeonDev/quant)에 첨부한다.  
