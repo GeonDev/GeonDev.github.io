@@ -4,7 +4,7 @@ title: 동시성 제어를 위한 DB 락 (JPA 낙관적·비관적 락)
 date: 2026-06-28
 Author: Geon Son
 categories: Spring
-tags: [Database, Lock, JPA, Redis, MySQL, Concurrency]
+tags: [Database, Lock, JPA, Redis, MySQL, MSSQL, Concurrency]
 comments: true
 toc: true
 ---
@@ -22,7 +22,7 @@ toc: true
 - **낙관적 락(Optimistic Lock)** : 충돌이 드물다고 가정해 락을 걸지 않고, **버전(version) 컬럼**으로 갱신 시점에 충돌을 검사한다. 동시성은 좋지만 충돌이 잦으면 재시도 비용이 크다.
 
 이 글에서는 이 개념들을 **실제 코드로 어떻게 적용하는지**에 집중한다.
-JPA의 낙관적·비관적 락, MySQL의 Named Lock, Redis 분산 락을 예제 중심으로 다룬다.
+JPA의 낙관적·비관적 락, MySQL의 Named Lock, Redis 분산 락을 예제 중심으로 다루고, MSSQL 테이블 힌트는 부록에서 다룬다.
 
 예제는 아래 재고 엔티티를 기준으로 한다.
 
@@ -655,3 +655,91 @@ p.markPaid();
 > 이 글은 **여러 요청이 같은 데이터(행)를 동시에 갱신**하는 문제를 다뤘다.
 > 반면 **이중화된 배치·스케줄러가 같은 잡을 두 번 실행하는 문제**(ShedLock·`SKIP LOCKED`)는
 > 결이 달라 별도로 정리했다 — [이중화된 배치·스케줄러 중복 실행 막기](/Spring-batch-ha-dedup/)
+
+# 부록 A. MSSQL 테이블 힌트 (`NOLOCK`, `UPDLOCK`, `HOLDLOCK`)
+
+SQL Server에서는 쿼리의 `FROM` 절에 **테이블 힌트(table hint)** 를 붙여 잠금 동작을 조정할 수 있다.
+자주 보이는 `WITH (NOLOCK)`, `WITH (UPDLOCK)`, `WITH (HOLDLOCK)`은 용도가 완전히 다르다.
+
+## `WITH (NOLOCK)` — 커밋되지 않은 값도 읽기
+
+~~~sql
+SELECT *
+  FROM dbo.stock WITH (NOLOCK)
+ WHERE id = @id;
+~~~
+
+`NOLOCK`은 `READ UNCOMMITTED`와 같은 수준으로 읽어서, 다른 트랜잭션이 아직 커밋하지 않은 변경도 읽을 수 있다.
+공유 락을 잡지 않아 대기는 줄어들 수 있지만, 더티 리드가 발생하거나 같은 조회 중 행을 두 번 읽거나 건너뛸 수 있다.
+롤백될 데이터를 읽을 수 있으므로 재고·잔액·결제 상태처럼 정합성이 필요한 값에는 쓰면 안 된다.
+
+통계 화면이나 대략적인 모니터링처럼 **약간 오래되거나 일시적으로 부정확해도 되는 조회**에만 제한적으로 사용한다.
+`NOLOCK`이어도 테이블 스키마 변경과 관련된 스키마 안정성 락까지 모두 무시하는 것은 아니므로, “락이 전혀 없다”는 뜻은 아니다.
+
+## `WITH (UPDLOCK)` — 읽을 때 업데이트 락 예약
+
+재고처럼 **읽은 뒤 같은 트랜잭션에서 갱신할 행**은 `UPDLOCK`으로 읽을 수 있다.
+
+~~~sql
+BEGIN TRAN;
+
+SELECT id, quantity
+  FROM dbo.stock WITH (UPDLOCK)
+ WHERE id = @id;
+
+UPDATE dbo.stock
+   SET quantity = quantity - @count
+ WHERE id = @id
+   AND quantity >= @count;
+
+COMMIT;
+~~~
+
+`UPDLOCK`은 읽는 시점부터 업데이트 락(U)을 잡아 다른 트랜잭션이 같은 행을 동시에 갱신 대상으로 잡지 못하게 하고,
+트랜잭션이 끝날 때까지 유지한다. 실제 변경은 여전히 `UPDATE`가 수행하므로, 수량 조건과 영향받은 행 수 검사는 남겨 두는 편이 안전하다.
+반드시 트랜잭션 안에서 사용해야 하며, 조회 메서드만 별도 트랜잭션으로 끝나면 락도 바로 풀린다.
+`ROWLOCK`은 행 락을 선호하도록 요청하는 힌트일 뿐, 항상 행 락만 사용한다는 보장은 아니다.
+
+Spring Data JPA에서 SQL Server 전용 힌트를 직접 쓰려면 네이티브 쿼리를 사용한다.
+
+~~~java
+public interface StockRepository extends JpaRepository<Stock, Long> {
+
+    @Query(value = "SELECT * FROM dbo.stock WITH (UPDLOCK) WHERE id = :id", nativeQuery = true)
+    Stock findByIdForUpdate(@Param("id") Long id);
+}
+~~~
+
+`NOLOCK`은 조회 성능을 위해 정합성을 포기하는 선택이고, `UPDLOCK`은 읽은 뒤 갱신할 데이터의 경쟁을 줄이는 선택이므로 서로 대체재가 아니다.
+
+## `WITH (HOLDLOCK)` — 트랜잭션 동안 순차 처리
+
+`HOLDLOCK`은 해당 테이블을 `SERIALIZABLE` 격리 수준(동시에 실행돼도 순서대로 실행한 것처럼 보장)으로 읽게 하는 힌트다.
+공유 락을 트랜잭션 끝까지 유지하고 인덱스 범위를 함께 잠가, 다른 트랜잭션이 조회한 범위 안에 행을 INSERT하거나 조건을 만족하도록 변경하지 못하게 한다.
+
+특히 **조건에 맞는 행이 아직 없는 경우**에 유용하다. `UPDLOCK`만으로는 존재하는 행을 업데이트 대상으로 예약할 수 있지만,
+없는 행 자체에는 락을 걸 수 없다. `UPDLOCK, HOLDLOCK`을 함께 사용하면 인덱스 범위에 키 범위 락(range lock)을 잡아
+동시에 같은 조건으로 INSERT하는 경쟁을 막을 수 있다.
+
+~~~sql
+BEGIN TRAN;
+
+-- email에 UNIQUE 인덱스가 있고, 같은 이메일의 가입 시도를 직렬화
+SELECT id
+  FROM dbo.member WITH (UPDLOCK, HOLDLOCK)
+ WHERE email = @email;
+
+-- 조회 결과가 없을 때만 INSERT
+INSERT INTO dbo.member (email, name)
+SELECT @email, @name
+WHERE NOT EXISTS (
+    SELECT 1
+      FROM dbo.member
+     WHERE email = @email
+);
+
+COMMIT;
+~~~
+
+범위 락은 트랜잭션 대기와 데드락을 키울 수 있으므로, 조건 컬럼에 적절한 인덱스를 만들고 트랜잭션을 짧게 유지해야 한다.
+중복을 절대 허용하지 않는 데이터라면 `HOLDLOCK`만 믿기보다 **UNIQUE 제약을 함께 두는 것**이 최종 방어선이다.
