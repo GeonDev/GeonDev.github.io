@@ -9,6 +9,8 @@ comments: true
 toc: true    
 ---
 
+> 이 글은 Spring Boot 3.x와 Spring Batch 5.x 기준입니다.
+
 # 1. ItemProcessor interface 구조 이해
 
 * ItemReader에서 읽은 데이터를 가공 또는 Filtering
@@ -27,8 +29,10 @@ ItemProcessor <I,O> 의 형태로 선언하며 Input, output의 자료형을 명
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
@@ -43,18 +47,18 @@ import java.util.List;
 @Slf4j
 public class ItemProcessorConfiguration {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
 
-    public ItemProcessorConfiguration(JobBuilderFactory jobBuilderFactory,
-                                      StepBuilderFactory stepBuilderFactory) {
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+    public ItemProcessorConfiguration(JobRepository jobRepository,
+                                      PlatformTransactionManager transactionManager) {
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
     }
 
     @Bean
     public Job itemProcessorJob() {
-        return this.jobBuilderFactory.get("itemProcessorJob")
+        return new JobBuilder("itemProcessorJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.itemProcessorStep())
                 .build();
@@ -62,8 +66,8 @@ public class ItemProcessorConfiguration {
 
     @Bean
     public Step itemProcessorStep() {
-        return this.stepBuilderFactory.get("itemProcessorStep")
-                .<Person, Person>chunk(10)
+        return new StepBuilder("itemProcessorStep", jobRepository)
+                .<Person, Person>chunk(10, transactionManager)
                 .reader(itemReader())
                 .processor(itemProcessor())
                 .writer(itemWriter())

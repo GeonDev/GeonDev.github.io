@@ -9,15 +9,16 @@ comments: true
 toc: true    
 ---
 
+> 이 글은 Spring Boot 3.x와 Spring Batch 5.x 기준입니다.
+
 # 1. 스프링 배치란
-스프링 프레임워크 기반 배치 처리 시스템  
-작은 단위의 데이터 처리를 위한 tasklet, 큰 단위 처리를 위한 chunk  
+Spring Boot 3와 Spring Batch 5 기반 배치 처리 시스템  
+단순한 작업은 Tasklet, 반복적인 데이터 처리는 Chunk 방식으로 구현한다.  
 작업의 단위는 step / job으로 분류됨
 
 ## 1.1 스프링 배치 세팅
 
 ```java
-@EnableBatchProcessing
 @SpringBootApplication
 public class BatchApplication {
 
@@ -28,21 +29,19 @@ public class BatchApplication {
 }
 ```
 
-스프링 배치를 시작하기 위해서는 @EnableBatchProcessing를 추가하여 해당 애플리케이션이 스프링 배치로 실행된다는 것을 명시
+Spring Boot가 Spring Batch의 기본 인프라를 자동 구성하므로, 이 예제에서는 `@EnableBatchProcessing`을 사용하지 않는다. 해당 애노테이션을 추가하면 Boot의 Batch 자동 구성이 중단될 수 있다.
 
 ```java
 @Configuration
 @Slf4j
-@RequiredArgsConstructor
-@AllArgsConstructor
 public class HellowConfigration {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
 
     @Bean
     public Job helloJob(){
-        return jobBuilderFactory.get("helloJob")
+        return new JobBuilder("helloJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.helloStep())
                 .build();
@@ -50,21 +49,21 @@ public class HellowConfigration {
 
     @Bean
     public Step helloStep(){
-        return stepBuilderFactory.get("helloStep")
+        return new StepBuilder("helloStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     log.info("call");
                     return RepeatStatus.FINISHED;
-                } ).build();
+                }, transactionManager).build();
     }
 }
 ```
 
 Job 클래스는 스프링 배치에서 연산을 실행하는 단위, 생성된 Job을 실행시킴으로써 스프링 배치의 역할을 수행  
 하나의 Job은 최소 1개의 Step을 가질 수 있다.   
-JobBuilderFactory를 통하여 Job을 생성하고 이름(nameSpace)을 부여한다.
+`JobBuilder`를 통하여 Job을 생성하고 이름을 부여한다.
 
 Step은 스프링 배치에서 수행하는 연산의 최소 단위로 Job에 소속되어 있다.  
-StepBuilderFactory를 통하여 Step을 생성하고 이름(nameSpace)을 지정하여야 한다.
+`StepBuilder`를 통하여 Step을 생성하고 이름을 지정한다.
 
 ## 1.2 스프링 배치 실행 
 스프링 배치를 실행할 때 name을 설정하지 않으면 애플리케이션을 실행할 때 프로젝트의 모든 Job을 실행한다.  
@@ -75,14 +74,16 @@ application.yml 설정이 필요하다.
 spring:
   batch:
     job:
-      names: ${job.name:NONE}
+      enabled: ${job.enabled:false}
+      name: ${job.name:}
     # 스프링 배치가 데이터 테이블을 언제 생성할지 결정
-    initialize-schema: NEVER
+    jdbc:
+      initialize-schema: never
 
 ```
 
-job.name 이라는 argument가 전달되었을 때만 지정된 스프링 배치 잡이 실행되도록 설정하였다.  
-IntelliJ에서는 실행 시 다음과 같이 argument를 전달할 수 있다.
+`job.enabled=true`와 `job.name=helloJob` argument가 전달되었을 때 지정된 Job이 실행되도록 설정하였다.  
+IntelliJ에서는 `--job.enabled=true --job.name=helloJob`과 같이 argument를 전달할 수 있다.
 
 ![](/images/spring/gsljlerhyweilhf.png){: .align-center}
 
@@ -92,7 +93,7 @@ IntelliJ에서는 실행 시 다음과 같이 argument를 전달할 수 있다.
 ![](/images/spring/asdf4fqf-4fawfh.png){: .align-center}
 
 Spring Batch는 Job 클래스의 Bean이 생성되면 JobLauncher 객체에 의해서 Job을 수행한다.   
-JobRepository는 DB 또는 memory에 Spring Batch가 실행될 수 있도록 배치의 메타데이터를 관리하는 클래스이다
+JobRepository는 JDBC를 통해 Spring Batch 실행에 필요한 배치 메타데이터를 관리하는 클래스이다. Spring Batch 5에서는 기존 Map 기반 memory repository가 제거되었다.
 
 ### 1.3.1 Job
 job은 JobLauncher에 의해 실행되는 스프링 배치의 실행 단위  
@@ -166,16 +167,16 @@ Step이 실행되며 공유해야할 데이터를 직렬화해 저장
 JobInstance: BATCH_JOB_INSTANCE 테이블과 매핑  
 JobExecution: BATCH_JOB_EXECUTION 테이블과 매핑  
 JobParameters: BATCH_JOB_EXECUTION_PARAMS 테이블과 매핑  
-ExecutionContext: BATCH_JOB_EXECUTION_CONTEXT 테이블과 매핑
+JobExecutionContext: BATCH_JOB_EXECUTION_CONTEXT 테이블과 매핑
 
 JobInstance의 생성 기준은 JobParameters 중복 여부에 따라 생성된다.  
 다른 parameter로 Job이 실행되면 JobInstance가 생성된다.  
-같은 parameter로 Job이 실행되면, 이미 생성된 JobInstance가 실행된다.
+같은 parameter로 Job이 실행되면 기존 JobInstance를 대상으로 처리한다. 기존 실행이 실패·중단된 경우에는 새 JobExecution으로 재시작되고, 이미 성공한 JobInstance를 다시 실행하면 오류가 발생한다.
 
 처음 Job 실행 시, date parameter가 **01월01일**로 실행됐다면, 1번 JobInstance가 생성  
 다음 Job 실행 시, date parameter가 **01월02일**로 실행됐다면, 2번 JobInstance가 생성  
-다음 Job 실행 시, date parameter가 **01월02일**로 실행됐다면, 2번 JobInstance가 재실행  
-**이때 Job이 재실행 대상이 아닌 경우 에러가 발생**
+다음 Job 실행 시, date parameter가 **01월02일**로 실행됐다면, 2번 JobInstance에 대한 새 JobExecution이 생성된다.  
+이미 성공한 JobInstance이거나 Job이 재시작 불가능한 경우에는 에러가 발생한다.
 
 JobExecution은 (재실행 여부와 상관없이) 항상 새롭게 생성된다.  
 예제에서 처음 만들었던 Job은 파라미터가 없어 재실행되어야 하지만 RunIdIncrementer()를 사용하였기 때문에 항상 새롭게 시작한다.  
@@ -185,22 +186,21 @@ JobExecution은 (재실행 여부와 상관없이) 항상 새롭게 생성된다
 ### 1.5.2 StepExecution/ ExecutionContext 생성 기준
 StepExecution: BATCH_STEP_EXECUTION 테이블과 매핑  
 ExecutionContext: BATCH_STEP_EXECUTION_CONTEXT 테이블과 매핑  
-**ExecutionContext는 BATCH_JOB_EXECUTION_CONTEXT과 BATCH_STEP_EXECUTION_CONTEXT를 모두 매핑할 수 있다.**
+`JobExecutionContext`와 `StepExecutionContext`는 서로 다른 실행 컨텍스트이며 각각 별도 테이블에 저장된다.
 
 
 ## 1.6 데이터 공유
 ```java
 @Configuration
 @Slf4j
-@RequiredArgsConstructor
 public class SharedConfiguration {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
 
     @Bean
     public Job shareJob(){
-        return jobBuilderFactory.get("shareJob")
+        return new JobBuilder("shareJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.shareStep())
                 .next(this.shareStep2())
@@ -209,7 +209,7 @@ public class SharedConfiguration {
 
     @Bean
     public Step shareStep(){
-        return stepBuilderFactory.get("shareStep")
+        return new StepBuilder("shareStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
 
                     //contribution을 통하여 StepExecution을 받아옴
@@ -242,12 +242,12 @@ public class SharedConfiguration {
 
                     log.info("JobName : {}, stepName : {}, parameter : {} ", jobInstance.getJobName(), stepExecution.getStepName(), jobParameters.getLong("run.id"));
                     return RepeatStatus.FINISHED;
-                } ).build();
+                }, transactionManager).build();
     }
 
     @Bean
     public Step shareStep2(){
-        return stepBuilderFactory.get("shareStep2")
+        return new StepBuilder("shareStep2", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     StepExecution stepExecution = contribution.getStepExecution();
                     ExecutionContext stepExecutionContext = stepExecution.getExecutionContext();
@@ -258,13 +258,13 @@ public class SharedConfiguration {
                     //위에 shareStep에서 저장한 jobKey와 stepKey의 값을 호출함
                     log.info("JobKey : {}, stepKey : {}", jobExecutionContext.getString("jobKey", ""), stepExecutionContext.getString("stepKey", ""));
                     return RepeatStatus.FINISHED;
-                } ).build();
+                }, transactionManager).build();
     }
 }
 ```
 
-jobExecutionContext는 서로 다른 Step끼리 데이터를 공유할 수 있고  
-`stepExecutionContext`는 같은 Step 내부에서만 데이터를 공유할 수 있다. 위 코드를 실행하면
+`jobExecutionContext`는 같은 JobExecution의 서로 다른 StepExecution 사이에서 데이터를 공유할 수 있다.  
+`stepExecutionContext`는 하나의 StepExecution에 귀속되므로 다음 Step과 공유되지 않는다. 위 코드를 실행하면
 ```
 JobName : shareJob, stepName : shareStep, parameter : 1
 JobKey : job execution context, stepKey : 

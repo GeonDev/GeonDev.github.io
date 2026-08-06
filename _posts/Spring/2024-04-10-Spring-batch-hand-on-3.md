@@ -9,6 +9,8 @@ comments: true
 toc: true    
 ---
 
+> 이 글은 Spring Boot 3.x와 Spring Batch 5.x 기준입니다.
+
 # 1. ItemReader InterFace 구조 
 
 ![](/images/spring/sflkjasdfgas-asdfgasgh-sfrf.png){: .align-center}
@@ -86,19 +88,19 @@ public class Person {
 @Slf4j
 public class ItemReaderConfiguration {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
 
-    public ItemReaderConfiguration(JobBuilderFactory jobBuilderFactory,
-                                   StepBuilderFactory stepBuilderFactory) {
+    public ItemReaderConfiguration(JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager) {
 
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
     }
 
     @Bean
     public Job itemReaderJob() throws Exception {
-        return this.jobBuilderFactory.get("itemReaderJob")
+        return new JobBuilder("itemReaderJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.customItemReaderStep())
                 .build();
@@ -106,8 +108,8 @@ public class ItemReaderConfiguration {
 
     @Bean
     public Step customItemReaderStep() {
-        return this.stepBuilderFactory.get("customItemReaderStep")
-                .<Person, Person>chunk(10)
+        return new StepBuilder("customItemReaderStep", jobRepository)
+                .<Person, Person>chunk(10, transactionManager)
                 .reader(new CustomItemReader<>(getItems()))
                 .writer(itemWriter())
                 .build();
@@ -116,7 +118,7 @@ public class ItemReaderConfiguration {
     // Person의 name을 ,(콤마) 를 붙여 구분하면서 한줄로 출력
     private ItemWriter<Person> itemWriter() {
         return items -> log.info(
-            items.stream()
+            items.getItems().stream()
                 .map(Person::getName)
                 .collect(Collectors.joining(", ")));
     }
@@ -199,8 +201,8 @@ id,이름,나이,거주지
     // 생성한 csvFileItemReader을 실행시키기 위한 Step 세팅
     @Bean
     public Step csvFileStep() throws Exception {
-        return stepBuilderFactory.get("csvFileStep")
-                .<Person, Person>chunk(10)
+        return new StepBuilder("csvFileStep", jobRepository)
+                .<Person, Person>chunk(10, transactionManager)
                 .reader(this.csvFileItemReader())
                 .writer(itemWriter())
                 .build();
@@ -216,7 +218,7 @@ Cursor도 `ItemStream(open() -> update() -> close())`을 사용하지만, 실제
 
 * 배치 처리가 완료될 때 까지 DB Connection이 연결  
 * DB Connection 빈도가 낮아 성능이 좋은 반면, 긴 Connection 유지 시간 필요  
-* 하나의 Connection에서 처리되기 때문에, Thread Safe 하지 않음  
+* 하나의 Connection을 공유하므로 멀티스레드 Step에서 직접 사용하기에 안전하지 않음  
 * 커서를 이동시키며 한 건씩 읽어 들이므로, 결과 전체를 메모리에 적재하지 않음  
 
  
@@ -225,7 +227,7 @@ Cursor와 반대로 Connection을 짧게 유지하면서 데이터를 조회 하
 
 * 페이징 단위로 DB Connection을 연결  
 * DB Connection 빈도가 높아 비교적 성능이 낮은 반면, 짧은 Connection 유지 시간 필요  
-* 매번 Connection을 하기 때문에 Thread Safe  
+* 페이지 단위 조회를 사용하지만 멀티스레드 사용 여부는 실행 방식에 따라 확인 필요  
 * 페이징 단위의 결과만 메모리에 할당하기 때문에, 비교적 더 적은 메모리를 사용
 
 
@@ -254,11 +256,14 @@ values('아무개','25','강원');
 spring:
   batch:
     job:
-      names: ${job.name:NONE}
-    initialize-schema:
+      name: ${job.name:NONE}
+    jdbc:
+      initialize-schema: always
   datasource:
     driver-class-name: org.h2.Driver
-    data: classpath:person.sql
+  sql:
+    init:
+      data-locations: classpath:person.sql
 
 ~~~
 생성된 데이터 베이스를 연결해야 하기 때문에 이전에 구현하였던 ItemReaderConfiguration에  DataSource 필드를 추가하고 생성자를 다시 만들어 준다.
@@ -269,18 +274,18 @@ spring:
 public class ItemReaderConfiguration {
 
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
     
     //추가된 DataSource 클래스
     private final DataSource dataSource;
     
-    public ItemReaderConfiguration(JobBuilderFactory jobBuilderFactory,
-                                   StepBuilderFactory stepBuilderFactory,
+    public ItemReaderConfiguration(JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager,
                                    DataSource dataSource) {
 
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
         this.dataSource = dataSource;
     }
 
@@ -316,8 +321,8 @@ Job에 추가한 Step을 넣어준다. (Job은 이전 예제를 이어 사용)
 ~~~java
 @Bean
 public Step jdbcStep() throws Exception {
-    return stepBuilderFactory.get("jdbcStep")
-            .<Person, Person>chunk(10)
+    return new StepBuilder("jdbcStep", jobRepository)
+            .<Person, Person>chunk(10, transactionManager)
             .reader(jdbcCursorItemReader())
             .writer(itemWriter())
             .build();
@@ -327,7 +332,7 @@ public Step jdbcStep() throws Exception {
 
 @Bean
 public Job itemReaderJob() throws Exception {
-    return this.jobBuilderFactory.get("itemReaderJob")
+    return new JobBuilder("itemReaderJob", jobRepository)
             .incrementer(new RunIdIncrementer())
             .start(this.customItemReaderStep())
             .next(this.csvFileStep())
@@ -384,20 +389,20 @@ jdbc와 마찬가지로 jpa를 사용하기 위해서 EntityManagerFactory를 �
 public class ItemReaderConfiguration {
 
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
     private final DataSource dataSource;
 
     //EntityManagerFactory를 Injection 시킨다.
     private final EntityManagerFactory entityManagerFactory;
 
-    public ItemReaderConfiguration(JobBuilderFactory jobBuilderFactory,
-                                   StepBuilderFactory stepBuilderFactory,
+    public ItemReaderConfiguration(JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager,
                                    DataSource dataSource,
                                    EntityManagerFactory entityManagerFactory) {
 
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
         this.dataSource = dataSource;
         this.entityManagerFactory = entityManagerFactory;
     }
@@ -429,9 +434,9 @@ private JpaCursorItemReader<Person> jpaCursorItemReader() throws Exception {
 ~~~java
 @Bean
 public Step jpaStep() throws Exception {
-    return stepBuilderFactory.get("jpaStep")
+    return new StepBuilder("jpaStep", jobRepository)
             // Input을 Person 타입으로 Output을 Person으로 설정 
-            .<Person, Person>chunk(10)
+            .<Person, Person>chunk(10, transactionManager)
             .reader(this.jpaCursorItemReader())
             .writer(itemWriter())
             .build();
@@ -439,7 +444,7 @@ public Step jpaStep() throws Exception {
 
 @Bean
 public Job itemReaderJob() throws Exception {
-    return this.jobBuilderFactory.get("itemReaderJob")
+    return new JobBuilder("itemReaderJob", jobRepository)
             .incrementer(new RunIdIncrementer())
             .start(this.customItemReaderStep())
             .next(this.csvFileStep())

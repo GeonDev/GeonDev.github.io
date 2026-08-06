@@ -9,6 +9,8 @@ comments: true
 toc: true    
 ---
 
+> 이 글은 Spring Boot 3.x와 Spring Batch 5.x 기준입니다.
+
 # 1. Task 기반 배치와 Chunk 기반 배치 
 
 ## 1.1 Task 기반 배치
@@ -19,17 +21,17 @@ toc: true
 @Configuration
 @Slf4j
 public class TaskProcessConfiguration {
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
 
-    public TaskProcessConfiguration(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory) {
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+    public TaskProcessConfiguration(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
     }
 
     @Bean
     public Job taskProcessJob(){
-        return jobBuilderFactory.get("taskProcessJob")
+        return new JobBuilder("taskProcessJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.teskBaseStep())
                 .build();
@@ -37,8 +39,8 @@ public class TaskProcessConfiguration {
 
     @Bean
     public Step teskBaseStep(){
-        return stepBuilderFactory.get("teskBaseStep")
-                .tasklet(this.tesklet())
+        return new StepBuilder("teskBaseStep", jobRepository)
+                .tasklet(this.tesklet(), transactionManager)
                 .build();
     }
 
@@ -79,7 +81,7 @@ public class TaskProcessConfiguration {
 
             int chunkSize = 10;
             int formIndex = stepExecution.getReadCount();
-            int toIndex = formIndex + chunkSize;
+            int toIndex = Math.min(formIndex + chunkSize, items.size());
 
             if(formIndex >= items.size()){
                 return RepeatStatus.FINISHED;
@@ -108,18 +110,18 @@ Task - 10000개의 데이터를 한번에 수행/ 또는 수동으로 나누어�
 @Configuration
 @Slf4j
 public class ChunkProcessConfiguration {
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
 
-    public ChunkProcessConfiguration(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory) {
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+    public ChunkProcessConfiguration(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
     }
 
 
     @Bean
     public Job chunkProcessJob(){
-        return jobBuilderFactory.get("chunkProcessJob")
+        return new JobBuilder("chunkProcessJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.chunkBaseStep())
                 .build();
@@ -128,9 +130,9 @@ public class ChunkProcessConfiguration {
 
     @Bean
     public Step chunkBaseStep(){
-        return stepBuilderFactory.get("chunkBaseStep")
+        return new StepBuilder("chunkBaseStep", jobRepository)
                 // 100개의 데이터를 10개씩 나누겠다는 선언 
-                .<String, String>chunk(10)
+                .<String, String>chunk(10, transactionManager)
                 .reader(itemReader())
                 .processor(itemProcessor())
                 .writer(itemWriter())
@@ -178,8 +180,8 @@ public class ChunkProcessConfiguration {
 
 
 ItemReader에서 null을 반환할때 까지 Step 반복 -> 처리할 데이터가 없다는 의미  
-ItemReader와 ItemProcesser는 아이템을 1개 씩 받아서 처리하지만  
-ItemWriter는 아이템을 리스트로 받아서 처리 
+ItemReader와 ItemProcessor는 아이템을 1개씩 받아서 처리하지만  
+Spring Batch 5의 ItemWriter는 `Chunk<? extends T>`를 받아서 처리한다. 
 
 ### <INPUT, OUTPUT>chunk(int)
 예제 코드의 **<String, String>chunk(10)** 부분  
@@ -234,34 +236,30 @@ writer에서 List<OUTPUT>을 받아 write
 
 
 ## 2.2 Spring EL(Expression Language)로 접근
-**@Value(“#{jobParameters[key]}”)** 
-예제 1.2 에서 chunkBaseStep를 변경
+**@Value("#{jobParameters['key']}")** 
+JobParameters를 Bean 생성 시점에 주입하려면 해당 구성 요소를 `@StepScope`로 선언한다. `Step` 자체에는 scope를 선언하지 않는다.
 
 ```java
     @Bean
-    @JobScope
-    public Step chunkBaseStep(@Value("#{jobParameters[chunkSize]}") String chunkSize){
+    @StepScope
+    public Tasklet parameterizedTasklet(@Value("#{jobParameters['chunkSize']}") String chunkSize){
 
-        return stepBuilderFactory.get("chunkBaseStep")
-                .<String, String>chunk(StringUtils.hasText(chunkSize) ? Integer.parseInt(chunkSize) : 10 )
-                .reader(itemReader())
-                .processor(itemProcessor())
-                .writer(itemWriter())
-                .build();
+        return (contribution, chunkContext) -> {
+            int size = StringUtils.hasText(chunkSize) ? Integer.parseInt(chunkSize) : 10;
+            log.info("chunkSize: {}", size);
+            return RepeatStatus.FINISHED;
+        };
     }
 ```
 
 @Value 가 lombok의 value가 아니라 org.springframework.beans.factory.annotation.Value 라는 것에 주의  
-위 예제와 동일하게 chunkSize 변수가 있다면 해당 데이터로 없다면 10을 기본 값으로 하도록 생성  
-chunkBaseStep의 시그니처가 변경되었으므로 실행을 위해 chunkProcessJob에서 chunkBaseStep을 호출하는 것도 변경
+위 예제는 `chunkSize`가 있으면 해당 값을 사용하고, 없으면 10을 사용한다. `@StepScope`가 붙은 Tasklet은 Step 생성 시점이 아니라 Step 실행 시점에 JobParameters를 주입받는다.
 
 ```java
     @Bean
-    public Job chunkProcessJob(){
-        return jobBuilderFactory.get("chunkProcessJob")
-                .incrementer(new RunIdIncrementer())
-                // 파라메터의 null이 들어가도 환경 변수에 설정된 데이터를 받아온다.
-                .start(this.chunkBaseStep(null))
+    public Step parameterizedTaskletStep(){
+        return new StepBuilder("parameterizedTaskletStep", jobRepository)
+                .tasklet(this.parameterizedTasklet(null), transactionManager)
                 .build();
     }
 ```
@@ -269,8 +267,8 @@ chunkBaseStep의 시그니처가 변경되었으므로 실행을 위해 chunkPro
 
 ## 2.3 JobScope와 StepScope의 이해
 @Scope는 어떤 시점에 bean을 생성/소멸 시킬 지 bean의 lifecycle을 설정  
-스프링에서 @Scope는 싱글톤으로 구현되어 있음
-  * @JobScope는 job 실행 시점에 생성/소멸 -> Step에 선언  
+기본 `@Scope`는 singleton이며, Batch scope는 실행 시점에 객체를 생성한다.
+  * @JobScope는 Job 실행 시점에 생성·소멸 -> Job에 필요한 Bean에 선언  
   * @StepScope는 step 실행 시점에 생성/소멸 -> Tasklet, Chunk(ItemReader, ItemProcessor, ItemWriter) 에 선언
 
 예제의 ItemReader, ItemProcessor, ItemWriter는 @Bean 선언이 없었지만  
@@ -280,8 +278,8 @@ chunkBaseStep의 시그니처가 변경되었으므로 실행을 위해 chunkPro
 Spring의 @Scope과 같은 것 이기 때문에 @Scope의 속성중 ScopeName이 있는데 아래와 같이 선언하면 기능이 동일하게 작동  
 @Scope(“job”) ->  @JobScope / @Scope(“step”) -> @StepScope
 
-Job과 Step 라이프사이클에 의해 생성되기 때문에 Thread safe하게 작동  
-@Value(“#{jobParameters[key]}”)를 사용하기 위해 @JobScope와 @StepScope는 필수
+Scope는 실행별 Bean 인스턴스를 제공할 뿐 Thread-safe를 보장하지 않는다.  
+`@Value("#{jobParameters['key']}")` 같은 늦은 바인딩을 사용하는 Bean에는 해당 Bean에 `@JobScope` 또는 `@StepScope` 중 하나를 선언한다.
 
 2.1 예제에서 JobParameters 사용부분을 @StepScope 사용으로 변경해보면 
 
@@ -303,7 +301,7 @@ Job과 Step 라이프사이클에 의해 생성되기 때문에 Thread safe하�
             //JobParameters에서 chunkSize라는 이름의 변수값을 받음 / 없으면 10으로 세팅
             int chunkSize = Integer.parseInt(jobParameters.getString("chunkSize", "10"));
             int formIndex = stepExecution.getReadCount();
-            int toIndex = formIndex + chunkSize;
+            int toIndex = Math.min(formIndex + chunkSize, items.size());
 
             if(formIndex >= items.size()){
                 return RepeatStatus.FINISHED;
@@ -326,9 +324,9 @@ tesklet의 시그니처가 변경되었기 때문에 아래와 같이 teskBaseSt
 ```java
     @Bean
     public Step teskBaseStep(){
-        return stepBuilderFactory.get("teskBaseStep")
+        return new StepBuilder("teskBaseStep", jobRepository)
                 //tasklet이 bean으로 생성되었으므로 null을 넣더라도 스프링 라이프 사이클에서 파라메터를 넣어줌
-                .tasklet(this.tesklet(null))
+                .tasklet(this.tesklet(null), transactionManager)
                 .build();
     }
 ```

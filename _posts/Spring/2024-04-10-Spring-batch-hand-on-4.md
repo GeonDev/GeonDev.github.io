@@ -9,13 +9,15 @@ comments: true
 toc: true    
 ---
 
+> 이 글은 Spring Boot 3.x와 Spring Batch 5.x 기준입니다.
+
 # 1. ItemWriter InterFace 구조
 
 
 ![](/images/spring/fglqon-3nl5-sfnlwg4.png){: .align-center}
 
 * ItemWriter는 마지막으로 배치 처리 대상 데이터를 어떻게 처리할 지 결정  
-* Step에서 ItemWriter는 필수
+* Chunk 기반 Step에서 ItemWriter는 필수이며, Tasklet Step에서는 사용하지 않는다.
 * 데이터 처리 과정의 마지막 처리를 담당(삭제, 업데이트 등 기능 수행)
 
 
@@ -30,25 +32,25 @@ ItemWriter는 **csvFileItemWriter** 라는 이름으로 설정하였다.
 @Slf4j
 public class ItemWriterConfiguration {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
     private final DataSource dataSource;
     private final EntityManagerFactory entityManagerFactory;
 
-    public ItemWriterConfiguration(JobBuilderFactory jobBuilderFactory,
-                                   StepBuilderFactory stepBuilderFactory,
+    public ItemWriterConfiguration(JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager,
                                    DataSource dataSource,
                                    EntityManagerFactory entityManagerFactory) {
 
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
         this.dataSource = dataSource;
         this.entityManagerFactory = entityManagerFactory;
     }
 
     @Bean
     public Job itemWriterJob() throws Exception {
-        return this.jobBuilderFactory.get("itemWriterJob")
+        return new JobBuilder("itemWriterJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.csvItemWriterStep())
                 .build();
@@ -56,8 +58,8 @@ public class ItemWriterConfiguration {
 
     @Bean
     public Step csvItemWriterStep() throws Exception {
-        return this.stepBuilderFactory.get("csvItemWriterStep")
-                .<Person, Person>chunk(10)
+        return new StepBuilder("csvItemWriterStep", jobRepository)
+                .<Person, Person>chunk(10, transactionManager)
                 .reader(itemReader())
                 .writer(csvFileItemWriter())
                 .build();
@@ -145,22 +147,22 @@ jdbc를 사용하기 때문에 당연히 DataSource를 사용한다. 생성자�
 @Slf4j
 public class ItemWriterConfiguration {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
     private final DataSource dataSource;
 
-    public ItemWriterConfiguration(JobBuilderFactory jobBuilderFactory,
-                                   StepBuilderFactory stepBuilderFactory,
+    public ItemWriterConfiguration(JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager,
                                    DataSource dataSource) {
 
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
         this.dataSource = dataSource;
     }
 
     @Bean
     public Job itemWriterJob() throws Exception {
-        return this.jobBuilderFactory.get("itemWriterJob")
+        return new JobBuilder("itemWriterJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.jdbcBatchItemWriterStep())
                 .build();
@@ -168,8 +170,8 @@ public class ItemWriterConfiguration {
 
     @Bean
     public Step jdbcBatchItemWriterStep() {
-        return stepBuilderFactory.get("jdbcBatchItemWriterStep")
-                .<Person, Person>chunk(10)
+        return new StepBuilder("jdbcBatchItemWriterStep", jobRepository)
+                .<Person, Person>chunk(10, transactionManager)
                 .reader(itemReader())
                 .writer(jdbcBatchItemWriter())
                 .build();
@@ -203,22 +205,22 @@ jpa를 사용하기 위해 EntityManagerFactory를 추가한다.
 @Slf4j
 public class ItemWriterConfiguration {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
     private final EntityManagerFactory entityManagerFactory;
 
-    public ItemWriterConfiguration(JobBuilderFactory jobBuilderFactory,
-                                   StepBuilderFactory stepBuilderFactory,
+    public ItemWriterConfiguration(JobRepository jobRepository,
+                                   PlatformTransactionManager transactionManager,
                                    EntityManagerFactory entityManagerFactory) {
 
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
         this.entityManagerFactory = entityManagerFactory;
     }
 
     @Bean
     public Job itemWriterJob() throws Exception {
-        return this.jobBuilderFactory.get("itemWriterJob")
+        return new JobBuilder("itemWriterJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(this.jpaItemWriterStep())
                 .build();
@@ -226,8 +228,8 @@ public class ItemWriterConfiguration {
 
     @Bean
     public Step jpaItemWriterStep() throws Exception {
-        return stepBuilderFactory.get("jpaItemWriterStep")
-                .<Person, Person>chunk(10)
+        return new StepBuilder("jpaItemWriterStep", jobRepository)
+                .<Person, Person>chunk(10, transactionManager)
                 .reader(itemReader())
                 .writer(jpaItemWriter())
                 .build();
@@ -243,4 +245,3 @@ public class ItemWriterConfiguration {
     }
 }
 ```
-
