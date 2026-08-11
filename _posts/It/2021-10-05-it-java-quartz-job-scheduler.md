@@ -9,9 +9,6 @@ comments: true
 toc: true
 ---
 
-> 라이브러리 다운로드
-http://www.quartz-scheduler.org/downloads/
-
 
 일정 시간, 주기적으로 작동되는 배치 프로그램을 만들 때 사용하는 라이브러리다. 서로 다른 DB의 데이터를 마이그레이션 하거나 주기별로 DB 데이터를 동기화 시키는 데몬을 만들게 되어 사용 방법을 정리한다.
 
