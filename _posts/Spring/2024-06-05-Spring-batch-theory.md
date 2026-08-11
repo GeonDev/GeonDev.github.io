@@ -285,6 +285,61 @@ JobParameters를 설계할 때는 이 값이 JobInstance 식별에 포함되는�
 실무에서는 날짜나 파일 경로를 식별 파라미터로 사용하고, 실행 시각을 무조건 식별 파라미터로 넣지 않도록 주의한다.
 실행 시각을 매번 넣으면 실패한 작업을 같은 JobInstance로 재시작할 수 없게 된다.
 
+## 3.4 Job과 Step 사이의 값 전달 범위
+
+배치에서 값이 어디까지 공유되는지는 **값을 저장한 위치**로 결정된다.
+특히 `JobParameters`와 `ExecutionContext`를 같은 종류의 변수처럼 생각하면 안 된다.
+
+| 값의 위치 | 읽을 수 있는 범위 | 변경·재시작 여부 | 주 용도 |
+| --- | --- | --- | --- |
+| `JobParameters` | 해당 Job의 모든 Step | 실행 중 변경 불가, 재시작 시 동일 값 사용 | 날짜, 파일 경로, 실행 옵션 |
+| `JobExecutionContext` | 같은 JobExecution의 모든 Step | 변경 가능, 메타데이터에 저장 | Step 간 공유할 작은 값 |
+| `StepExecutionContext` | 해당 StepExecution | 변경 가능, 해당 Step 재시작을 위해 저장 | Reader 위치, Step 처리 상태 |
+| Bean의 지역 변수·필드 | 해당 Bean 인스턴스 내부 | 메타데이터에 자동 저장되지 않음 | 현재 실행 중인 임시 상태 |
+
+공유 범위는 다음처럼 기억하면 된다.
+
+```text
+JobParameters ───────────────────────────────┐
+                                             │ 읽기
+JobExecutionContext ── Step 1 ── Step 2 ── Step 3
+                         │          │          │
+                         └─ StepExecutionContext
+                            (각 Step마다 별도)
+```
+
+예를 들어 실행 시 전달한 `input.file`은 모든 Step에서 `jobParameters`로 읽을 수 있다.
+반면 Step 1이 계산한 `totalAmount`를 Step 2에서 사용하려면 Job 수준의
+`ExecutionContext`에 저장해야 한다.
+
+```java
+// Step 1
+stepExecution.getJobExecution().getExecutionContext()
+        .put("totalAmount", totalAmount);
+
+// Step 2
+Long totalAmount = stepExecution.getJobExecution()
+        .getExecutionContext().getLong("totalAmount");
+```
+
+Step 코드에서 `stepExecution.getExecutionContext().put(...)`으로 저장한 값은
+해당 Step의 재시작 상태다. 다음 Step에서 자동으로 보이지 않으므로 Step 간에
+전달하려면 `JobExecutionContext`로 승격하거나 `ExecutionContextPromotionListener`를 사용해야 한다.
+
+반대로 단순히 메서드의 지역 변수나 `@StepScope` Bean의 필드에 값을 넣는 것만으로는
+다음 Step에 전달되지 않는다. 해당 객체의 생명주기가 끝나고, 그 값도
+`JobRepository`에 저장되지 않기 때문이다.
+
+정리하면 다음과 같다.
+
+- 외부에서 실행마다 받는 값 → `JobParameters`
+- 여러 Step이 읽어야 하는 실행 상태 → `JobExecutionContext`
+- 한 Step의 재시작 위치·상태 → `StepExecutionContext`
+- 한 번의 호출 안에서만 필요한 값 → 지역 변수
+
+`JobParameters`를 제외한 실행 상태는 값을 저장한 뒤 커밋되어야 재시작 시 복원된다.
+따라서 Step 간에 값을 전달할 때는 값의 범위뿐 아니라 저장 시점과 커밋 여부도 함께 확인해야 한다.
+
 # 4. 배치 메타데이터 테이블
 
 JDBC 기반 JobRepository는 실행 상태를 다음 메타데이터 테이블에 저장한다.
