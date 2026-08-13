@@ -32,6 +32,14 @@ layout: null
 
 {% for page in site.pages %}
 
+  {% comment %}
+    Front matter가 있는 SCSS도 Jekyll page로 수집되어 /style.css로 생성된다.
+    사이트맵에는 실제 문서 페이지인 HTML과 Markdown 페이지만 포함한다.
+  {% endcomment %}
+  {% unless page.ext == ".html" or page.ext == ".md" %}
+    {% continue %}
+  {% endunless %}
+
   {% assign pass = false %}
 
   {% for fuzzy in site.sitemap_exclude.fuzzy %}
