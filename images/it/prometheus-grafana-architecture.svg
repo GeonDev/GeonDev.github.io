@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">Prometheus와 Grafana 모니터링 구조</title>
+  <desc id="desc">Spring 서비스와 컨테이너 런타임의 메트릭을 Prometheus가 수집하고 Grafana가 시각화하는 구조</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0f172a" flood-opacity=".12"/></filter>
+  </defs>
+  <rect width="1200" height="620" fill="#f8fafc"/>
+  <text x="600" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#0f172a">Prometheus + Grafana 모니터링 구조</text>
+
+  <g filter="url(#shadow)">
+    <rect x="90" y="130" width="300" height="145" rx="18" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>
+    <text x="240" y="178" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#075985">Spring 서비스</text>
+    <text x="240" y="218" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#0c4a6e">/actuator/prometheus</text>
+    <text x="240" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#075985">JVM · HTTP · 커넥션 풀</text>
+
+    <rect x="810" y="130" width="300" height="145" rx="18" fill="#fef3c7" stroke="#d97706" stroke-width="3"/>
+    <text x="960" y="178" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#92400e">컨테이너 런타임</text>
+    <text x="960" y="218" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#78350f">cAdvisor</text>
+    <text x="960" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#92400e">CPU · 메모리 · 네트워크 · OOM</text>
+
+    <rect x="300" y="350" width="600" height="120" rx="18" fill="#dcfce7" stroke="#16a34a" stroke-width="3"/>
+    <text x="600" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#166534">Prometheus</text>
+    <text x="600" y="438" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#166534">메트릭 수집 · 시계열 저장 · TSDB 7일 보관</text>
+
+    <rect x="390" y="535" width="420" height="65" rx="16" fill="#ede9fe" stroke="#7c3aed" stroke-width="3"/>
+    <text x="600" y="577" text-anchor="middle" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#5b21b6">Grafana · 대시보드 시각화</text>
+  </g>
+
+  <path d="M 240 275 C 240 315, 380 325, 430 350" fill="none" stroke="#64748b" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="275" y="319" font-family="Arial, sans-serif" font-size="17" fill="#475569">30초 주기 scrape</text>
+  <path d="M 960 275 C 960 315, 820 325, 770 350" fill="none" stroke="#64748b" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="805" y="319" font-family="Arial, sans-serif" font-size="17" fill="#475569">30초 주기 scrape</text>
+  <path d="M 600 470 L 600 535" fill="none" stroke="#64748b" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="625" y="510" font-family="Arial, sans-serif" font-size="17" fill="#475569">PromQL 쿼리</text>
+</svg>

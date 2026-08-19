@@ -24,25 +24,13 @@ toc: true
 - **Grafana** — Prometheus에 쌓인 데이터를 대시보드로 시각화한다. 잘 만들어진 대시보드를 ID만으로 가져다 쓸 수 있어서 처음 세팅 비용이 적다.
 - **cAdvisor** — 컨테이너 단위로 메모리/CPU/네트워크, 그리고 OOM 발생을 수집할 수 있다. 앱 내부(JVM)가 아니라 **컨테이너 바깥에서 본 리소스**다. macOS(Colima/Docker Desktop)에서는 컨테이너별 메트릭이 제한될 수 있어 JVM 힙 메트릭이나 `docker stats`를 함께 확인할 수 있다.
 
-정리하면 **앱 메트릭은 Actuator → Prometheus**, **컨테이너 메트릭은 cAdvisor → Prometheus**, 그리고 **둘 다 Grafana로 시각화**하는 구조다. 연결 후에는 JVM 힙, HTTP 지연, 커넥션 풀 등 필요한 메트릭을 선택해 볼 수 있다.
+구성한 흐름은 **앱 메트릭은 Actuator → Prometheus**, **컨테이너 메트릭은 cAdvisor → Prometheus**, **조회는 Grafana**다. 이 구성에서 JVM 힙, HTTP 지연, 커넥션 풀 메트릭을 확인했다.
 
 # 2. 전체 구조
 
-```
-[Spring 서비스들]            [컨테이너 런타임]
- /actuator/prometheus         cAdvisor
-        │                        │
-        │  (30s 주기 scrape)     │
-        ▼                        ▼
-   ┌─────────────────────────────────┐
-   │          Prometheus             │  메트릭 수집/저장 (TSDB, 7일 보관)
-   └────────────────┬────────────────┘
-                    │  (PromQL 쿼리)
-                    ▼
-   ┌─────────────────────────────────┐
-   │            Grafana              │  대시보드 시각화
-   └─────────────────────────────────┘
-```
+![Spring Actuator, cAdvisor, Prometheus, Grafana의 메트릭 수집 및 시각화 구조](/images/it/prometheus-grafana-architecture.svg){: .align-center}
+
+*Spring 서비스와 컨테이너 런타임의 메트릭을 Prometheus가 수집하고 Grafana가 시각화하는 구조다.*
 
 아래는 컨테이너로 구성할 수 있는 예시다.
 
@@ -412,8 +400,6 @@ Prometheus **Status > Targets**에서 빨갛게 뜨는 job을 먼저 확인한�
 
 cAdvisor가 컨테이너마다 시계열을 많이 만들기 때문에, 실질적인 안전장치는 용량(`size`) 쪽이다. 디스크가 빠듯하면 `size`를 줄이거나, cAdvisor job에 `scrape_interval: 60s`를 줘서 수집 빈도를 낮추면 된다.
 
-# 7. 마치며
+# 7. 운영 시 확인할 항목
 
-이 글에서는 **Actuator → Prometheus → Grafana** 연결 구조와, 이 연결 이후 적용할 수 있는 모니터링 방법을 정리했다. 현재 구성한 범위는 기본 연결이며, OOM 분석·알림·커스텀 메트릭·보관 주기 조정은 서비스 요구에 따라 추가할 수 있다.
-
-운영 환경에서는 메트릭 엔드포인트의 외부 노출을 줄이고, 모니터링 컨테이너 자체의 리소스 상한과 보관 주기를 관리해야 한다. 이후 Loki 같은 로그 수집 도구나 Tempo·Zipkin 같은 분산 추적 도구를 연결하면, 메트릭 이상을 로그와 trace로 더 깊게 분석하는 흐름을 구성할 수 있다.
+현재 구성은 메트릭 수집과 대시보드 조회까지다. 운영에 적용할 때는 메트릭 엔드포인트의 외부 노출을 줄이고, 모니터링 컨테이너의 리소스 상한과 TSDB 보관 주기를 먼저 정해야 한다. OOM 원인 분석이나 장애 추적은 별도의 로그·trace 수집 구성이 필요하다.

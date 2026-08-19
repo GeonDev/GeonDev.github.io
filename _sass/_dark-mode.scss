@@ -27,7 +27,7 @@ $dark-code-bg: #2d2d2d;
   }
 
   .site-name a {
-    color: $dark-text;
+    color: #fff;
   }
 
   .site-description {
@@ -54,9 +54,44 @@ $dark-code-bg: #2d2d2d;
     border-bottom: 1px solid $dark-border;
   }
 
-  .post {
+  .post,
+  .posts {
     h1, h2, h3, h4, h5, h6 {
       color: $dark-text;
+    }
+  }
+
+  // 본문 기본 스타일이 body의 색상을 덮어쓰지 않도록 게시글 영역의
+  // 텍스트 요소를 다크 테마 색상으로 통일한다.
+  .post,
+  .posts,
+  .post .entry,
+  .posts .entry {
+    color: $dark-text;
+
+    p, li, td, th, dt, dd {
+      color: $dark-text;
+    }
+
+    tbody tr:nth-child(odd) td,
+    tbody tr:nth-child(odd) th {
+      background-color: $dark-bg-secondary;
+    }
+
+    blockquote p {
+      color: $dark-text-secondary;
+    }
+
+    // 오래된 게시글의 인라인 강조색은 어두운 배경에서 읽을 수 있는 색으로 보정한다.
+    [style*="color:red"],
+    [style*="color: red"] {
+      color: #ff8787 !important;
+    }
+
+    [style*="background-color:#fff5b1"],
+    [style*="background-color: #fff5b1"] {
+      background-color: #665c2e !important;
+      color: $dark-text !important;
     }
   }
 

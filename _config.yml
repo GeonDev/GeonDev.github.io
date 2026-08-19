@@ -83,4 +83,11 @@ exclude:
   - README.md
   - CNAME
 
+# 검색 결과에 노출할 가치가 없는 유틸리티 페이지는 sitemap에서 제외한다.
+sitemap_exclude:
+  accurate:
+    - /404.html
+    - /feed.xml
+    - /sitemap.xml
+
 excerpt_separator: ---
