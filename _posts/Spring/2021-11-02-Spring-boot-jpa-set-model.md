@@ -150,36 +150,42 @@ public class ImageKeyword implements Serializable{
 
 ### 타입 매핑이 인덱스를 좌우한다 (nvarchar 암시적 변환)
 
-엔티티 매핑에서는 String 필드가 DB에 **어떤 문자 타입으로 바인딩되는지** 확인해야 한다. mssql-jdbc 드라이버는 기본적으로 모든 String 파라미터를 nvarchar로 전송한다(`sendStringParametersAsUnicode` 기본값 true).
+엔티티 매핑에서는 String 필드가 DB에 **어떤 문자 타입으로 바인딩되는지** 확인해야 한다. SQL Server JDBC Driver의 `sendStringParametersAsUnicode` 기본값은 `true`다. 이 상태에서는 `PreparedStatement.setString()`이나 JDBC `VARCHAR` 타입으로 지정한 String 파라미터도 드라이버가 서버에 보낼 때 Unicode 타입으로 변환한다. `CHAR`, `VARCHAR`, `LONGVARCHAR`가 각각 `NCHAR`, `NVARCHAR`, `LONGNVARCHAR`로 전송된다.
 
-MSSQL의 타입 우선순위는 nvarchar가 varchar보다 높다. 조회 조건 컬럼이 `varchar`면 비교 과정에서 **컬럼 쪽이** nvarchar로 암시적 변환된다. 실행계획에는 `CONVERT_IMPLICIT`로 표시된다.
+여기서 SQL Server의 데이터 형식 우선순위가 문제를 만든다. `nvarchar`의 우선순위가 `varchar`보다 높기 때문에 nvarchar 파라미터와 varchar 컬럼을 비교하면 **컬럼 쪽이** nvarchar로 묵시적 변환된다. 실행계획에는 `CONVERT_IMPLICIT`로 표시된다.
 
 컬럼 변환은 컬럼에 함수를 적용한 것과 같아서 **인덱스 seek을 막는다.** 쿼리와 인덱스가 정상인데 실행계획이 스캔으로 나온다면 바인딩 타입을 확인해야 한다. 실제로 바인딩을 varchar로 맞추자 논리 I/O가 2,403페이지에서 38페이지로 줄었다.
+
+이 동작은 [Microsoft의 `sendStringParametersAsUnicode` 문서](https://learn.microsoft.com/en-us/sql/connect/jdbc/reference/setsendstringparametersasunicode-method-sqlserverdatasource)와 [SQL Server 데이터 형식 우선순위](https://learn.microsoft.com/en-us/sql/t-sql/data-types/data-type-precedence-transact-sql)에서 확인할 수 있다.
 
 MySQL은 varchar와 nvarchar 타입을 구분하지 않고 컬럼별 문자셋·콜레이션으로 처리한다. 바인딩 파라미터는 콜레이션 강제성(coercibility)이 낮아 비교 시 컬럼 쪽 콜레이션을 따라간다. 변환이 필요하면 컬럼이 아니라 파라미터 쪽이 바뀌므로 인덱스를 사용할 수 있다.
 
 단, 조인하는 두 컬럼의 문자셋이 utf8mb4와 latin1처럼 서로 다르면 MySQL에서도 인덱스를 사용하지 못할 수 있다. 같은 JPA 코드라도 DB와 컬럼 타입에 따라 실행계획이 달라진다.
 
-단순히 드라이버 옵션을 false로 바꾸면 이번에는 진짜 nvarchar 컬럼들이 반대 방향의 변환 문제를 겪는다. 그래서 세 단계 구성으로 **문제의 varchar 컬럼 하나만** varchar로 보냈다. (Hibernate 6 기준)
+실제 적용에서는 JDBC URL에 `sendStringParametersAsUnicode=false`를 추가했다. 드라이버가 일반 String 파라미터를 varchar로 전송하므로 varchar 컬럼 조회에서 불필요한 암시적 변환이 사라진다.
 
 ```yaml
-# ① 드라이버: String을 varchar로 전송
 spring:
   datasource:
-    data-source-properties:
-      sendStringParametersAsUnicode: false
+    jdbc-url: jdbc:sqlserver://DB_HOST:1433;databaseName=DB_NAME;sendStringParametersAsUnicode=false
 ```
+
+이 설정은 모든 일반 String 바인딩에 적용된다. 실제 DB 컬럼이 nvarchar인 필드에는 Hibernate의 `@Nationalized`를 붙여 nationalized string으로 매핑했다.
 
 ```java
-// ② Hibernate: 모든 String을 기존처럼 nvarchar(setNString) 바인딩으로 복원
-properties.put("hibernate.use_nationalized_character_data", "true");
+import org.hibernate.annotations.Nationalized;
 
-// ③ 문제의 varchar 컬럼에만 varchar 바인딩 지정
-@JdbcTypeCode(Types.VARCHAR)
+// DB 컬럼: varchar
 private String boardCode;
+
+// DB 컬럼: nvarchar
+@Nationalized
+private String boardName;
 ```
 
-이 구성은 실패하는 방향이 안전하다. ③을 지정하지 않은 컬럼은 기존과 동일하게 nvarchar로 동작하므로, 지정을 놓친 대가는 "성능 미개선"일 뿐 데이터 손상이 아니다. 다만 네이티브 쿼리의 String 파라미터에는 ③이 적용되지 않는다는 한계가 있다.
+`@Nationalized`를 빠뜨린 nvarchar 필드는 varchar로 바인딩될 수 있다. 특히 한글 같은 유니코드 값을 저장하거나 조회하는 필드는 DB 컬럼 타입과 엔티티 매핑을 함께 확인해야 한다.
+
+네이티브 쿼리 파라미터는 엔티티 필드 매핑 정보를 사용하지 않을 수 있다. nvarchar 파라미터가 필요한 네이티브 쿼리는 실제 JDBC 바인딩 타입과 실행계획을 별도로 확인했다.
 
 그리고 이렇게 연관관계 매핑을 하면서 상당히 삐그덕 거리는 일이 발생했다.
 

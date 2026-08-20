@@ -13,23 +13,29 @@ toc: true
 
 # 1. MSSQL의 특징
 
-여러 가지를 검색해보고 알게 된 점은, 이런 현상이 생길 때 대부분 WHERE 절 조건이 VARCHAR라는 점이었다. MSSQL은 VARCHAR형 데이터를 비교할 때 NVARCHAR형으로 변환해 비교한다고 한다. VARCHAR와 NVARCHAR의 차이점은 오라클의 VARCHAR2와 VARCHAR 관계와 비슷하다고 보면 된다. 즉 데이터 크기를 가변으로 둘지 아닐지의 차이로 보인다. 회사에서는 DB를 MySQL과 MSSQL 두 가지를 함께 써서 각 데이터베이스만 지원하는 타입은 최대한 피하고 테이블을 구성했다. 그 결과 쿼리를 쓸 때마다 강제 타입 캐스팅이 일어나고 **수행되는 쿼리 타입이 달라져 인덱스를 아무리 걸어도 동작하지 않는다.** 이 부분이 핵심으로 보인다.
+문제가 발생한 조회 조건 컬럼은 `varchar`였다. SQL Server JDBC Driver는 `sendStringParametersAsUnicode`의 기본값이 `true`라 String 파라미터를 Unicode 타입으로 전송한다. `PreparedStatement.setString()`이나 MyBatis의 `jdbcType=VARCHAR`를 사용해도 드라이버가 `VARCHAR`를 `NVARCHAR`로 변환해 서버에 보낸다.
+
+SQL Server에서는 `nvarchar`의 데이터 형식 우선순위가 `varchar`보다 높다. 따라서 nvarchar 파라미터와 varchar 컬럼을 비교하면 우선순위가 낮은 **컬럼 쪽에** `CONVERT_IMPLICIT(nvarchar, ...)`가 적용된다. 이 묵시적 변환 때문에 varchar 컬럼의 인덱스 seek이 막히고 scan으로 실행됐다.
+
+JDBC Driver의 변환은 [Microsoft의 `sendStringParametersAsUnicode` 문서](https://learn.microsoft.com/en-us/sql/connect/jdbc/reference/setsendstringparametersasunicode-method-sqlserverdatasource)에 명시되어 있다. 묵시적 변환 방향은 [SQL Server 데이터 형식 우선순위](https://learn.microsoft.com/en-us/sql/t-sql/data-types/data-type-precedence-transact-sql)를 따른다.
 
 # 2. Mybatis의 특징
 
-사실 특징이라고 하기 보단 사용법에 가깝다. mybatis에서 사용하면서 파라미터 값을 받기 위해서 #{value} 형태로 데이터를 출력하는 경우가 많았을 것이다.  그런데 ${value} 을 이용할수도 있다. 차이점은 Preparedstatement와 Statement의 차이다. 대부분 공부를 했을때 **preparedstatement가 쿼리를 미리 생성하고 데이터를 넣기 때문에 성능에 유리하다!** 라고 배웠을 것 같다.
+MyBatis의 `#{value}`는 `PreparedStatement` 파라미터로 바인딩된다. 문제는 `PreparedStatement` 자체가 아니라 SQL Server JDBC Driver가 String 파라미터를 전송하는 방식이었다.
 
-나도 그렇게 생각하고 있었고 대부분 맞는 말 이지만 사실 기능을 조금 분리해서 사용하면 더 좋은 상황이 발생하기도 한다. **Statement**는 쿼리에 데이터를 삽입할때 별도의 변환을 수행하지 않고 전달 값을 그대로 넣게 된다. 말그대로 텍스트를 삽입하게 된다. **preparedstatement** 는 데이터를 삽입할때 데이터의 타입에 따라 알아서 변경을 해준다. 텍스트를 삽입할경우 ''같은 키워드를 자동으로 삽입해주고 형변환 등 작업을 수행해 줄수 있어 비교적 안정적으로 관리가 가능하다. 단, 실행계획이 꼬이지 않는다는 가정하에....
+당시에는 `${value}`를 사용하면 값이 SQL 문자열에 그대로 들어가므로 드라이버의 파라미터 바인딩을 우회할 수 있다고 생각했다. `#{value}`와 `${value}`의 실행 결과가 달랐던 이유도 여기에 있었다.
 
-# 3. 쿼리 수정
+다만 `${value}`는 작은따옴표나 LIKE 패턴까지 직접 조합해야 한다. 사용자 입력이 포함되면 SQL Injection도 발생할 수 있다. Service나 Controller에서 문자열을 검사하는 방식만으로는 완전히 막을 수 없으므로 최종 해결책으로 사용할 수는 없다.
 
-쿼리 수정은 정말 간단하다. #{value} 를 ${value} 형태로 변경하면 된다. 여기서 주의 할 점은 스트링 타입을 사용하기 위해서는 ''(작은 따옴표)를 추가해서 데이터를 넣어야 한다는 것이다. LIKE연산을 수행할때도 Statement는 별도로 변환을 시켜주지 않는다. 쿼리 입력시
+# 3. 처음 시도한 `${}` 치환
+
+처음에는 `#{value}`를 `${value}`로 바꿨다. String과 LIKE 조건을 사용하려면 작은따옴표와 `%`도 SQL에 직접 넣어야 했다.
 
 ```sql
 SELECT * FROM table WHERE id LIKE '%' + '${value}' + '%'
 ```
 
-이런 방식으로 쿼리를 작성해 주어야 한다. 또한 Statement로 쿼리를 작성할 경우 변경없이 그대로 변수를 넣어주기 때문에 쿼리문을 삽입해 버리는 것 같은 문제가 발생할수도 있다. 그래서 이부분은 Service나 Controller에서 문제점을 확인하고 막아줄수 있는 코드를 작성해야 추후에 문제점을 막을수 있다.
+이 방식에서는 느린 조회가 사라졌지만 SQL Injection 위험이 생겼다. 현재 기준으로는 이 코드를 사용하지 않고 `#{value}`를 유지한다.
 
 # 4. 강제 Typecasting 검토
 
@@ -37,46 +43,64 @@ Mybatis 에는 파라미터의 타입을 명시해줄수 있는 기능이 있다
 
 ![](/assets/images/spring/4qui89abgdf-1.png){: .align-center}
 
-위에 지원하는 타입을 보면 분명히 NVARCHAR가 있다. 그러면 데이터를 삽입할때 #{value, jdbcType=NVARCHAR}로 입력하면 타입캐스팅이 자동으로 수행돼서 따로 문제가 없지 않을까? 결론은 안된다. jdbcType이 수행되는 조건이 **JDBC타입은 insert, update 또는 delete 하는 null 입력이 가능한 칼럼에서만 필요하다.** 라고 되어 있어서 인지 쿼리에 변화가 발생하지 않았다. 다른 해결 방법이 있는지는 계속 찾아 봐야 할것 같다.
+`#{value, jdbcType=VARCHAR}`로 지정해도 해결되지 않았다. `sendStringParametersAsUnicode=true`이면 SQL Server JDBC Driver가 `VARCHAR` 파라미터를 `NVARCHAR`로 변환해 전송하기 때문이다. MyBatis의 `jdbcType`과 JDBC Driver의 전송 옵션은 서로 다른 단계의 설정이다.
 
 > https://mybatis.org/mybatis-3/ko/sqlmap-xml.html
 
 ## 4.1 강제로 타입 캐스팅 하기
 
-Statement로 쿼리를 넣기에는 보안상 문제가 생길 것 같아 조금 조사를 해보면서 새로운 방법을 알게돼서 포스팅에 추가 한다. 첫번째는 컬럼의 형을 변경해주는 CONVERT(), CAST()를 사용하라는 것!
-비교하는 쿼리의 데이터 형을 변경해서 비교하면 mybatis에서 인식할때 타입 캐스팅한 데이터로 인식한다는 내용이다.
-간단하게 쿼리를 작성하면 이런 식으로 하라는 것이다.
+Statement로 쿼리를 넣기에는 보안상 문제가 생길 것 같아 조금 더 조사했다. 첫 번째로 적용한 방법은 `CONVERT()`나 `CAST()`를 사용해 비교할 파라미터의 타입을 `VARCHAR`로 고정하는 것이었다.
 
 ```sql
-SELECT * FROM table WHERE name = CAST( #{value} AS VARCHAR)
-SELECT * FROM table WHERE name = CONVERT(VARCHAR(10), #{value})
+SELECT * FROM table WHERE name = CAST(#{value} AS VARCHAR(50));
+SELECT * FROM table WHERE name = CONVERT(VARCHAR(50), #{value});
 ```
 
-두번째 방법은 옵티마이저를 끄라는 것
+실제로 적용했을 때 Statement로 실행한 것보다는 느렸지만 타임아웃이 발생하는 수준은 벗어났다. 그래서 당시에는 이 방식으로 쿼리를 정리했다.
+
+이 접근 자체가 잘못된 것은 아니다. Unicode로 전달된 파라미터를 비교 전에 `VARCHAR`로 변환하므로 varchar 컬럼 쪽의 묵시적 변환을 피할 수 있다. 단, **컬럼이 아니라 파라미터를 변환해야** 인덱스 seek을 유지할 수 있다.
+
+쿼리마다 캐스팅을 반복해야 하고 길이를 잘못 지정하면 값이 잘릴 수 있다는 한계가 있다. DB collation에서 표현할 수 없는 유니코드 문자도 손실될 수 있다. JDBC 연결 설정을 바꿀 수 없는 상황에서 사용할 임시 대응에 가깝다.
+
+두 번째로 아래와 같은 `/*+ RULE */`도 시험했다. 당시에는 옵티마이저가 쿼리를 바꾸지 않도록 하는 힌트로 이해했다.
+
 ```sql
-select /*+ RULE */
-      e.empno,
-          e.ename,
-          d.dname
-from  dept d, emp e
-where  e.deptno = d.deptno;
+SELECT /*+ RULE */
+       e.empno,
+       e.ename,
+       d.dname
+FROM dept d, emp e
+WHERE e.deptno = d.deptno;
 ```
 
-힌트는 자세히 알지 못하지만 `/*+ RULE */`은 옵티마이저 모드를 바꿔 개발자가 작성한 쿼리를 우선시한다. 즉 옵티마이저가 쿼리를 바꾸지 않게 하는 의미로 이해했다.
-실제로 적용을 해보니 Statement로 쿼리를 돌릴때 보다 속도는 좋지 않다. 하지만 적어도 타임아웃이 발생하는 수준 까지는 아니여서 위 방법으로 쿼리를 정리하였다.
+나중에 다시 확인해보니 `RULE`은 Oracle의 과거 옵티마이저 힌트이며 SQL Server 해결책이 아니다. SQL Server에서는 일반 주석으로 처리되므로 당시 성능 변화가 있었다면 `RULE` 힌트 때문은 아니다.
 
+## 4.2 VARCHAR 변수 선언
 
-## 4.2 변수를 설정해서 넣어주기
-이렇게 했는데도 또 쿼리가 오래 걸렸다는 메시지가 날아와서 다른 방법을 생각하다 아예 변수를 만들어서 넣어주는 방법으로 개선해 보기로 하였다. 원래 이 방법은 like문에서 %을 삽입할때 작은 따옴표가 가독성이 좋지 않아서 사용하던 방법이다. (정석은 아니라는 말이다.)
+이렇게 바꾼 뒤에도 느린 쿼리가 남아 있어 아예 `VARCHAR` 변수를 선언해 값을 넣는 방법도 시도했다. 원래 LIKE 문에서 `%`와 작은따옴표가 섞여 가독성이 나쁠 때 사용하던 방식이었다.
 
 ```sql
 DECLARE @Name VARCHAR(50);
-SET @Name = 'GGMOUSE';
+SET @Name = #{value};
 
-select /*+ RULE */
-      e.empno,
-      e.ename
-from  emp e
-where  e.ename = @Name;
+SELECT e.empno,
+       e.ename
+FROM emp e
+WHERE e.ename = @Name;
 ```
-이런 식으로 미리 타입이 결정되어 있는 변수에 mybatis 로 값을 넘겨주는 방법이다. 단 변수 선언 방식은 DBMS마다 조금 씩 차이가 있고 솔직히 깔끔한 방법은 아니라고 생각한다. 정말 방법이 없을때 쓰는 방식이다.
+
+미리 선언한 변수에 MyBatis 값을 넘기면 비교 전에 타입을 고정할 수 있었다. 다만 변수 선언 방식이 DBMS마다 다르고 쿼리도 불필요하게 길어진다. 당시에도 정석이라고 보기는 어려웠고, 지금은 원인을 JDBC 연결 설정에서 해결하므로 이 방식을 쓰지 않는다.
+
+## 4.3 JDBC URL 수정
+
+해결은 JDBC URL에 `sendStringParametersAsUnicode=false`를 추가하는 것이다. `#{value}`는 그대로 사용한다.
+
+```yaml
+spring:
+  datasource:
+    jdbc-url: jdbc:sqlserver://DB_HOST:1433;databaseName=DB_NAME;sendStringParametersAsUnicode=false
+```
+
+이 설정에서는 `setString()`과 `VARCHAR` 파라미터가 데이터베이스 collation에 맞는 비유니코드 형식으로 전송된다. varchar 컬럼과 파라미터 타입이 같아지므로 컬럼 쪽 묵시적 변환이 사라진다.
+
+반대로 nchar, nvarchar, ntext 컬럼에는 `setNString()` 같은 national character API를 사용해야 한다. JPA에서는 nvarchar 엔티티 필드에 Hibernate `@Nationalized`를 적용했다. 자세한 매핑은 [JPA 적용 과정]({% post_url 2021-11-02-Spring-boot-jpa-set-model %})에 정리했다.
