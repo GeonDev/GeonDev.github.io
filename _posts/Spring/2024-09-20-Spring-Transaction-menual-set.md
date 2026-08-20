@@ -156,14 +156,9 @@ TransactionTemplate에 Bean으로 설정한 PlatformTransactionManager를 인자
 
 내가 원했던 목표는 다음 흐름이었다.
 
-```text
-Spring 트랜젝션 시작
-  -> 프로시저 실행
-  -> Spring 서비스 코드의 DB 작업 실행
-  -> 둘 다 성공하면 commit
-  -> 둘 중 하나라도 실패하면 rollback
-Spring 트랜젝션 종료
-```
+![Spring 트랜잭션 안에서 프로시저와 서비스 DB 작업을 실행한 뒤 성공 여부에 따라 커밋 또는 롤백하는 흐름](/images/spring/spring-procedure-transaction-boundary.svg){: .align-center}
+
+*프로시저가 직접 커밋하지 않을 때 Spring이 두 DB 작업의 최종 결과를 함께 결정한다.*
 
 이 목표를 만족하려면 프로시저와 서비스 코드가 같은 트랜젝션 경계 안에서 실행되어야 한다. 즉, 프로시저는
 작업만 수행하고 최종 `COMMIT/ROLLBACK`은 Spring이 관리해야 한다.
@@ -254,7 +249,54 @@ Spring이 전체 rollback을 수행한다.
 `PROPAGATION_REQUIRED`가 자연스럽고, 실패 로그처럼 본 작업과 별도로 남겨야 하는 작업만 `REQUIRES_NEW`로
 분리한다.
 
-# 4. 결론
+# 4. try-catch로 잡았는데도 예외가 밖으로 나가는 경우 (rollback-only)
+
+TransactionTemplate이 필요한 상황을 하나 더 만났다. 조회수 증가처럼 **실패해도 본 응답을 막으면 안 되는**
+작업이었다. 상세 조회 API 안에서 조회수 UPDATE가 락 경합으로 실패할 수 있는데, 조회수라는 부가 값 때문에
+본문 응답 전체가 실패하면 안 되는 상황이다. 그래서 `@Transactional` 메소드 안에서 try-catch로 예외를 잡고
+던지지 않았는데, **호출자에서 예외가 발생했다.**
+
+이유는 트랜젝션 경계가 내 코드가 아니라 **프록시(메소드 밖)에 있기 때문**이다. 실행 순서를 펼쳐 보면
+이렇게 된다.
+
+![트랜잭션 프록시가 메소드 반환 후 커밋하면서 UnexpectedRollbackException을 던지는 실행 순서](/images/spring/spring-transaction-proxy-rollback-only.svg){: .align-center}
+
+*메소드의 try-catch는 프록시가 나중에 실행하는 commit 구간을 포함하지 않는다.*
+
+3번의 예외는 **메소드가 이미 리턴한 뒤 프록시 코드에서** 던져진다. 내 try-catch는 2번 단계에 있으니
+3번에서 나는 예외는 물리적으로 잡을 수 없다. `catch (Throwable)`로 넓혀도 소용없다 — **무엇을 잡느냐가
+아니라 커밋이 try 안에서 일어나느냐**의 문제이기 때문이다.
+
+한 가지 예외가 있다. JPA 스펙상 `QueryTimeoutException`과 `LockTimeoutException`은 rollback-only로
+마킹하지 않는 예외라서, 이 둘만은 `@Transactional` 안에서 catch하면 가둘 수 있다. 하지만 같은 코드에서
+날 수 있는 데드락(`LockAcquisitionException`)이나 그 외 대부분의 `PersistenceException`은 마킹되기 때문에
+내부 catch는 "타임아웃은 막지만 데드락은 못 막는" 반쪽 방어가 된다.
+
+어떤 실패든 가두려면 시작-실행-커밋 전 과정이 try 안에 있어야 하고, 그게 가능한 방법이 TransactionTemplate이다.
+
+~~~java
+public int increaseViewCnt(String articleSeq, Integer currentViewCnt) {
+    try {
+        // begin + execute + commit 전부 이 한 줄 안에서 일어난다
+        new TransactionTemplate(transactionManager).executeWithoutResult(status ->
+                queryFactory.update(article)
+                        .set(article.viewCnt, article.viewCnt.coalesce(0).add(1))
+                        .where(article.articleSeq.eq(articleSeq))
+                        .execute());
+    } catch (RuntimeException e) {
+        // 커밋 시점 예외까지 여기로 들어온다. 조회수만 포기하고 응답은 지킨다
+        log.error("increaseViewCnt failed - {}, {}", articleSeq, e.getMessage());
+    }
+    return currentViewCnt == null ? 1 : currentViewCnt + 1;
+}
+~~~
+
+단, 이 패턴은 아무 데나 쓰면 안 된다. 판정 기준은 하나다 — **본 작업과 같이 죽어야 하는 값이면 같은
+트랜젝션으로 묶고(`MANDATORY`), 혼자 죽어도 되는 값이면 분리하고 예외를 가둔다.** 게시글 저장과 함께
+증감되는 카운터처럼 정합이 필요한 값을 이렇게 분리하면 본 트랜젝션이 롤백될 때 카운트만 반영되는
+드리프트가 생긴다. 조회수처럼 근사값이어도 되는 best-effort 값에만 해당하는 이야기다.
+
+# 5. 결론
 처음 설계 단계에서 선언적 트랜젝션이 잘 동작하도록 구조를 나눴다면 이런 설정이 필요 없을 수도 있다. 하지만
 기존 프로시저와 서비스 코드가 섞여 있고, 일부 구간의 commit/rollback 경계를 직접 제어해야 하는 상황이라면
 프로그래밍적 트랜젝션이 유용하다.
@@ -262,3 +304,7 @@ Spring이 전체 rollback을 수행한다.
 특히 프로시저 작업과 서비스 코드 작업을 하나의 단위로 묶고 싶다면 `TransactionTemplate`만 보는 것이 아니라,
 프로시저 내부의 `COMMIT/ROLLBACK` 여부까지 함께 확인해야 한다. 트랜젝션 경계는 Spring 코드에만 있는 것이
 아니라 DB 프로시저 안에도 숨어 있을 수 있기 때문이다.
+
+반대로 실패를 삼켜서 본 응답을 지켜야 하는 작업이라면 try-catch의 범위보다 **커밋이 try 안에서 일어나는지**를
+먼저 확인해야 한다. `@Transactional`의 커밋은 메소드 밖 프록시에서 일어나므로, 내부에서 아무리 잡아도
+rollback-only로 마킹된 트랜젝션의 커밋 예외는 밖으로 나간다.
