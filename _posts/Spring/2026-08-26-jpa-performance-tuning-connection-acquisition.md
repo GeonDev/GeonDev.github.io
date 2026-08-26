@@ -1,6 +1,6 @@
 ---
 layout: post
-title: JPA 성능 튜닝 - 빠른 쿼리인데 커넥션 풀이 고갈된 이유
+title: JPA 성능 튜닝 - 빠른 쿼리인데 커넥션 풀 고갈
 date: 2026-08-26
 Author: Geon Son
 categories: Spring
