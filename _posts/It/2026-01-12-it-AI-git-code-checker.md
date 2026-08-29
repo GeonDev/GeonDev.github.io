@@ -808,8 +808,8 @@ mv .git/hooks/pre-commit .git/hooks/pre-commit.backup
 
 ### ⚠️ 2. 예상되는 사이드 이펙트 (Side Effects)
 
-세션 관리 방식이 변경되어 동시 접속 사용자가 많을 경우 메모리 사용량이 증가할 수 있습니다.
-Redis 캐시 도입을 검토하는 것이 좋습니다.
+세션 관리 방식이 변경되면 동시 접속 사용자 수에 따라 메모리 사용량이 증가한다.
+메모리 사용량을 줄여야 하는 경우 Redis 캐시 도입을 검토한다.
 
 ### ✨ 3. 클린 코드 관점 리뷰 (Clean Code)
 
@@ -1046,7 +1046,7 @@ Developer → Commit → Bitbucket → Webhook → Bamboo Build
 
 ## 9.3. 정리
 
-순서를 정리하면 이렇다.
+실행 순서는 다음과 같다.
 
 1. **지금**: 개인 환경의 Git Hook + Gemini CLI
 2. **팀 표준화**: Pre-commit Framework로 설정 공유

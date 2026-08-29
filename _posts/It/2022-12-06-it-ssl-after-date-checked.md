@@ -11,7 +11,7 @@ toc: true
 
 # OpenSSL 명령어 사용
 
-notAfter 값을 보고 남은 SSL 인증서 기간을 확인할 수 있습니다.
+notAfter 값으로 남은 SSL 인증서 기간을 확인한다.
 
 ```bash
 echo '' | openssl s_client -connect 도메인명:443 | openssl x509 -noout -dates

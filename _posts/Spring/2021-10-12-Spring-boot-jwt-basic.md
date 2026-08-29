@@ -117,7 +117,7 @@ http.addFilterBefore(new MyFilter1(), SecurityContextPersistenceFilter.class);
 http.addFilterAfter(new MyFilter1(), SecurityContextPersistenceFilter.class);
 ```
 
-커스텀 필터는 addFilter를 사용하여 특정 스프링 시큐리티 필터 앞, 뒤에 적용할 수 있습니다.
+커스텀 필터는 addFilter로 특정 스프링 시큐리티 필터 앞이나 뒤에 적용한다.
 
 # 3. SecurityConfig 설정
 
@@ -189,7 +189,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 스프링 시큐리티를 적용하기 위해서는 기본적으로 UserDetails 클래스가 있어야 합니다.
 UserDetails는 시큐리티의 요구사항에 따라 값을 반환 값을 주는 역할을 수행합니다.
 기능별 자세한 설명은 하지 않고 넘어가겠습니다. UserDetails을 그냥 상속하는 것 보다는 다른 정보를 넣고 반환하는 것을
-좀 더 쉽게하기 위하여 UserDetails을 상속하는 클래스를 생성합니다.
+인증 사용자 정보를 구현하기 위해 `UserDetails`를 상속하는 클래스를 생성한다.
 
 ```java
 package com.example.jwt.auth;
@@ -382,7 +382,7 @@ JwtAuthorizationFilter는 생성된 JWT 토큰을 판단하는 기능을 수행�
 생성된 principalDetails을 Authentication객체에 넣어 데이터를 저장하게 합니다.
 
 Authentication객체는 세션을 사용하게 되고  반드시 Authentication객체에 데이터를 넣을 필요는 없습니다.
-다만 인증 정보를 조금 쉽게 관리하고 권한을 받아오기 위하여 사용합니다.
+인증 정보와 권한을 한 객체에서 관리하기 위해 사용한다.
 
 ```java
 package com.example.jwt.filter;

@@ -93,7 +93,7 @@ public abstract class BaseException extends RuntimeException{
 에러를 처리할수 있다.  
 그런데 public abstract HttpStatus getHttpStatus()를 보면 에러는 발생 시킬수 있지만 어떤 HTTP CODE를 반환할지는 결정되어 있지 않다.  
 이 `BaseException`을 상속받는 클래스를 만들어 원하는 HTTP CODE를 반환하게 하면 된다.
-물론 클래스 이름은 어떻게 지정하여도 상관은 없다.
+클래스 이름은 프로젝트 규칙에 맞춰 지정하면 된다.
 
 ## 2.1. BaseException을 상속받아 HTTP CODE를 반환
 아래 있는 3개의 클래스의 차이점은 getHttpStatus() 밖에는 없다.  
@@ -235,7 +235,7 @@ public ResponseEntity addResponseAccAdvice(ProceedingJoinPoint joinPoint) {
 세션에 있는 로그인 정보를 체크한다. @Around에서는 joinPoint.proceed() 이전이 @Before 와 동일하고 이후는 @After로 적용된다.
 
 코드의 try ~ catch를 보면 위에서 생성하지 않는 나머지 Exception의 경우 모두 INTERNAL_SERVER_ERROR(500)으로 반환하는 것을 확인할수 있다.  
-물론 상황에 따라 더 세밀하게 분류할 수도 있지만, 여기서는 일관성을 맞추는 선에서 정리했다.
+상황에 따른 세부 분류도 가능하지만, 이 예제에서는 일관성을 위해 하나의 규칙으로 처리했다.
 
 
 ~~~java

@@ -70,7 +70,7 @@ public class XmlRoot {
 @JacksonXmlRootElement(localName = "root") 어노테이션을 보면 xml의 최상단 루트를 "root" 라는 태그로 하겠다는 선언이고
 List<XmlData> dataList 데이터를 소유하고 있는 구성이기 때문에 root 아래에 XmlData가 반복되는 형태(태그 dataList)로 구성됩니다.
 
-@JacksonXmlElementWrapper(useWrapping = false)값을 주게 되면 아래 있는 태그를 하나로 묶는 것이 아니라 개별적으로 떨어지게 구성할 수 있습니다.
+`@JacksonXmlElementWrapper(useWrapping = false)`를 지정하면 하위 태그를 하나로 묶지 않고 개별 태그로 출력한다.
 
 ```xml
 <root>

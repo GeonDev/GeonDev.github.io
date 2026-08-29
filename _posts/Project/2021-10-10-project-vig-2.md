@@ -264,7 +264,7 @@ public class FeedService {
 	}
 }
 ```
-FeedService에서 addFeed를 하기 위해서는 간단히 feedMapper.addFeed()을 호출하는 것으로 끝나지만
+FeedService에서 addFeed를 호출하는 과정은 feedMapper.addFeed() 호출로 끝나지만
 
 
 ```java

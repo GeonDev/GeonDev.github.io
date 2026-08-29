@@ -15,7 +15,7 @@ toc: true
 
 > [전체 코드](https://github.com/GeonDev/Proptech)
 
-단일 조건을 조회하거나 간단한 조건들을 이용하여 데이터를 조회할때는 JPA만 사용하더라도 쉽게 조회가 가능하지만 검색 조건을 여러개 사용하게 되면 검색조건의 조합에 따라 어떤 값을 이용해서 조회할지 분기가 필요하고 분기가 많아지면 코드가 깔끔해지지 않기 때문에 동적쿼리를 적용해보기 위하여 QueryDsl을 적용해 보았다.
+단일 조건이나 단순한 조건으로 조회할 때는 JPA만으로 처리할 수 있다. 검색 조건이 늘어나면 조합별 분기가 필요하고 코드가 복잡해지므로 동적 쿼리를 적용하기 위해 QueryDSL을 사용했다.
 
 # 1. 라이브러리 추가
 나는 maven으로 프로젝트를 생성하였기 때문에 pom.xml에 값을 추가하였다. 여러 블로그를 보면서 그레이들을 이용한 세팅을 확인해 봤는데 개인적으로는 maven이 비교적 깔끔한 것 같다
@@ -196,7 +196,7 @@ BooleanExpression 을 이용하여 주어진 조건이 내가 원하는 경우 �
 **import static com.apt.proptech.domain.QUser.user;**
 
 이 부분은 내가 사용할 `QUser`를 static import로 선언한 것이다.  
-꼭 static import만 써야 하는 것은 아니지만, 이 선언이 없으면 예제처럼 `user.name`, `user.regDate` 형태로 간단히 쓸 수 없다.
+꼭 static import만 써야 하는 것은 아니지만, 이 선언이 없으면 예제처럼 `user.name`, `user.regDate` 형태로 간결하게 작성할 수 없다.
 
 
 

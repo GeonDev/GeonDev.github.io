@@ -203,7 +203,7 @@ Variable  : token
 
 동시 사용자 수를 `5 → 10 → 20 → 40`으로 올리고 각 구간을 3분 동안 유지한다. 반복 횟수로 끝내면 앞 스레드가 먼저 종료되어 설정한 동시성이 유지되지 않을 수 있으므로 `scheduler`와 `duration`을 쓴다.
 
-### 왜 `Threads + Loops`만으로는 부족한가
+### `Threads + Loops`만으로 부족한 조건
 
 `Number of Threads`는 만들 가상 사용자의 수이고, `Loop Count`는 각 사용자가 요청을 반복할 횟수다. 예를 들어 다음 설정을 보자.
 

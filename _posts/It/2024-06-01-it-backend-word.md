@@ -147,7 +147,7 @@ toc: true
   루트에서 리프까지의 깊이가 일정한 균형 트리라 일반적으로 O(log n) 수준의 검색 성능을 내며, 리프 노드가 정렬되어 있어 범위 검색과 정렬에도 유리하다.
   * **리프 노드 연결 구조** : B+Tree는 검색 키와 행을 찾기 위한 정보(행 위치 또는 PK 등)를 리프 노드에 저장하고, 리프 노드를 순차 탐색할 수 있도록 서로 연결한다. 세부 저장 방식은 DBMS와 인덱스 종류에 따라 다르다.
     덕분에 한 지점을 찾은 뒤 옆으로 순차 이동하며 읽을 수 있어 **범위 검색(BETWEEN, 부등호)과 정렬(ORDER BY)에 매우 유리**하다.
-  * **왜 빠른가** : 정렬된 상태로 유지되므로 이진 탐색처럼 범위를 좁혀가며 찾고, 디스크 I/O 횟수(트리 깊이)가 적기 때문이다.
+  * **빠른 이유** : 정렬된 상태로 유지되므로 이진 탐색처럼 범위를 좁혀가며 찾고, 디스크 I/O 횟수(트리 깊이)가 적기 때문이다.
 
 * **인덱스가 동작하지 않는 경우 / 주의점** : 인덱스를 걸어도 옵티마이저가 사용하지 않거나 효율이 떨어지는 대표 케이스
   * **인덱스 컬럼에 함수/연산 사용** : `WHERE SUBSTR(col,1,3)='abc'`, `WHERE col+1 = 10`처럼 컬럼을 가공하면 인덱스를 타지 못한다. (함수 기반 인덱스를 따로 만들면 가능)
@@ -282,7 +282,7 @@ toc: true
 
 ## 영속성 컨텍스트와 엔티티 생명주기
 
-* **JPA / Hibernate / Spring Data JPA** : **JPA**는 자바의 ORM 표준 명세(인터페이스), **Hibernate**는 JPA를 구현한 대표적인 구현체, **Spring Data JPA**는 JPA를 더 쉽게 쓰도록 Repository 인터페이스만 정의하면 구현체를 자동 생성해주는 스프링 모듈이다.
+* **JPA / Hibernate / Spring Data JPA** : **JPA**는 자바의 ORM 표준 명세(인터페이스), **Hibernate**는 JPA를 구현한 대표적인 구현체, **Spring Data JPA**는 Repository 인터페이스만 정의하면 구현체를 자동 생성하는 스프링 모듈이다.
   * **ORM(Object-Relational Mapping)** : 객체와 관계형 DB의 테이블을 매핑해, SQL을 직접 작성하지 않고 객체 중심으로 데이터를 다루게 해주는 기술. 객체-테이블 간 패러다임 불일치를 해결한다.
 
 
@@ -452,7 +452,7 @@ toc: true
   `@Transactional`은 JPA/JDBC 등 어떤 기술이든 동일하게 동작, `PlatformTransactionManager` 추상화)
 
 
-* **Spring vs Spring Boot** : Spring Boot는 Spring을 더 쉽게 쓰기 위한 도구로, 복잡한 설정을 자동화한다.
+* **Spring vs Spring Boot** : Spring Boot는 Spring의 복잡한 설정을 자동화하는 도구다.
   * **자동 설정(Auto Configuration)** : `@EnableAutoConfiguration`은 classpath를 감지해 필요한 빈을 자동 등록한다.  
     `@SpringBootApplication`에 포함되어 있다. `@Conditional` 기반으로 조건에 맞을 때만 설정이 적용된다.
   * **내장 WAS(Embedded Tomcat)** : 별도 WAS 설치 없이 jar 하나로 실행 가능
@@ -734,7 +734,7 @@ toc: true
 * **equals()와 hashCode() 규약** : 두 메서드는 반드시 **함께 오버라이드**해야 한다.
   * **규약** : `equals()`로 같다고 판단되는 두 객체는 반드시 같은 `hashCode()`를 반환해야 한다.  
     (역은 성립하지 않아도 됨 — hashCode가 같아도 equals는 다를 수 있다)
-  * **왜 함께 오버라이드해야 하나(HashMap과의 연관)** : `HashMap`, `HashSet` 등 해시 기반 컬렉션은 먼저 `hashCode()`로 버킷을 찾고,  
+  * **함께 오버라이드해야 하는 이유(HashMap과의 연관)** : `HashMap`, `HashSet` 등 해시 기반 컬렉션은 먼저 `hashCode()`로 버킷을 찾고,
     같은 버킷 안에서 `equals()`로 최종 일치를 판단한다. `equals()`만 재정의하고 `hashCode()`를 재정의하지 않으면, 논리적으로 같은 객체라도 서로 다른 버킷에 저장되어 **조회/중복 제거가 정상 동작하지 않는다.**
 
 

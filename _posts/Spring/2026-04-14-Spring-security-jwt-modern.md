@@ -517,4 +517,4 @@ curl -i -s http://localhost:8080/api/v1/admin/dashboard
 
 예전 글과 비교하면, Spring Security 6에서는 `SecurityFilterChain` 빈 + 람다 DSL로 설정이 훨씬 깔끔해졌고,
 JWT 처리도 jjwt 0.12.x의 `verifyWith`/`parseSignedClaims` 로 명확해졌다.
-정리하면 **로그인은 `AuthenticationManager`에 맡기고, 발급/검증은 `JwtTokenProvider`에 모으고, 요청마다 `OncePerRequestFilter`로 `SecurityContext`를 채우는** 구조만 잡으면 나머지는 권한 규칙 선언으로 끝난다.
+**로그인은 `AuthenticationManager`에 맡기고, 발급/검증은 `JwtTokenProvider`에 모으고, 요청마다 `OncePerRequestFilter`로 `SecurityContext`를 채우는** 구조를 잡으면 나머지는 권한 규칙 선언으로 끝난다.

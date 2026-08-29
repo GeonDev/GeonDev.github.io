@@ -20,7 +20,7 @@ toc: true
 
 세 툴의 역할은 이렇게 나뉜다.
 
-- **Prometheus** — 메트릭을 주기적으로 수집(scrape)하고 시계열로 저장한다. Spring Boot Actuator가 `/actuator/prometheus`로 메트릭을 그대로 뱉어주기 때문에 쉽게 적용할수 있다.
+- **Prometheus** — 메트릭을 주기적으로 수집(scrape)하고 시계열로 저장한다. Spring Boot Actuator가 `/actuator/prometheus`로 메트릭을 제공하므로 연동 구성이 단순하다.
 - **Grafana** — Prometheus에 쌓인 데이터를 대시보드로 시각화한다. 잘 만들어진 대시보드를 ID만으로 가져다 쓸 수 있어서 처음 세팅 비용이 적다.
 - **cAdvisor** — 컨테이너 단위로 메모리/CPU/네트워크, 그리고 OOM 발생을 수집할 수 있다. 앱 내부(JVM)가 아니라 **컨테이너 바깥에서 본 리소스**다. macOS(Colima/Docker Desktop)에서는 컨테이너별 메트릭이 제한될 수 있어 JVM 힙 메트릭이나 `docker stats`를 함께 확인할 수 있다.
 

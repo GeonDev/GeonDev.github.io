@@ -213,6 +213,6 @@ added 38 packages from 30 contributors, updated 2 packages and moved 9 packages 
 다른 방법으로 해결을 해보려고 찾아보다가 혹시 하는 생각으로 VS CODE의 터미널을 사용하여 진행해 봤다.
 (vs code는 전체 폴더 접근 권한을 설정했다.)
 결과는 '성공' 어이없게도 디폴트 설정이 아닌 매뉴얼 설정도 가능하고 서버 실행도 된다...
-이럴거면 왜 로제타를 설치 한거지 ㅜㅜ
+이 환경에서는 로제타 설치가 필요하지 않았다.
 
 ![](/images/vue/a4ga74d6ef1-vscode-t.png)

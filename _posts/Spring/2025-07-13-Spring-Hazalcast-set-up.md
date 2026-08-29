@@ -67,7 +67,7 @@ hazelcast:
 ## 2.2 Hazalcast 설정 - interfaces
 이렇게 설정을 해주면 신기한 일이 생기는 경우가 간혹 있는데 하나의 노드가 셀프 조인을 하는 경우가 발생한다.  
 이런 일이 생기는 이유는 네트워크 카드에 여러 IP가 설정되어 있을 때 각각의 IP를 모두 탐지하기 때문이다.
-물론 auto-detection 설정을 안하고 member-list 까지 설정해주면 탐지 범위가 줄어들긴 하지만  
+auto-detection을 끄고 member-list까지 설정하면 탐지 범위가 줄어들지만
 확실하게 노드에서 어떤 IP를 사용할지 명시해주는 것이 여러모로 좋다.
 
 ~~~yaml
@@ -98,7 +98,7 @@ hazelcast:
 
 ## 2.3 Hazalcast 설정 - properties
 이 설정들은 필수 사항은 아니다. 다만 운영 서버에 너무 많은 로그를 남기지 않기 위하여 설정하는 기능이다.
-대충 보면 어떤 기능인지 쉽게 확인할 수 있을 것으로 보인다. (jmx은 분석 기능이다.)
+설정 항목에서 기능을 확인할 수 있다. (JMX는 분석 기능이다.)
 ~~~yaml
   properties:
     hazelcast.logging.type: log4j2  # 로깅 연동
@@ -187,8 +187,8 @@ Members {size:4, ver:4} [
 
 # 4. 코드에서 Hazalcast 다루기
 Hazalcast를 적용하면서 기대했던 것은 모든 인스턴스의 캐시가 공유 되고 원할때 갱신할수 있다는 점 이였다.
-기본 버전에서도 일부 기능을 제공하지만  유료 버전을 사용하면 Management Center를 통하여 좀더 쉽게 상태 관리가 되었겠지만  
-아쉽게도 지원을 받을수 없는 상황이라 상태를 확인하기 위한 API를 만들었다.
+기본 버전에서도 일부 기능을 제공한다. 유료 버전에서는 Management Center로 상태를 관리할 수 있지만
+지원받을 수 없는 환경이라 상태 확인용 API를 만들었다.
 
 ~~~java
 @RestController

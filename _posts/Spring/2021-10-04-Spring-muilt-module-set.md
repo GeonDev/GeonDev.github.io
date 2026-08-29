@@ -37,7 +37,7 @@ toc: true
 # 2. 프로젝트 구조
 일반적인 방식으로 프로젝트를 생성합니다. 저는 인텔리제이를 사용하고 있지만 무료버전을 사용하고 있기 때문에 Spring initializr를 사용하여 프로젝트를 생성하였습니다.
 
-생성된 프로젝트에서 모듈은 간단하게 생성할 수 있습니다.
+생성된 프로젝트에서 모듈을 생성한다.
 
 ![](/images/it/1ee73c57image2.png){: .align-center}
 인텔리제이 기준으로 File - New - Module 에 들어가서 모듈을 생성합니다.
@@ -102,14 +102,14 @@ public class WebApplication {
     }
 }
 ```
-이부분은 간단하게 @ComponentScan()을 추가하는 것으로 해결할 수 있습니다.
+이 부분은 `@ComponentScan()`을 추가해 해결한다.
 
 
 
 # 4. 작동 테스트
 
 먼저 root-service 모듈에 TestService 클래스를 생성합니다.
-지금은 테스트 이기 때문에 따로 DB를 연결하지는 않고 간단히 서비스 기능이 동작하게만 제작하였습니다.
+테스트 단계이므로 DB를 연결하지 않고 서비스 동작만 확인하도록 구성했다.
 ```java
 package com.example.service;
 

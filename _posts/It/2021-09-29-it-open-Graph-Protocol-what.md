@@ -106,6 +106,6 @@ https://nowonbun.tistory.com/517
 
 
 
-물론 해결 방법이 없는 것은 아니다. AOP를 이용하여 모든 컨트롤러에 공통 로직을 적용하는 방법과
+해결 방법은 있다. AOP를 이용해 모든 컨트롤러에 공통 로직을 적용하는 방법과
 회사에서 사용하는 **HandlerMethodArgumentResolver**를 적용하는 방법이다.
 다음에는 HandlerMethodArgumentResolver를 적용하여 귀찮은 작업을 해결하는 방법을 작성해 보려고 한다.

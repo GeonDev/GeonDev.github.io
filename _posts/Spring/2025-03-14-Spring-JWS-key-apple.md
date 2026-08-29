@@ -31,10 +31,10 @@ App Store Connect는 애플 스토어에 출시된 앱을 기준으로 쓰는 �
 키가 발급되었다면 API를 어떤 앱에서 호출하였는지 구분값인 bundle Id를 확인하여야 한다. 번들 ID는 앱 정보에서 확인할수 있고 Xcode에서 사용한 ID와 일치 하여야 한다고 하는데 나는 이 부분도 앱 개발자가 확인해 주었다.
 
 # 2. API 호출 
-기존에 애플에서 결제 트랜젝션을 확인하던 verifyreceipt API를 호출할때는 별도의 인증을 요구하지 않았다. 그저  TLS (Transport Layer Security) protocol 1.2 이상의 호출 정도를 요구 하여 비교적 쉽게 API를 활용할수 있었는데 이제는 사용 할수 없고 같은 기능을 하는 
+기존에 애플에서 결제 트랜잭션을 확인하던 verifyreceipt API는 별도 인증을 요구하지 않았다. TLS (Transport Layer Security) protocol 1.2 이상만 요구했지만 이제는 사용할 수 없고 같은 기능을 하는
 **[Get Transaction Info](https://developer.apple.com/documentation/appstoreserverapi/get-v1-transactions-_transactionid_)** 라는 신규 API가 대신하게 되었다. 기본 API 처럼 사용하면 401 에러를 리턴하게 되는데 이제는 호출을 할때 JWT토큰을 전달하여야만 정상적인 호출을 지원하기 때문이다. 
 
-App Store Connect Library는 이때 필요한 토큰 생성과 전달받은 JWS의 파싱 및 검증 과정을 보다 쉽게 할수 있도록 지원해 준다. 하지만 JDK 8를 사용한다면 모든과정을 수동으로 만들어야 한다.
+App Store Connect Library는 토큰 생성과 전달받은 JWS의 파싱·검증 과정을 지원한다. JDK 8 환경에서는 모든 과정을 수동으로 구현해야 한다.
 
 ## 2.1 JWT 생성
 애플에서 요구하는 JWT를 생성하기 위해서는 아래 요구사항을 맞추어야 한다.
@@ -216,7 +216,7 @@ dependency를 추가 하였으면 JWT 토큰을 생성하는 함수를 만들어
 
  애플의 헤더에 인증서는 총 3개 들어 있다. JWS는 BASE 64로 인코딩 되어 있기 때문에 List<com.nimbusds.jose.util.Base64> cert 형태로 값을 받아 간단하게 출력하였다. 검증을 하려고 한다면 이 헤더에 있는 인증서 값이 애플인증서가 맞는지 검증하면 된다. 
  애플 라이브러리를 사용하면 검증 과정에 대한 로직을 미리 지원하기 때문에 가급적이면 검증을 하는 것을 추천한다. 
- (물론 환경이 JDK8이라면 스스로 검증 로직을 만들어야 한다.)
+ (JDK 8 환경에서는 검증 로직을 직접 구현해야 한다.)
 
  JWS 페이로드에는 애플 결제 로직에 활용할수 있는 각종 정보들이 들어있다. 파싱된 데이터를 내부 로직에서 활용하면 된다.  
 

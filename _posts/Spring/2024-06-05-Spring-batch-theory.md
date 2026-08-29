@@ -330,7 +330,7 @@ Step 코드에서 `stepExecution.getExecutionContext().put(...)`으로 저장한
 다음 Step에 전달되지 않는다. 해당 객체의 생명주기가 끝나고, 그 값도
 `JobRepository`에 저장되지 않기 때문이다.
 
-정리하면 다음과 같다.
+핵심 동작은 다음과 같다.
 
 - 외부에서 실행마다 받는 값 → `JobParameters`
 - 여러 Step이 읽어야 하는 실행 상태 → `JobExecutionContext`

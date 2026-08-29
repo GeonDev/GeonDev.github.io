@@ -219,7 +219,7 @@ VIG_ORIGIN
             └─withdraw
 ```
 
-변경된 디렉토리 구조는 Mybatis Framework에서 Dao Interface의 id로 매핑하여 implement를 생성하지 않고 Service Interface를 class로 변경하여 조금 더 구조를 쉽게 파악할 수 있도록 변경하였습니다.
+변경된 디렉터리 구조는 Mybatis Framework에서 Dao Interface의 id로 매핑하는 implement를 생성하지 않고 Service Interface를 class로 변경해 구조를 파악하도록 했다.
 ```text
 VIG
 ├─.mvn
@@ -305,7 +305,7 @@ public class JasyptConfig {
 
 }
 ```
-결과적으로 아래와 같은 결과물이 생겼는데 물론 git을 이용하여 소스코드를 보고 어떤 내용인지 확인하고 복호화를 할 가능성은 있지만 이전에 완전 공개되어 있는 것 보다는 조금이나마 안전할 것이라고 생각했습니다.
+결과적으로 아래와 같은 결과물이 생겼다. git으로 소스코드를 확인해 복호화할 가능성은 남아 있지만, 이전처럼 내용이 완전히 공개된 상태보다는 안전하다.
 
 ```properties
 spring.datasource.url=ENC(aHuB5KHfETMI7NHpIUTv+pCOnGVt7k3rlLQ3rTpWbPs7+XPyhDw3lg==)

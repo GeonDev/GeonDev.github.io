@@ -81,7 +81,7 @@ public class UserController {
 
 # 3. AbstractView를 상속 받은 ExcelDownloader 구현
 
-ExcelDownloader 다운로드 기능을 담당하는 클래스이다. 물론 이름은 원하는데로 작성하면 되기 때문에 신경 쓰지 않아도 되고 AbstractView의 메소드 중 renderMergedOutputModel()을 신경 쓰면 된다.  
+ExcelDownloader는 다운로드 기능을 담당하는 클래스다. 클래스 이름은 프로젝트 규칙에 맞추고, AbstractView의 메서드 중 renderMergedOutputModel()을 구현한다.
 
 컨트롤러에서 AbstractView를 상속한 클래스를 호출하면 renderMergedOutputModel()를 호출해서 기능을 수행한다. 매개변수로 HttpServletRequest request, HttpServletResponse response가 있기 때문에 웬만한 전달값은 전부 받을 수 있을 것 같다.
 
@@ -223,7 +223,7 @@ for(User user : userlist) 부분을 보면 전달 받은 리스트에서 한 행
 ### 2. 열 삭제
 ![](/images/spring/excel/imageasdf-3.png){: .align-center}
 비어있는 시트이고 읽기전용도 아닌데 오류가 발생하면 excel 파일을 열어서 열을 지워보면 해결되는 경우가 있다.  
-표시되지 않지만 데이터가 있는건지...왜 그런건지는 모르겠다....
+표시되지 않지만 데이터가 존재하는 원인은 확인하지 못했다.
 
 
 ### 3. o.s.b.w.servlet.support.ErrorPageFilter
