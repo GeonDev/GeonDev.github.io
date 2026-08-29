@@ -170,7 +170,100 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
 
 이 조회는 회차 수와 관계없이 한 번 실행된다. Hibernate SQL 로그에서 select 횟수만 보지 말고 서비스 반복문 안에 리포지토리 호출이 있는지도 확인해야 한다.
 
-## 5. 캐시는 응답 전체가 아니라 공통 설정만 저장한다
+## 5. 분리된 조회수 테이블은 원자적 UPDATE로 증가시킨다
+
+장애 당시 게시물 행과 조회수 집계 행이 분리돼 있었고, 두 값이 일치하지 않거나 일부 증가 요청이 사라졌다. 상세 조회가 `SELECT`로 현재 조회수를 읽고 애플리케이션에서 1을 더한 뒤 저장하면, 같은 값을 읽은 두 요청이 같은 다음 값을 저장한다. 예를 들어 두 요청이 모두 `100`을 읽으면 둘 다 `101`을 저장하므로 실제 조회는 두 번이지만 최종 값은 한 번만 증가한다.
+
+조회수처럼 현재 값에 일정 값을 더하는 작업은 엔티티를 읽지 않고 DB에서 한 문장으로 실행한다. QueryDSL의 [`JPAUpdateClause`](https://javadoc.io/doc/com.querydsl/querydsl-jpa/latest/com/querydsl/jpa/impl/JPAUpdateClause.html)는 JPQL bulk update를 만드는 클래스다. `set`의 오른쪽에 컬럼 식을 둘 수 있으므로 `VIEW_COUNT = VIEW_COUNT + 1`을 만든다. `execute()`의 반환값은 갱신된 행 수다.
+
+```java
+import com.querydsl.jpa.impl.JPAUpdateClause;
+
+@Repository
+@RequiredArgsConstructor
+public class ArticleViewCountQueryRepository {
+
+    private final EntityManager entityManager;
+
+    public long increment(Long articleId) {
+        QArticleViewCount articleViewCount = QArticleViewCount.articleViewCount;
+
+        return new JPAUpdateClause(entityManager, articleViewCount)
+            .set(articleViewCount.viewCount, articleViewCount.viewCount.add(1L))
+            .where(articleViewCount.articleId.eq(articleId))
+            .execute();
+    }
+}
+```
+
+SQL은 DB에서 행 잠금을 잡고 현재 값을 기준으로 계산한다. 같은 `ARTICLE_ID`를 여러 요청이 동시에 갱신해도 각 `UPDATE`가 순서대로 적용되므로 증가분이 덮어써지지 않는다. 이 장애의 조회수 메서드는 `REQUIRES_NEW`였으므로, 호출부도 새 트랜잭션에서 영향을 받은 행 수를 확인한다.
+
+```java
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void increaseViewCount(Long articleId) {
+    long updated = articleViewCountQueryRepository.increment(articleId);
+    if (updated != 1) {
+        throw new ArticleViewCountNotFoundException(articleId);
+    }
+}
+```
+
+`REQUIRES_NEW`는 바깥 트랜잭션을 잠시 중단하고 조회수 증가를 독립적으로 커밋한다. 상세 응답 생성이 나중에 실패해도 조회수 증가를 남겨야 하는 정책이라면 맞는다. 반대로 상세 조회의 성공과 조회수 증가가 함께 성공해야 한다면 기본 전파 정책으로 같은 트랜잭션에 참여시킨다.
+
+이 전파 정책은 lost update를 해결하지 않는다. `SELECT → 값 증가 → save`를 새 트랜잭션에서 실행해도 동시에 시작한 두 새 트랜잭션은 같은 값을 읽을 수 있다. 원자적 `UPDATE`가 증가분 유실을 막고, `REQUIRES_NEW`는 커밋 경계를 분리한다.
+
+커넥션 풀 관점에서는 비용이 있다. 바깥 상세 조회 트랜잭션이 이미 커넥션을 잡은 상태에서 이 메서드를 호출하면, 중단된 바깥 트랜잭션의 커넥션은 반환되지 않고 조회수 트랜잭션용 커넥션을 하나 더 빌린다. 상세 요청이 몰리면 요청 하나가 동시에 두 커넥션을 점유할 수 있다. 조회수 증가를 `REQUIRES_NEW`로 유지한다면 메서드 안에는 원자적 `UPDATE` 한 번만 두고, Redis·HTTP·파일 처리 같은 작업을 넣지 않는다.
+
+`REQUIRES_NEW`는 Spring 프록시를 거쳐 호출돼야 적용된다. 같은 클래스의 메서드를 `this.increaseViewCount(...)`로 호출하면 새 트랜잭션이 열리지 않는다. 조회수 서비스를 별도 빈으로 분리하거나 프록시 호출 구조를 사용한다.
+
+`updated == 0`은 조회수 행이 없다는 뜻이다. 게시물 생성 시 집계 행을 함께 만들거나, 별도 생성 경로가 있다면 `ARTICLE_ID` 유니크 제약과 INSERT 경쟁 조건 처리를 둬야 한다. 게시물 테이블에도 조회수를 중복 저장하면 다시 두 값의 동기화 문제가 생긴다. 표시용 조회수의 기준 테이블을 하나로 정하고, 다른 값은 조회 시 조인하거나 비동기 복제본으로 명확히 구분한다.
+
+bulk update는 영속성 컨텍스트를 거치지 않는다. 같은 트랜잭션에서 `ArticleViewCount` 엔티티를 이미 조회했다면 메모리의 `viewCount`는 이전 값으로 남는다. 증가 직후 엔티티 값을 사용해야 하면 update 전에 조회하지 않거나, 변경 내용을 `flush()`한 뒤 `entityManager.clear()`하고 다시 조회한다.
+
+### CaseBuilder는 조건을 UPDATE 식 안으로 넣는다
+
+[`CaseBuilder`](https://javadoc.io/doc/com.querydsl/querydsl-core/latest/com/querydsl/core/types/dsl/CaseBuilder.html)는 QueryDSL에서 SQL `CASE WHEN ... THEN ... ELSE ... END` 식을 만드는 클래스다. 조회수 상한처럼 현재 컬럼 값에 따라 다음 값을 달리 정할 때 `JPAUpdateClause.set`과 함께 쓴다. 이 예제는 `MAX_VIEW_COUNT`에 도달한 행을 더 이상 증가시키지 않는다.
+
+```java
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAUpdateClause;
+
+public long incrementUntilLimit(Long articleId) {
+    QArticleViewCount articleViewCount = QArticleViewCount.articleViewCount;
+    long maxViewCount = 1_000_000L;
+
+    NumberExpression<Long> nextViewCount = new CaseBuilder()
+        .when(articleViewCount.viewCount.lt(maxViewCount))
+        .then(articleViewCount.viewCount.add(1L))
+        .otherwise(articleViewCount.viewCount);
+
+    return new JPAUpdateClause(entityManager, articleViewCount)
+        .set(articleViewCount.viewCount, nextViewCount)
+        .where(articleViewCount.articleId.eq(articleId))
+        .execute();
+}
+```
+
+생성되는 식은 다음과 같다.
+
+```sql
+update ARTICLE_VIEW_COUNT
+set VIEW_COUNT = case
+    when VIEW_COUNT < 1000000 then VIEW_COUNT + 1
+    else VIEW_COUNT
+end
+where ARTICLE_ID = :articleId;
+```
+
+이 조건도 한 SQL 문장에서 평가되므로 `SELECT`로 상한 여부를 확인한 뒤 증가하는 방식의 경쟁 조건을 만들지 않는다. 다만 `execute()`가 1을 반환해도 상한에 도달해 값이 실제로 증가했는지는 알 수 없다. 상한 초과 요청을 구분해야 하면 `where(articleViewCount.viewCount.lt(maxViewCount))` 조건으로 옮기고, 반환값 `0`을 처리한다.
+
+`CaseBuilder`는 중복 조회 방지 기능이 아니다. 회원별·세션별로 한 번만 조회수를 올려야 한다면 `(ARTICLE_ID, VIEWER_ID)` 같은 방문 기록 테이블에 유니크 제약을 두고, INSERT 성공 시에만 위 원자적 증가를 실행해야 한다. 두 작업의 원자성이 필요하면 같은 트랜잭션으로 묶는다.
+
+## 6. 캐시는 응답 전체가 아니라 공통 설정만 저장한다
 
 목록이나 상세 응답에는 사용자별 신청 여부와 입력값이 섞일 수 있다. 응답 전체를 캐시하면 사용자별 키로 분산돼 히트율이 낮고, 개인 데이터가 공유 캐시에 남을 위험이 있다.
 
@@ -197,7 +290,7 @@ public record EventRoundCacheDto(Long id, String name) {
 
 쓰기 경로의 마감 판정, 중복 신청 검사, 사용자별 입력값은 캐시하지 않는다. 캐시 TTL은 데이터 변경 후 허용 가능한 지연 시간에서 결정한다. 짧은 TTL을 새로 만들기 전에 기존 캐시 정책과 직렬화 방식을 재사용할 수 있는지 확인하는 편이 낫다.
 
-## 6. 인덱스 없는 중복 검사는 락 대기로 바뀐다
+## 7. 인덱스 없는 중복 검사는 락 대기로 바뀐다
 
 중복 신청 검사가 회원과 회차를 조건으로 조회하는데 해당 복합 인덱스가 없으면, 트래픽이 몰릴 때 넓은 범위를 스캔한다. 동시에 들어온 INSERT와 공유 락 대기가 생기는 구조다.
 
@@ -210,7 +303,7 @@ create unique index UX_REGISTRATION_MEMBER_ROUND
 
 기존 데이터에 중복이 있거나 유니크 제약을 당장 넣을 수 없으면, 먼저 비유니크 복합 인덱스로 스캔 범위부터 줄인다. 유니크 제약은 데이터 정리와 배포 계획을 별도로 잡아 적용한다.
 
-## 7. 풀 크기보다 빠른 회복을 설계한다
+## 8. 풀 크기보다 빠른 회복을 설계한다
 
 풀 크기를 무작정 키우면 대기 중인 요청과 DB 락 경합도 함께 늘어난다. 풀 소진 때는 빨리 실패시키고 커넥션을 반환해야 대기열이 줄어든다.
 
