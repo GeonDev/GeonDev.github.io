@@ -44,7 +44,7 @@ public List<EventRoundResponse> getRounds(Long eventId, Long memberId) {
 }
 ```
 
-정상 상태에서 HikariCP의 커넥션 획득 자체는 비용이 거의 없다. 이 변경의 근거는 획득 횟수가 아니다. `readOnly` 또는 `isolation`을 지정한 JPA 트랜잭션은 물리 커넥션을 즉시 얻고, SQL Server 드라이버는 격리 수준 설정을 서버에 전송한다.
+정상 상태에서 HikariCP의 커넥션 획득 자체는 대개 빠르다. 실제 커넥션을 획득하는 시점은 트랜잭션 매니저와 JPA 설정에 따라 다르지만, DB 작업이 시작되면 커넥션을 점유한다. 이 변경의 근거는 획득 횟수 자체보다 트랜잭션 설정과 커넥션 점유 구간을 줄이는 데 있다.
 
 리포지토리별로 트랜잭션을 열면 설정과 복구를 매번 왕복한다. 조회 흐름 전체를 하나의 읽기 트랜잭션으로 묶으면 이 왕복은 한 번으로 줄고, 풀이 소진된 상태에서도 커넥션 대기는 요청당 한 번만 발생한다.
 
@@ -84,6 +84,8 @@ public List<EventRoundResponse> getRounds(Long eventId, Long memberId) {
 
 SQL Server에서 `READ_UNCOMMITTED`가 허용되는 읽기라면 바깥 서비스 메서드에 격리 수준을 선언한다. 안쪽 리포지토리 메서드에만 선언하면 기존 쓰기 트랜잭션에 참여할 때 격리 수준이 바뀌지 않는다.
 
+검토한 구조를 단순화한 예시는 다음과 같다.
+
 ```java
 @Transactional(isolation = Isolation.READ_UNCOMMITTED)
 public void cancelRegistration(Long registrationId) {
@@ -122,11 +124,11 @@ RU를 쓰기 메서드에 둘 때는 다음을 먼저 확인한다.
 
 엔티티 필드에서 연관 엔티티를 꺼내는 lazy loading과 Repository를 직접 호출하는 방식은 서로 반대가 아니다. 전자는 영속성 컨텍스트가 열려 있을 때 필드 접근 시점에 Hibernate가 SQL을 만든다. 후자는 애플리케이션 코드가 조회 조건과 실행 메서드를 명시한다.
 
-첨부파일 목록처럼 연관 컬렉션을 접근해 실행한 lazy SQL에 `READ_UNCOMMITTED`를 적용해야 하는 경우가 있다. **lazy 필드에 접근하는 서비스 메서드의 바깥 트랜잭션**에 격리 수준을 선언하면 해당 SQL도 같은 커넥션에서 실행되므로 NOLOCK 효과를 받는다.
+첨부파일 목록처럼 연관 컬렉션을 접근해 실행한 lazy SQL에 `READ_UNCOMMITTED`를 적용해야 하는 경우가 있다. **lazy 필드에 접근하는 서비스 메서드의 바깥 트랜잭션**에 격리 수준을 선언하면 해당 SQL도 같은 커넥션에서 실행되므로 SQL Server의 데이터 잠금 대기를 줄이는 효과를 기대할 수 있다.
 
 Repository 메서드에만 격리 수준을 선언해도 lazy SQL까지 자동으로 전파되지는 않는다. Repository 호출이 끝난 뒤 엔티티 필드에 접근하면 그 SQL은 호출 시점에 활성화된 트랜잭션을 따른다. 이미 바깥 트랜잭션이 `READ_COMMITTED`라면 안쪽 Repository의 `READ_UNCOMMITTED`는 기본 전파 정책에서 적용되지 않는다.
 
-따라서 단순히 연관 데이터를 읽는 경로는 바깥 읽기 트랜잭션을 두고 lazy loading을 유지한다. 필요한 정렬·조건·projection을 명시하거나 연관 컬렉션의 SQL을 별도로 제어해야 할 때만 Repository 메서드로 옮긴다.
+따라서 단순히 연관 데이터를 읽는 경로는 바깥 읽기 트랜잭션을 두고 lazy loading을 유지한다. 필요한 정렬·조건·projection을 명시하거나 연관 컬렉션의 SQL을 별도로 제어해야 할 때만 Repository 메서드로 옮긴다. 아래 코드는 lazy loading이 아니라 명시적인 Repository 조회를 사용하는 예시다.
 
 ```java
 @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
@@ -135,7 +137,7 @@ public List<ArticleFile> getFiles(Long articleId) {
 }
 ```
 
-반대로 서비스 메서드 바깥에 이미 `READ_UNCOMMITTED` 읽기 트랜잭션이 있고, 그 안에서 연관 컬렉션을 읽는다면 lazy loading도 같은 커넥션과 격리 수준을 사용한다. 이 경우 Repository 호출로 바꿔도 NOLOCK 효과는 늘지 않는다. 관리 컬렉션을 수정하는 쓰기 경로라면 엔티티 연관 관계를 유지해야 변경 감지와 cascade 의미도 보존된다.
+반대로 서비스 메서드 바깥에 이미 `READ_UNCOMMITTED` 읽기 트랜잭션이 있고, 그 안에서 연관 컬렉션을 읽는다면 lazy loading도 같은 커넥션과 격리 수준을 사용한다. 이 경우 Repository 호출로 바꿔도 SQL Server의 데이터 잠금 대기 감소 효과가 늘지는 않는다. 관리 컬렉션을 수정하는 쓰기 경로라면 엔티티 연관 관계를 유지해야 변경 감지와 cascade 의미도 보존된다.
 
 `EAGER`를 `LAZY`로 바꾸는 판단도 별개다. `EAGER`는 부모를 조회하는 순간 연관 엔티티까지 항상 가져온다. 대부분의 호출이 그 연관 데이터를 쓰지 않을 때만 `LAZY`가 DB 작업을 줄인다. 다만 컨트롤러 직렬화나 OSIV가 꺼진 배치가 트랜잭션 밖에서 필드에 접근하면 `LazyInitializationException`이 발생한다. 호출처가 모두 트랜잭션 안에서 접근하는지 확인하지 않았다면 `EAGER → LAZY` 전환은 하지 않는다.
 
@@ -174,7 +176,7 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
 
 장애 당시 게시물 행과 조회수 집계 행이 분리돼 있었고, 두 값이 일치하지 않거나 일부 증가 요청이 사라졌다. 상세 조회가 `SELECT`로 현재 조회수를 읽고 애플리케이션에서 1을 더한 뒤 저장하면, 같은 값을 읽은 두 요청이 같은 다음 값을 저장한다. 예를 들어 두 요청이 모두 `100`을 읽으면 둘 다 `101`을 저장하므로 실제 조회는 두 번이지만 최종 값은 한 번만 증가한다.
 
-조회수처럼 현재 값에 일정 값을 더하는 작업은 엔티티를 읽지 않고 DB에서 한 문장으로 실행한다. QueryDSL의 [`JPAUpdateClause`](https://javadoc.io/doc/com.querydsl/querydsl-jpa/latest/com/querydsl/jpa/impl/JPAUpdateClause.html)는 JPQL bulk update를 만드는 클래스다. `set`의 오른쪽에 컬럼 식을 둘 수 있으므로 `VIEW_COUNT = VIEW_COUNT + 1`을 만든다. `execute()`의 반환값은 갱신된 행 수다.
+조회수처럼 현재 값에 일정 값을 더하는 작업은 엔티티를 읽지 않고 DB에서 한 문장으로 실행한다. QueryDSL의 [`JPAUpdateClause`](https://javadoc.io/doc/com.querydsl/querydsl-jpa/latest/com/querydsl/jpa/impl/JPAUpdateClause.html)는 JPQL bulk update를 만드는 클래스다. `set`의 오른쪽에 컬럼 식을 둘 수 있으므로 `VIEW_COUNT = VIEW_COUNT + 1`을 만든다. `execute()`의 반환값은 갱신된 행 수다. 이 메서드는 활성 트랜잭션 안의 서비스 메서드에서 호출해야 한다.
 
 ```java
 import com.querydsl.jpa.impl.JPAUpdateClause;
@@ -196,30 +198,9 @@ public class ArticleViewCountQueryRepository {
 }
 ```
 
-SQL은 DB에서 행 잠금을 잡고 현재 값을 기준으로 계산한다. 같은 `ARTICLE_ID`를 여러 요청이 동시에 갱신해도 각 `UPDATE`가 순서대로 적용되므로 증가분이 덮어써지지 않는다. 이 장애의 조회수 메서드는 `REQUIRES_NEW`였으므로, 호출부도 새 트랜잭션에서 영향을 받은 행 수를 확인한다.
+SQL은 DB에서 행 잠금을 잡고 현재 값을 기준으로 계산한다. 같은 `ARTICLE_ID`를 여러 요청이 동시에 갱신해도 각 `UPDATE`가 순서대로 적용되므로 증가분이 덮어써지지 않는다. 호출부는 갱신된 행 수를 확인해 조회수 행의 존재 여부를 검증한다.
 
-```java
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-@Transactional(propagation = Propagation.REQUIRES_NEW)
-public void increaseViewCount(Long articleId) {
-    long updated = articleViewCountQueryRepository.increment(articleId);
-    if (updated != 1) {
-        throw new ArticleViewCountNotFoundException(articleId);
-    }
-}
-```
-
-`REQUIRES_NEW`는 바깥 트랜잭션을 잠시 중단하고 조회수 증가를 독립적으로 커밋한다. 상세 응답 생성이 나중에 실패해도 조회수 증가를 남겨야 하는 정책이라면 맞는다. 반대로 상세 조회의 성공과 조회수 증가가 함께 성공해야 한다면 기본 전파 정책으로 같은 트랜잭션에 참여시킨다.
-
-이 전파 정책은 lost update를 해결하지 않는다. `SELECT → 값 증가 → save`를 새 트랜잭션에서 실행해도 동시에 시작한 두 새 트랜잭션은 같은 값을 읽을 수 있다. 원자적 `UPDATE`가 증가분 유실을 막고, `REQUIRES_NEW`는 커밋 경계를 분리한다.
-
-커넥션 풀 관점에서는 비용이 있다. 바깥 상세 조회 트랜잭션이 이미 커넥션을 잡은 상태에서 이 메서드를 호출하면, 중단된 바깥 트랜잭션의 커넥션은 반환되지 않고 조회수 트랜잭션용 커넥션을 하나 더 빌린다. 상세 요청이 몰리면 요청 하나가 동시에 두 커넥션을 점유할 수 있다. 조회수 증가를 `REQUIRES_NEW`로 유지한다면 메서드 안에는 원자적 `UPDATE` 한 번만 두고, Redis·HTTP·파일 처리 같은 작업을 넣지 않는다.
-
-`REQUIRES_NEW`는 Spring 프록시를 거쳐 호출돼야 적용된다. 같은 클래스의 메서드를 `this.increaseViewCount(...)`로 호출하면 새 트랜잭션이 열리지 않는다. 조회수 서비스를 별도 빈으로 분리하거나 프록시 호출 구조를 사용한다.
-
-`updated == 0`은 조회수 행이 없다는 뜻이다. 게시물 생성 시 집계 행을 함께 만들거나, 별도 생성 경로가 있다면 `ARTICLE_ID` 유니크 제약과 INSERT 경쟁 조건 처리를 둬야 한다. 게시물 테이블에도 조회수를 중복 저장하면 다시 두 값의 동기화 문제가 생긴다. 표시용 조회수의 기준 테이블을 하나로 정하고, 다른 값은 조회 시 조인하거나 비동기 복제본으로 명확히 구분한다.
+갱신 결과가 `0`이면 조회수 행이 없다는 뜻이다. 게시물 생성 시 집계 행을 함께 만들거나, 별도 생성 경로가 있다면 `ARTICLE_ID` 유니크 제약과 INSERT 경쟁 조건 처리를 둬야 한다. 게시물 테이블에도 조회수를 중복 저장하면 다시 두 값의 동기화 문제가 생긴다. 표시용 조회수의 기준 테이블을 하나로 정하고, 다른 값은 조회 시 조인하거나 비동기 복제본으로 명확히 구분한다.
 
 bulk update는 영속성 컨텍스트를 거치지 않는다. 같은 트랜잭션에서 `ArticleViewCount` 엔티티를 이미 조회했다면 메모리의 `viewCount`는 이전 값으로 남는다. 증가 직후 엔티티 값을 사용해야 하면 update 전에 조회하지 않거나, 변경 내용을 `flush()`한 뒤 `entityManager.clear()`하고 다시 조회한다.
 
@@ -292,7 +273,7 @@ public record EventRoundCacheDto(Long id, String name) {
 
 ## 7. 인덱스 없는 중복 검사는 락 대기로 바뀐다
 
-중복 신청 검사가 회원과 회차를 조건으로 조회하는데 해당 복합 인덱스가 없으면, 트래픽이 몰릴 때 넓은 범위를 스캔한다. 동시에 들어온 INSERT와 공유 락 대기가 생기는 구조다.
+중복 신청 검사가 회원과 회차를 조건으로 조회하는데 해당 복합 인덱스가 없으면, 실행 계획에 따라 넓은 범위를 스캔할 수 있다. 이 스캔이 동시에 들어온 INSERT와 겹치면 공유 락 대기가 커질 수 있다.
 
 ```sql
 create unique index UX_REGISTRATION_MEMBER_ROUND
@@ -323,3 +304,50 @@ logging:
 읽기 부하 테스트가 통과해도 쓰기와 도착률 초과 상태는 별도로 재현해야 한다. 고정 스레드의 읽기 테스트는 DB 처리량만 보여줄 뿐, 처리율을 넘은 요청이 쌓인 뒤 얼마나 빨리 회복하는지는 보여주지 않는다.
 
 JPA 성능 튜닝에서 SQL 실행 시간만 보면 이 문제를 놓친다. 요청 단위의 트랜잭션 경계, 커넥션 획득 횟수, 캐시 키의 수렴도, 검증 조회의 인덱스를 함께 봐야 풀 고갈 이후에도 회복하는 구조가 된다.
+
+## 부록. `REQUIRES_NEW` 사용 시 커넥션 풀 부족 문제
+
+다음 내용은 이 글의 장애 대응으로 실제 적용한 조치가 아니라, 조회수 증가 트랜잭션을 분리할 때 검토할 수 있는 대안이다.
+
+`REQUIRES_NEW`는 기존 트랜잭션을 중단하고 새 트랜잭션을 시작한다. 이때 기존 트랜잭션이 사용하던 커넥션은 풀에 반환되지 않는다. 새 트랜잭션은 별도의 커넥션을 요구한다.
+
+커넥션 풀이 10개이고 10개 요청이 모두 바깥 트랜잭션의 커넥션을 점유한 상태를 가정한다. 각 요청이 `REQUIRES_NEW`를 실행하면 새 트랜잭션은 11번째 커넥션을 기다린다. 모든 요청이 같은 상태가 되면 기존 트랜잭션이 커넥션을 반환할 때까지 새 트랜잭션이 진행되지 않는 풀 고갈 대기 상태가 만들어진다.
+
+`REQUIRES_NEW`를 사용한다면 Spring 프록시를 거쳐 호출되는지 확인해야 한다. 같은 클래스의 메서드를 `this.increaseViewCount(...)`로 호출하면 새 트랜잭션이 열리지 않는다. 조회수 서비스처럼 별도 빈으로 분리하면 프록시 호출을 보장할 수 있다.
+
+조회수 증가를 독립적으로 커밋해야 하지만 중첩 커넥션 점유를 피해야 한다면, 트랜잭션이 없는 파사드에서 조회와 증가를 순서대로 실행할 수 있다.
+
+```java
+@Service
+@RequiredArgsConstructor
+public class ArticleFacade {
+
+    private final ArticleQueryService articleQueryService;
+    private final ArticleViewCountService articleViewCountService;
+
+    public ArticleResponse getArticle(Long articleId) {
+        ArticleResponse article = articleQueryService.find(articleId);
+        articleViewCountService.increase(articleId);
+        return article;
+    }
+}
+```
+
+파사드에는 `@Transactional`을 붙이지 않는다. 조회 트랜잭션이 끝나 커넥션을 반환한 뒤 조회수 증가 트랜잭션이 시작되도록 각 작업을 별도 빈으로 둔다. 아래 코드는 두 서비스의 메서드만 보여주는 축약 예시다.
+
+```java
+@Transactional(readOnly = true)
+public ArticleResponse find(Long articleId) {
+    return articleRepository.findResponse(articleId);
+}
+
+@Transactional
+public void increase(Long articleId) {
+    long updated = viewCountRepository.increment(articleId);
+    if (updated != 1) {
+        throw new ArticleViewCountNotFoundException(articleId);
+    }
+}
+```
+
+이 방식은 커넥션을 한 번만 빌리는 구조가 아니다. 조회와 증가 쿼리에서 각각 커넥션을 빌리지만, 두 커넥션을 동시에 점유하지 않는다. 조회수 증가 실패를 허용하고 게시글 응답을 반환하려면 증가 예외를 별도로 기록하거나 무시하는 정책이 필요하다. 두 작업의 성공을 하나의 원자적 작업으로 보장해야 한다면 트랜잭션을 분리하면 안 된다.
