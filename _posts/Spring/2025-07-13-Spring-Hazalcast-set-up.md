@@ -505,7 +505,7 @@ public class HazelcastAdminController {
 ~~~
 
 위 코드는 수정 전 상태다. 응답은 정상으로 나가지만 실제 동작이 다른 부분이 세 군데 있었다.
-아래 5.1~5.4가 그 내용이고, 5.5는 확인만 하고 남겨둔 부분, 5.6은 일반적인 주의점이다.
+아래 5.1~5.5가 그 내용이고, 5.6은 일반적인 주의점이다.
 
 ## 5.1 캐시 갱신이 안 되는 이유 - 캐시 계층이 두 개다
 첫 번째 원인은 이 프로젝트에 캐시 추상화가 두 겹으로 존재한다는 점이다.
@@ -609,27 +609,34 @@ private Object findKey(IMap<Object, Object> map, String key) {
 
 맵 전체를 순회하므로 엔트리가 많으면 느리다. 관리용 API에만 쓰는 경로라 이 비용은 감수했다.
 
-## 5.5 아직 정리하지 않은 부분
+## 5.5 우회로 넣었다가 걷어낸 코드
 
-아래는 확인은 했지만 이번 수정에 넣지 않은 것들이다.
+`clearCache`에는 5.4 때문에 들어간 코드가 있었다. 키 단위 삭제가 동작하지 않으니
+캐시를 통째로 비워서 우회하려던 것이다. 5.4를 고치면서 둘 다 제거했다.
 
-* **`clearCache`의 `cacheManager` 호출.** `IMap.clear()` 뒤에 `cacheManager.getCache(name).clear()`를 한 번 더 부른다.
-  실수로 남은 중복이 아니라, 5.4 때문에 키 단위 삭제가 안 되니 두 계층을 다 비워서 우회하려고 넣은 코드다.
-  그런데 실제로는 두 계층이 아니라 같은 맵을 두 번 비운다. `HazelcastCacheManager.getCache(name)`은
-  `hazelcastInstance.getMap(name)`을 감싼 `HazelcastCache`를 돌려주고, 그 `clear()`는 그대로 `IMap.clear()`다.
-  바로 윗줄에서 비운 맵을 다시 비우는 것이라 남는 효과가 없다.
-  인자에 MyBatis namespace를 넣으면 그 이름의 Spring Cache 래퍼가 하나 만들어져 캐시 매니저에 등록된다.
-* **`destroy()` 방어 분기.** `map.clear()` 직후 `if(map.size() > 0)`으로 `destroy()`를 건다.
-  `clear()`가 실패하는 경우에 맵을 강제로 제거하려고 넣은 코드다.
-  그런데 `clear()`가 예외를 던지면 `if`까지 도달하지 못한다. 이 분기가 실행되는 경우는
-  `clear()`와 `size()` 사이에 다른 노드가 새 엔트리를 넣었을 때뿐이다. 여러 노드가 같이 쓰는 `IMap`이라 가능하다.
-  막으려던 상황에서는 돌지 않고, 캐시가 정상적으로 다시 채워지는 중일 때만 돌면서 맵 자체를 제거한다.
+* **`cacheManager.getCache(name).clear()`** - 두 계층을 다 비우려고 넣었지만 실제로는 같은 맵을 두 번 비운다.
+  `HazelcastCacheManager.getCache(name)`은 `hazelcastInstance.getMap(name)`을 감싼 `HazelcastCache`를 돌려주고,
+  그 `clear()`는 그대로 `IMap.clear()`다. 바로 윗줄에서 비운 맵을 다시 비우는 것이라 남는 효과가 없었다.
+  덧붙여 이 호출은 `CacheManager.getCache`가 `@Nullable`이라는 계약에 기대고 있다.
+  현재 구현은 없는 이름이면 새로 만들어 돌려주므로 `null`이 아니지만, 구현이 바뀌면 깨진다.
+* **`if (map.size() > 0) { map.destroy(); }`** - `clear()` 실패에 대비한 방어였는데 그렇게 동작하지 않는다.
+  `clear()`가 예외를 던지면 이 줄에 도달하지 못하고, 성공하면 `size()`는 0이다.
+  참이 되는 경우는 `clear()`와 `size()` 사이에 다른 노드가 새 엔트리를 넣었을 때뿐이다.
+  막으려던 상황이 아니라 캐시가 정상적으로 다시 채워지는 중일 때만 걸리면서 맵 전체를 `destroy`한다.
 
-> `destroy()`로 맵을 없애도 MyBatis가 생성자에서 잡아둔 `IMap` 참조는 죽지 않는다.
-> Hazelcast가 프록시를 다시 만들기 때문에 destroy 직후에도 기존 참조로 put/get이 된다.
-> 띄워서 확인한 내용이고, 위 분기를 남겨둘 이유가 되지는 않는다.
+남은 본문은 이게 전부다. 쓰이지 않게 된 `CacheManager` 주입과 import도 같이 걷어내 10줄이 빠지고 1줄이 늘었다.
 
-동작만 놓고 보면 둘 다 빼는 쪽이 맞지만, 이번 수정에는 넣지 않았다.
+~~~java
+// 캐시 매니저가 주는 캐시도 같은 이름의 IMap 을 감싼 것이라 여기서 한 번만 비우면 된다.
+IMap<Object, Object> map = hazelcastInstance.getMap(cacheMap);
+int size = map.size();
+map.clear();
+
+return ResponseEntity.ok("( size : " + size + " ) cleared successfully.");
+~~~
+
+> `destroy()`를 뺀 이유가 MyBatis가 잡아둔 `IMap` 참조를 깨기 때문은 아니다.
+> Hazelcast가 프록시를 다시 만들어 destroy 직후에도 기존 참조로 put/get이 된다. 이건 띄워서 확인했다.
 
 ## 5.6 캐시 관리 API를 만들 때 같이 볼 것
 
@@ -641,9 +648,6 @@ private Object findKey(IMap<Object, Object> map, String key) {
   인터셉터/필터나 Security 설정으로 한 곳에서 처리하면 누락 자체가 생기지 않는다.
 * **IP 화이트리스트만으로는 부족하다.** 리버스 프록시 뒤에 있으면 `getRemoteAddr()`이 프록시 IP로 잡히고,
   `X-Forwarded-For`는 위조가 가능하다. 신뢰할 수 있는 프록시 헤더 처리나 별도 인증을 함께 둔다.
-* **`cacheManager.getCache(name)`의 반환값은 구현에 따라 다르다.** `CacheManager` 인터페이스는 `null`을 줄 수 있다고
-  선언하므로 정적 분석은 NPE를 경고한다. 다만 `HazelcastCacheManager`는 없는 이름이면 새로 만들어 돌려주므로 `null`이 아니다.
-  경고를 무시하고 그냥 쓰면 구현을 바꿨을 때 깨진다.
 
 # 6. Hazalcast 배포시 문제 해결
 Hazalcast의 조인은 여러부분에서 자동화 되어 있어 편리하지만   
