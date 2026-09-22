@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 동시성 제어를 위한 DB 락 (JPA 낙관적·비관적 락)
+title: JPA 낙관적 락과 비관적 락으로 동시성 제어하기
 date: 2026-06-28
 Author: Geon Son
 categories: Spring

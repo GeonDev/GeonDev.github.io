@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Spring Security 6 + JWT 로그인부터 토큰 검증·권한 확인까지 (최신 버전)
+title: Spring Security 6로 JWT 로그인·인가 구현하기
 date: 2026-04-14
 Author: Geon Son
 categories: Spring

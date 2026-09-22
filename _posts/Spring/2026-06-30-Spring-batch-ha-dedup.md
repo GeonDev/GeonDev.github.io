@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 이중화된 배치·스케줄러 중복 실행 막기 (ShedLock / SKIP LOCKED)
+title: ShedLock으로 이중화된 스케줄러 중복 실행 막기
 date: 2026-06-30
 Author: Geon Son
 categories: Spring
