@@ -20,10 +20,10 @@ toc: true
 ![graphify 파이프라인 — 파일 감지부터 그래프 빌드, 커뮤니티 디텍션, 분석, 리포트·시각화 출력까지의 처리 흐름](/images/project/graphify-pipeline.svg){: .align-center}
 *graphify의 처리 흐름. 코드 파일은 AST 정적 파싱(Part A)만 거치고, 문서·이미지 같은 시맨틱 자료만 LLM 서브에이전트(Part B)로 처리된다.*
 
-- **구조 추출(Part A)** — 코드 파일은 tree-sitter 기반 AST로 함수·클래스·호출 관계를 추출한다. LLM을 쓰지 않아 무료이고 결정적(deterministic)이다.
+- **구조 추출(Part A)** — 코드 파일은 tree-sitter 기반 AST(Abstract Syntax Tree, 소스 코드를 컴파일러가 구문 규칙대로 분석해서 만드는 트리 구조. 문자열이 아니라 "이 부분이 클래스 선언, 저 부분이 메서드 호출"처럼 구조로 코드를 본다)로 함수·클래스·호출 관계를 추출한다. LLM을 쓰지 않아 무료이고 결정적(deterministic)이다.
 - **시맨틱 추출(Part B)** — 문서·논문·이미지만 LLM(서브에이전트 병렬 디스패치, 또는 `GEMINI_API_KEY` 설정 시 Gemini)로 처리한다. 코드만 있는 레포는 이 단계 자체를 스킵한다.
 - **그래프 빌드** — 두 결과를 NetworkX 그래프로 병합.
-- **커뮤니티 디텍션** — 연결 밀도로 노드를 클러스터링, 커뮤니티별 cohesion 점수 산출.
+- **커뮤니티 디텍션** — 연결 밀도로 노드를 클러스터링, 커뮤니티별 cohesion(응집도) 점수 산출.
 - **분석** — God Node(연결이 몰린 허브 노드), Surprising Connection(커뮤니티 경계를 넘는 의외의 연결) 탐지.
 - **출력** — `graph.html`(인터랙티브 시각화), `GRAPH_REPORT.md`(사람이 읽는 감사 리포트), `graph.json`(원본 데이터).
 
@@ -32,7 +32,7 @@ toc: true
 | 명령 | 동작 |
 |------|------|
 | `/graphify <path>` | 전체 파이프라인 실행 |
-| `/graphify <path> --mode deep` | 더 정밀한 추출, INFERRED 엣지 강화 |
+| `/graphify <path> --mode deep` | 문서·이미지 시맨틱 추출을 더 정밀하게(코드 파싱에는 영향 없음, 뒤에서 다룬다) |
 | `/graphify <path> --update` | 변경된 파일만 재추출 |
 | `/graphify query "<질문>"` | 그래프 위에서 BFS/DFS 순회로 답 찾기 |
 | `/graphify path "A" "B"` | 두 노드 간 최단 경로 |
@@ -75,18 +75,18 @@ Claude Code에서 `/graphify` 스킬을 통해 쓸 때는 다르다. 스킬 지�
 |------|-----|
 | 노드 | 7,258개 |
 | 엣지 | 28,466개 |
-| 커뮤니티 | 291개(218개 표시, 73개 thin으로 생략) |
+| 커뮤니티 | 291개(218개 표시, 나머지 73개는 노드 수가 적어(thin) 리포트에서 생략) |
 | 토큰 비용 | 이 실행 1회 기준 output 1,511,688 토큰(input 0) |
 
 목적은 그래프에서 저사용·고립 노드를 찾아 리팩토링 후보를 추리는 것이었다. 실제로 이 목적을 기준으로 겪은 한계를 아래에 정리한다. `--mode deep` 재추출 후의 수치 변화와 이 한계들이 실제로 해소됐는지는 글 뒤쪽 "일반 모드 vs `--mode deep` 비교"에서 다룬다.
 
 # 그래프로 실제 문제를 찾아낸 사례
 
-한계로 넘어가기 전에, 그래프를 보고 실제로 조치까지 이어진 사례부터 정리한다.
+한계로 넘어가기 전에, 그래프가 실제로 쓸모 있었던 지점부터 정리한다.
 
 ## 놓친 호출부는 INFERRED 엣지로 찾는다
 
-`TechnicalIndicatorService.calculateAndFillIndicators()`를 소스만 읽어서 조사했을 때는 호출부가 `StockPriceBatch` 두 곳뿐인 줄 알았다. `--mode deep` 재빌드 후 그래프에서 이 메서드로 들어오는 엣지를 다시 조회하니, INFERRED 엣지로 세 곳이 더 잡혔다.
+`TechnicalIndicatorService.calculateAndFillIndicators()`를 소스만 읽어서 조사했을 때는 호출부가 `StockPriceBatch` 두 곳뿐인 줄 알았다. 재빌드 후 그래프에서 이 메서드로 들어오는 엣지를 다시 조회하니, 세 곳이 더 잡혔다.
 
 - `CalculateIndicatorProcessor.process()`
 - `EtfPriceService.recalculateProductIndicators()`
@@ -94,9 +94,31 @@ Claude Code에서 `/graphify` 스킬을 통해 쓸 때는 다르다. 스킬 지�
 
 grep으로 전수 확인한 결과 실제 호출부는 총 다섯 곳이었고, 그중 `EtfPriceService.recalculateProductIndicators()`가 그동안 놓치고 있던 "레코드마다 지표를 전체 재계산하는" 세 번째 사례였다. 이 건은 실제로 수정까지 마쳤다.
 
+처음엔 이 세 엣지가 `--mode deep` 덕분이라고 생각했다. 그런데 엣지 메타데이터를 직접 까보니 셋 다 `_origin: ast`였다 — 문서를 시맨틱 추출한 결과(Part B)가 아니라 순수 AST 엣지(Part A)였다. `--mode deep`이 잡아준 게 아니라, 재빌드 과정에서 AST도 통째로 다시 돈 것뿐이었다. INFERRED라는 신뢰도 표시를 "LLM이 만든 엣지"로 잘못 읽은 것이었다 — 실제로는 EXTRACTED/INFERRED가 "같은 파일 안이라 확정(EXTRACTED)"과 "파일 경계를 넘어 이름만으로 맞춘 추정(INFERRED)"을 가르는 축이고, 어느 쪽 파서(Part A든 Part B든)가 만들었는지와는 별개다. 첫 빌드에는 왜 이 세 엣지가 없었는지는 확인하지 못했다 — 첫 빌드의 `graph.json`은 재빌드로 덮어써져 남아 있지 않다.
+
 ## 예상 밖 호출 트리거를 그래프로 추적한다
 
 `ReconciliationService.reconcileAll()`은 스케줄러 하나가 하루 한 번 부르는 줄 알았다. 그래프를 따라가 보니 `KisExecutionNotifier`가 KIS(한국투자증권) WebSocket이 재연결될 때마다 별도로 호출하는 경로가 있었다. 하루 한 번이 아니라 네트워크 상태에 따라 빈도가 달라진다는 뜻이라, 이미 알고 있던 "트랜잭션 범위가 넓다"는 문제의 심각도 판단 자체가 바뀌었다.
+
+## 아키텍처 문서·API 명세와 엮이면 문서 간 연결까지 잡힌다
+
+stock-msa는 AI 코딩 에이전트의 환각을 줄이려고 문서를 두 종류로 나눠 관리한다.
+
+- `docs/architecture/*.md` — 서비스별로 손으로 쓴 아키텍처 문서. 역할, 기술 스택, 주요 클래스(Controller/Service/Batch/Client)의 실제 메서드 시그니처, 데이터 흐름, 엔티티·테이블을 적어둔다.
+- `docs/api-endpoints/*.yaml` — 서비스별 OpenAPI 3.1 스펙. 실행 중인 서비스에서 뽑아낸 실제 엔드포인트·파라미터·응답 스키마다.
+
+`docs/architecture/README.md`에는 이 둘의 신뢰 순서까지 명시돼 있다.
+
+> 주의: 본 문서는 코드 스냅샷 기준 요약이다. 정확한 엔드포인트/스키마는 항상 `docs/api-endpoints/*.yaml`(자동 생성)을 우선 신뢰하고, 클래스/메서드 레벨은 실제 소스를 최종 확인한다.
+
+이 문서들에 graphify를 함께 돌리면 소스 코드와 문서가 같은 그래프 안의 노드가 된다(시맨틱 추출 Part B). 그 결과 서비스 하나의 문서만 봐서는 안 보이는 문서 간 연결이 하이퍼엣지로 잡혔다.
+
+- "Corp-Finance-Price sequential data collection pipeline" — `docs/architecture/stock-corp.md`, `docs/api-endpoints/stock-finance.yaml`, `docs/api-endpoints/stock-price.yaml` 세 파일을 하나의 파이프라인으로 묶었다(EXTRACTED, 신뢰도 0.90).
+- "Gateway JWT verification + header spoof removal + service routing pipeline" — `stock-gateway` 아키텍처 문서 안의 JWT 필터·보안 설정·라우팅 테이블 세 절을 하나의 흐름으로 묶었다(EXTRACTED, 신뢰도 1.00).
+
+`stock-corp` 문서를 고치는 사람이 `stock-finance`·`stock-price`의 API 명세까지 동시에 펼쳐두고 있을 가능성은 낮다. graphify는 이 문서들을 전부 하나의 그래프에 넣어두므로, 한 문서를 고칠 때 같이 봐야 할 다른 서비스 문서를 하이퍼엣지로 미리 알려준다.
+
+다만 전제가 하나 있다 — 그래프는 문서에 적힌 내용을 그대로 믿는다. `docs/architecture/*.md`가 실제 코드와 어긋나 있어도 graphify는 둘을 그대로 연결할 뿐 불일치를 잡아내지는 않는다. `docs/architecture/README.md`가 스스로 "API 명세와 소스가 우선"이라고 못 박아둔 이유이기도 하다 — graphify는 문서들 사이의 연결을 찾아줄 뿐, 문서 자체의 정확성까지 보장하지는 않는다.
 
 ## God Node로 읽을 순서를 정한다
 
@@ -142,7 +164,9 @@ Large corpus: 944 files · ~550,533 words. Semantic extraction will be expensive
 
 ## UserLoginLockRepositoryImpl: 놓친 건 호출 엣지 하나였다
 
-그래프에서 incoming edge가 0인 클래스 13개를 정리 후보로 뽑았다. 소스 전체를 grep으로 재검증한 결과 13개 모두 실제로 참조되고 있어 후보에서 전부 제외했는데, 그중 `UserLoginLockRepositoryImpl`만 유일하게 jacoco 커버리지 리포트 외에는 grep으로 어떤 소스 참조도 안 잡혔다. 그래프 신호를 곧바로 믿지 않고 grep으로 교차검증했기 때문에 걸러진 사례다.
+그래프에서 incoming edge가 0인 클래스 13개(`UserLoginLockRepositoryImpl` 포함)를 1차로 정리 후보로 뽑았다. grep으로 소스 전체를 훑어 13개 모두 어딘가에 텍스트로 등장한다는 걸 확인하고, 이 1차 스크리닝에서는 전부 후보에서 제외했다.
+
+이후 "저사용(실제 참조 1~2회)" 등급을 매기며 다시 grep했는데, 이번에는 자기 자신의 선언부와 jacoco 커버리지 리포트를 뺀 "진짜 소스 참조"만 셌다. 그 결과 `UserLoginLockRepositoryImpl`만 유일하게 진짜 소스 참조가 0건이었다 — 나머지 12개는 최소 1건씩 있었다. 그래프 신호(0 incoming edge)를 곧바로 믿지 않고 두 단계로 grep 교차검증을 했기 때문에 걸러진 사례다.
 
 `graph.json`을 직접 덤프해서 확인한 결과는 다음과 같았다.
 
@@ -168,13 +192,13 @@ public class UserLoginLockRepositoryImpl implements UserLoginLockRepository { ..
 
 `AuthService`는 `userRepository.recordFailedLogin(...)`을 호출하고, `userRepository`는 `UserRepository` 타입이다. 실제 실행 시점에는 Spring이 기동할 때 classpath 스캔으로 `UserLoginLockRepositoryImpl`을 찾아 그 프래그먼트의 구현체로 연결한다(`repositoryImplementationPostfix` 기본값 `Impl`). 소스 어디에도 `Impl` 클래스명이 명시적으로 등장하지 않는다.
 
-이 사례는 정확히 두 종류의 한계가 겹쳐서 헷갈리기 쉽다.
+이 사례에는 성격이 다른 것 세 가지가 섞여 있어 헷갈리기 쉽다 — 정확했던 부분 하나와, 원인이 다른 한계 두 가지다.
 
 1. **인터페이스·상속·구현 관계(정적 Java 문법)는 전부 정확히 잡혔다.** 그래프 자체는 틀리지 않았다.
 2. **그런데도 `recordFailedLogin` 호출 엣지 하나를 놓쳐서 Impl 노드가 고립되어 보였다.** 이건 필드 체이닝 호출 인식의 평범한 AST 한계다. 같은 코드베이스의 `SimulationEngine.calculateDailyReturn()` → `priceClient.getPriceByDate()` 호출 누락도 같은 유형이었다 — 다른 파일에서도 재현되는, 우연이 아닌 패턴이다.
 3. **설령 그 호출 엣지가 잡혔더라도**, `Impl`이 어떤 메커니즘으로 실행에 연결되는지(스프링의 프래그먼트 자동탐지)는 AST가 원천적으로 알 수 없는 영역이다. tree-sitter는 스프링의 프레임워크 시맨틱을 모른다.
 
-"스프링 어노테이션 기반 와이어링이라 그래프가 못 잡는다"로 뭉뚱그리면 부정확하다. 실제로 걸린 건 ②이고, ③은 별개로 항상 존재하는 구조적 한계다. `@Autowired`/`@Qualifier` 빈 주입, `@Scheduled`/`JobRegistry`가 이름 문자열로 잡을 배치 잡도 같은 이유(③)로 그래프에 나타나지 않는다.
+"스프링 어노테이션 기반 와이어링이라 그래프가 못 잡는다"로 뭉뚱그리면 부정확하다. 실제로 걸린 건 2번이고, 3번은 별개로 항상 존재하는 구조적 한계다. `@Autowired`/`@Qualifier` 빈 주입, `@Scheduled`/`JobRegistry`가 이름 문자열로 잡을 배치 잡도 같은 이유(3번)로 그래프에 나타나지 않는다.
 
 ## `--mode deep`으로 해결되지 않는다
 
@@ -195,7 +219,7 @@ public class UserLoginLockRepositoryImpl implements UserLoginLockRepository { ..
 | 노드 | 7,258 | 7,603 |
 | 엣지 | 28,466 | 29,038 |
 | 커뮤니티 | 291 | 313 |
-| output 토큰 | 1,511,688 | 1,061,817 |
+| output 토큰 | 1,511,688 | 확정 못 함(아래 참고) |
 | EXTRACTED / INFERRED / AMBIGUOUS | 미측정 | 25,973 / 3,059 / 6 |
 | INFERRED 비율(전체 엣지 중) | — | 10.53% |
 | INFERRED 평균 confidence | — | 0.8074 |
@@ -204,7 +228,10 @@ public class UserLoginLockRepositoryImpl implements UserLoginLockRepository { ..
 
 - **shallow 빌드 시점엔 EXTRACTED/INFERRED 분포를 따로 뽑아두지 않았다.** 그래프가 deep 결과로 덮어써진 뒤라 소급 계산이 불가능해서, "deep이 INFERRED 비율을 얼마나 늘렸는지"는 정량 비교를 할 수 없다.
 - **노드·엣지가 늘어난 것(+345 / +572)을 온전히 deep 모드 효과로 보기 어렵다.** 재추출 사이에 문서 1개가 코퍼스에 추가됐고, 이 증가분과 deep 모드의 "더 적극적인 INFERRED 생성" 효과가 섞여 있어 분리가 안 된다.
-- **토큰 비용이 줄어든 건(151만 → 106만) deep 모드가 더 저렴하다는 뜻이 아니다.** 이번엔 시맨틱 추출을 맡은 서브에이전트들이 우연히 더 간결하게 응답한 결과였다. "`--mode deep`이 비용을 줄인다"로 일반화할 근거는 없다.
+- **deep 빌드의 output 토큰 수치는 산출물마다 다르다.** `cost.json`에는 deep 런이 1,061,817로 기록돼 있는데, 같은 시각에 다시 쓰인 `GRAPH_REPORT.md`(내부 병합 버그를 고친 재실행 직후 생성)에는 1,411,817로 찍혀 있다. 둘 다 같은 `.graphify_extract.json`을 읽게 되어 있는데 값이 다르다는 건, 그 중간 파일이 재실행 사이에 바뀌었다는 뜻이다. 원인 파일은 정리 단계에서 지워져 지금은 재구성할 수 없다. 그래서 이 실행의 deep 토큰 비용은 "1,061,817과 1,411,817 중 하나"라고만 쓸 수 있다.
+- **input 토큰은 세 번의 실행 모두 0으로 찍혀 있는데, 이건 실측값이 아니다.** `GEMINI_API_KEY`가 없으면 시맨틱 추출을 호스트 에이전트(서브에이전트)가 대신 수행하는데, 이 경로에서는 graphify가 입력 토큰을 직접 셀 수 없다. 스킬 지침도 "청크 JSON에는 일단 0을 넣어두고, 호스트가 Agent 결과의 usage 필드를 읽어 나중에 되써넣으라"고 되어 있다 — 즉 이 토큰 수치들은 도구가 계측한 값이 아니라 호스트 에이전트가 수기로 기입한 값이다. 위에서 같은 런의 output 토큰이 두 가지로 갈린 것도 이 수기 기입 경로의 부작용으로 보인다.
+
+결국 이번 실행 전체(최초 빌드 + deep + 병합 버그 보정 재실행)에 걸쳐 `cost.json`이 누적한 output 토큰은 2,573,505다. 이 누적치는 근거가 있지만, "deep 모드만 얼마"처럼 쪼갠 숫자는 이번 실행에서는 신뢰할 수 없다.
 
 앞서 짚은 두 한계는 이 재추출로도 그대로였다.
 
@@ -229,7 +256,7 @@ public class UserLoginLockRepositoryImpl implements UserLoginLockRepository { ..
 
 graphify는 그래프를 버전관리에 포함시키는 걸 전제로 한 도구도 갖고 있다. `graphify merge-driver`는 여러 브랜치에서 각자 갱신한 `graph.json`의 충돌을 union-merge로 처리한다.
 
-다만 이건 확인된 사실이 아니라 판단이다 — stock-msa 기준 `graphify-out/` 전체가 68MB, `graph.json` 하나가 18MB다. 이 정도 크기의 JSON은 커밋할 때마다 통째로 바뀌어 diff가 의미 없고 레포 용량만 불린다. 개인 프로젝트 규모라면 `graphify-out/`을 `.gitignore`에 넣어 로컬·CI 캐시로만 쓰고, 사람이 읽는 `GRAPH_REPORT.md`(수십 KB 수준)만 리뷰 기록용으로 커밋하는 절충이 낫다고 본다. 여러 사람이 동시에 그래프를 갱신하며 공유해야 하는 팀 레포라면 merge-driver 활용이 의미가 있을 것이다.
+다만 이건 확인된 사실이 아니라 판단이다 — stock-msa 기준 `graphify-out/` 전체가 52MB, `graph.json` 하나가 19MB다. 이 정도 크기의 JSON은 커밋할 때마다 통째로 바뀌어 diff가 의미 없고 레포 용량만 불린다. 개인 프로젝트 규모라면 `graphify-out/`을 `.gitignore`에 넣어 로컬·CI 캐시로만 쓰고, 사람이 읽는 `GRAPH_REPORT.md`(수십 KB 수준)만 리뷰 기록용으로 커밋하는 절충이 낫다고 본다. 여러 사람이 동시에 그래프를 갱신하며 공유해야 하는 팀 레포라면 merge-driver 활용이 의미가 있을 것이다.
 
 ## 자동 갱신은 post-commit 훅에 맡길 수 있다
 
