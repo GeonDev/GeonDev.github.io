@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440">
+<rect width="1000" height="440" fill="#f8fafc"/>
+<style>
+text{font-family:Arial,sans-serif;fill:#0f172a}
+.title{font-size:26px;font-weight:700}
+.b{font-size:20px;font-weight:700}
+.s{font-size:14px;fill:#334155}
+.a{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#m)}
+</style>
+<defs>
+<marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0 10 5 0 10z" fill="#64748b"/>
+</marker>
+</defs>
+<text x="500" y="45" text-anchor="middle" class="title">graphify 파이프라인</text>
+
+<rect x="40" y="110" width="160" height="70" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+<text x="120" y="152" text-anchor="middle" class="b">파일 감지</text>
+
+<rect x="260" y="100" width="280" height="90" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="3"/>
+<text x="400" y="132" text-anchor="middle" class="b">구조·시맨틱 추출</text>
+<text x="400" y="154" text-anchor="middle" class="s">코드: AST (LLM 불필요)</text>
+<text x="400" y="174" text-anchor="middle" class="s">문서·이미지: LLM 서브에이전트, 병렬</text>
+
+<rect x="600" y="110" width="200" height="70" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="3"/>
+<text x="700" y="152" text-anchor="middle" class="b">그래프 병합·빌드</text>
+
+<path d="M200 145h60" class="a"/>
+<path d="M540 145h60" class="a"/>
+<path d="M700 180v50h-550v50" class="a"/>
+
+<rect x="40" y="300" width="220" height="70" rx="12" fill="#fee2e2" stroke="#dc2626" stroke-width="3"/>
+<text x="150" y="342" text-anchor="middle" class="b">커뮤니티 디텍션</text>
+
+<rect x="320" y="290" width="320" height="90" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="3"/>
+<text x="480" y="322" text-anchor="middle" class="b">분석</text>
+<text x="480" y="344" text-anchor="middle" class="s">God Node · Surprising Connection</text>
+<text x="480" y="364" text-anchor="middle" class="s">탐색 질문 생성</text>
+
+<rect x="700" y="300" width="260" height="70" rx="12" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>
+<text x="830" y="342" text-anchor="middle" class="b">리포트·시각화 출력</text>
+
+<path d="M260 335h60" class="a"/>
+<path d="M640 335h60" class="a"/>
+</svg>
