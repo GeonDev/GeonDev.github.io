@@ -326,8 +326,8 @@ public class RedisConfig {
 애플리케이션 코드를 두 환경에서 모두 실행하기 위한 분기다.
 
 `RedisTemplate`은 `@Cacheable` 동작에 필수는 아니다. Spring Cache 어노테이션은 `RedisCacheManager`를
-`RedisCacheManager`로 Redis를 사용한다. 여기서 `RedisTemplate`을 따로 둔 이유는 캐시 warm-up, 수동 key 삭제, hash/set/zset
-조작처럼 어노테이션으로 표현하기 어려운 Redis 작업에서도 같은 직렬화 정책을 쓰기 위해서다.
+통해 Redis를 사용한다. 여기서 `RedisTemplate`을 따로 둔 이유는 캐시 warm-up, 수동 key 삭제,
+hash/set/zset 조작처럼 어노테이션으로 표현하기 어려운 Redis 작업에서도 같은 직렬화 정책을 쓰기 위해서다.
 
 운영 cluster 설정에서 특히 신경 쓴 부분은 topology refresh다.
 
@@ -348,6 +348,38 @@ Redis Cluster에서는 slot 이동이나 node 장애/복구가 발생할 수 있
 운영 cluster 쪽의 `ReadFrom.REPLICA_PREFERRED`는 읽기 요청을 가능하면 replica로 보내 읽기 부하를
 분산하려는 설정이다.
 단, replica lag가 허용되지 않는 강한 정합성 데이터라면 master에서 읽는 전략을 별도로 검토해야 한다.
+
+**운영 Cluster에 단일 노드로 접속하면 안 되는 이유**
+
+운영 Redis가 Cluster라면 `RedisStandaloneConfiguration`으로 노드 하나에 직접 붙이면 안 된다. 연결은 되고
+일부 요청도 성공하기 때문에 설정 실수를 늦게 발견한다.
+
+Redis Cluster는 키 공간을 16384개의 hash slot으로 나누고, 각 master가 slot 일부를 나눠 맡는다.
+키의 slot은 `CRC16(key) mod 16384`로 정해진다. 접속한 노드가 해당 slot의 주인이 아니면 값을 돌려주지
+않고 담당 노드 주소를 응답한다.
+
+```
+GET prod::getCacheableArticle::1001
+(error) MOVED 12182 10.0.0.3:6379
+```
+
+Cluster 클라이언트(Lettuce의 `RedisClusterClient`, Spring의 `RedisClusterConfiguration`)는 이 응답을 받으면
+`maxRedirects` 한도 안에서 담당 노드로 다시 요청한다. 위 설정은 `MOVED_REDIRECT` trigger를 켰으므로
+topology도 함께 갱신한다. Standalone 클라이언트는 redirect를 따라가지 않으므로 `MOVED`가 그대로 예외로 올라온다. master가 3대라면 대략 1/3의 키만 성공하고 나머지는 실패한다.
+
+단일 노드 접속에서 생기는 문제는 다음과 같다.
+
+| 문제 | 원인 |
+| :--- | :--- |
+| 캐시 조회·저장이 키에 따라 실패 | 다른 노드 slot의 키는 `MOVED` 응답 |
+| 해당 노드 장애 시 전체 캐시 불가 | failover로 새 master가 승격돼도 클라이언트는 기존 노드만 앎 |
+| `@CacheEvict(allEntries = true)`가 일부만 삭제 | `KEYS`/`SCAN`이 접속한 노드의 키만 반환 |
+| 개발기에서 재현 안 되는 오류 | 개발기 standalone에는 slot 개념이 없어 `MOVED`, `CROSSSLOT`이 나오지 않음 |
+
+"노드 하나만 등록"과 "단일 노드로 접속"은 다르다. `RedisClusterConfiguration`에 노드를 하나만 넣어도
+Lettuce는 그 노드를 seed로 `CLUSTER NODES`를 조회해 전체 topology를 알아내고, 이후에는 slot별 담당 노드로
+요청을 보낸다. 다만 seed가 하나뿐이면 애플리케이션 기동 시점에 그 노드가 내려가 있을 때 topology를 가져오지
+못한다. 운영 설정에서 `host1`부터 `host6`까지 여러 노드를 등록한 이유가 이것이다.
 
 위 설정에서 핵심은 `RedisCacheManager`다. `@Cacheable(value = "cacheName")`으로 지정한
 캐시 이름이 `redis.cache.second`, `redis.cache.minutes.1`, `redis.cache.minutes.10` 중 어디에
