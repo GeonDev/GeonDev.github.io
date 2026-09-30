@@ -349,14 +349,14 @@ Redis Cluster에서는 slot 이동이나 node 장애/복구가 발생할 수 있
 분산하려는 설정이다.
 단, replica lag가 허용되지 않는 강한 정합성 데이터라면 master에서 읽는 전략을 별도로 검토해야 한다.
 
-**운영 Cluster에 단일 노드로 접속하면 안 되는 이유**
+**운영 Redis Cluster에 standalone으로 연결할 때 생기는 문제**
 
 운영 Redis가 Cluster라면 `RedisStandaloneConfiguration`으로 노드 하나에 직접 붙이면 안 된다. 연결은 되고
 일부 요청도 성공하기 때문에 설정 실수를 늦게 발견한다.
 
 Redis Cluster는 키 공간을 16384개의 hash slot으로 나누고, 각 master가 slot 일부를 나눠 맡는다.
 키의 slot은 `CRC16(key) mod 16384`로 정해진다. 접속한 노드가 해당 slot의 주인이 아니면 값을 돌려주지
-않고 담당 노드 주소를 응답한다.
+않고 담당 노드 주소를 응답한다. 아래는 응답 형식을 보여주는 예시이며 slot 번호와 주소는 임의 값이다.
 
 ```
 GET prod::getCacheableArticle::1001
@@ -365,7 +365,8 @@ GET prod::getCacheableArticle::1001
 
 Cluster 클라이언트(Lettuce의 `RedisClusterClient`, Spring의 `RedisClusterConfiguration`)는 이 응답을 받으면
 `maxRedirects` 한도 안에서 담당 노드로 다시 요청한다. 위 설정은 `MOVED_REDIRECT` trigger를 켰으므로
-topology도 함께 갱신한다. Standalone 클라이언트는 redirect를 따라가지 않으므로 `MOVED`가 그대로 예외로 올라온다. master가 3대라면 대략 1/3의 키만 성공하고 나머지는 실패한다.
+topology도 함께 갱신한다. Standalone 클라이언트는 redirect를 따라가지 않으므로 `MOVED`가 그대로 예외로
+올라온다. master 3대에 slot이 균등하게 나뉘어 있다면 접속한 노드가 맡은 약 1/3의 키만 성공한다.
 
 단일 노드 접속에서 생기는 문제는 다음과 같다.
 
