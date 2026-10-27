@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470" role="img" aria-labelledby="title desc">
+  <title id="title">조인 출발 테이블에 따른 UPDLOCK 잠금 범위</title>
+  <desc id="desc">변경 전에는 인덱스가 없는 voucher를 훑으며 여러 사용자의 행에 UPDLOCK을 요청하고, 변경 후에는 payment의 구독번호 인덱스와 voucher PK로 seek해 해당 구독의 행에만 UPDLOCK을 건다</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+    <style>
+      .label{font:600 18px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#0f172a}
+      .small{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#334155}
+      .row{font:14px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#334155}
+      .panel{fill:#f8fafc;stroke:#94a3b8;stroke-width:2}
+      .box{fill:#ffffff;stroke:#94a3b8;stroke-width:2}
+      .locked{fill:#fef2f2;stroke:#dc2626;stroke-width:2}
+      .target{fill:#ecfdf5;stroke:#059669;stroke-width:2}
+      .line{fill:none;stroke:#475569;stroke-width:2.5;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="960" height="470" fill="#ffffff"/>
+
+  <!-- 변경 전 -->
+  <rect class="panel" x="25" y="25" width="440" height="420" rx="16"/>
+  <text class="label" x="50" y="60">변경 전: voucher에서 출발</text>
+  <text class="small" x="50" y="86">goods_id, used 인덱스 없음 → voucher 스캔</text>
+
+  <rect class="box" x="50" y="110" width="190" height="300" rx="10"/>
+  <text class="label" x="145" y="138" text-anchor="middle">voucher</text>
+  <rect class="locked" x="65" y="155" width="160" height="38" rx="6"/>
+  <text class="row" x="145" y="179" text-anchor="middle">사용자 A 행  U</text>
+  <rect class="locked" x="65" y="203" width="160" height="38" rx="6"/>
+  <text class="row" x="145" y="227" text-anchor="middle">사용자 B 행  U</text>
+  <rect class="locked" x="65" y="251" width="160" height="38" rx="6"/>
+  <text class="row" x="145" y="275" text-anchor="middle">사용자 C 행  U</text>
+  <rect class="locked" x="65" y="299" width="160" height="38" rx="6"/>
+  <text class="row" x="145" y="323" text-anchor="middle">대상 행  U</text>
+  <text class="small" x="145" y="385" text-anchor="middle">읽는 행마다 U 락 요청</text>
+
+  <rect class="box" x="290" y="200" width="150" height="80" rx="10"/>
+  <text class="label" x="365" y="235" text-anchor="middle">payment</text>
+  <text class="small" x="365" y="260" text-anchor="middle">member_id 필터</text>
+  <path class="line" d="M240,240 L285,240"/>
+
+  <!-- 변경 후 -->
+  <rect class="panel" x="495" y="25" width="440" height="420" rx="16"/>
+  <text class="label" x="520" y="60">변경 후: payment에서 출발</text>
+  <text class="small" x="520" y="86">구독번호 인덱스 seek → voucher PK seek</text>
+
+  <rect class="box" x="520" y="200" width="150" height="80" rx="10"/>
+  <text class="label" x="595" y="235" text-anchor="middle">payment</text>
+  <text class="small" x="595" y="260" text-anchor="middle">sub_seq seek</text>
+
+  <rect class="box" x="720" y="110" width="190" height="300" rx="10"/>
+  <text class="label" x="815" y="138" text-anchor="middle">voucher</text>
+  <rect class="box" x="735" y="155" width="160" height="38" rx="6"/>
+  <text class="row" x="815" y="179" text-anchor="middle">사용자 A 행</text>
+  <rect class="box" x="735" y="203" width="160" height="38" rx="6"/>
+  <text class="row" x="815" y="227" text-anchor="middle">사용자 B 행</text>
+  <rect class="box" x="735" y="251" width="160" height="38" rx="6"/>
+  <text class="row" x="815" y="275" text-anchor="middle">사용자 C 행</text>
+  <rect class="target" x="735" y="299" width="160" height="38" rx="6"/>
+  <text class="row" x="815" y="323" text-anchor="middle">대상 행  U</text>
+  <text class="small" x="815" y="385" text-anchor="middle">order_no로 찾은 행만 U 락</text>
+  <path class="line" d="M670,240 C700,240 700,318 730,318"/>
+</svg>
